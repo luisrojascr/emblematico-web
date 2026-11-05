@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 
-import { Footer } from "@/components/site/Footer";
-import { Header } from "@/components/site/Header";
-import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 import { SITE } from "@/lib/site";
 
 import "./globals.css";
@@ -41,14 +38,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="es-CR" className={`${inter.variable} ${fraunces.variable}`}>
-      <body className="flex min-h-dvh flex-col">
-        <Header />
-        <main id="contenido" className="flex-1">
-          {children}
-        </main>
-        <Footer />
-        <WhatsAppButton />
-      </body>
+      <body className="flex min-h-dvh flex-col">{children}</body>
     </html>
   );
 }

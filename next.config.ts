@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
-  partialPrefetching: true,
+  // Off on purpose: with it on, the first hit to an uncached /negocio/{slug} streams from
+  // an App Shell, so unknown slugs return 200 and old QR slugs get a meta-refresh instead
+  // of a real 308/404. Off, the first render completes before headers are sent.
+  partialPrefetching: false,
   turbopack: {
     rules: {
       "*.css": {

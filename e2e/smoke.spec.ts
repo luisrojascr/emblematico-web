@@ -46,9 +46,8 @@ test("contact form validates required fields", async ({ page }) => {
 });
 
 test("unknown product shows the Spanish not-found page", async ({ page }) => {
-  // With Cache Components the shell may already be streaming, so the HTTP status
-  // can be 200; the page is still rendered as not-found with a noindex robots tag.
-  await page.goto("/productos/welcome-station/no-existe");
+  const response = await page.goto("/productos/welcome-station/no-existe");
+  expect(response?.status()).toBe(404);
   await expect(
     page.getByRole("heading", { name: "No encontramos esta página" }),
   ).toBeVisible();
@@ -56,4 +55,33 @@ test("unknown product shows the Spanish not-found page", async ({ page }) => {
     "content",
     /noindex/,
   );
+});
+
+test("public business page renders its template without site chrome", async ({
+  page,
+}) => {
+  // Requires the dev seed (pnpm seed:dev): Casa Brisa, hospitality, published.
+  const response = await page.goto("/negocio/casa-brisa");
+  expect(response?.status()).toBe(200);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Casa Brisa" }),
+  ).toBeVisible();
+  await expect(page.getByText("CasaBrisa_Guest")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Escribir al anfitrión" }),
+  ).toHaveAttribute("href", /^https:\/\/wa\.me\/50688997060/);
+  // Private by default and no emblemático header/footer around client pages.
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    /noindex/,
+  );
+  await expect(page.getByRole("link", { name: "Productos" })).toHaveCount(0);
+});
+
+test("unpublished or unknown business slug returns 404", async ({ page }) => {
+  const response = await page.goto("/negocio/no-existe-este-negocio");
+  expect(response?.status()).toBe(404);
+  await expect(
+    page.getByRole("heading", { name: "Esta página no está disponible" }),
+  ).toBeVisible();
 });
