@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
       const target = profile?.role === "admin" ? "/admin" : "/panel";
       return NextResponse.redirect(new URL(target, origin));
     }
+    return NextResponse.redirect(new URL("/ingresar?error=enlace", origin));
   }
 
-  return NextResponse.redirect(new URL("/ingresar?error=enlace", origin));
+  // Invite links arrive as a URL fragment, which the server never sees.
+  // A rewrite keeps that fragment on /auth/callback while the page reads it.
+  return NextResponse.rewrite(new URL("/auth/confirmar", request.url));
 }
