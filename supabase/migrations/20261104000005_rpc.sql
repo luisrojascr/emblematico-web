@@ -142,12 +142,12 @@ $$;
 -- ---------------------------------------------------------------------------
 create function public.submit_quote_request(
   p_name text,
-  p_ip_hash text,
-  p_phone text default null,
-  p_email text default null,
-  p_business_type text default null,
-  p_product_id uuid default null,
-  p_message text default null
+  p_phone text,
+  p_email text,
+  p_business_type text,
+  p_product_id uuid,
+  p_message text,
+  p_ip_hash text
 )
 returns uuid
 language plpgsql
