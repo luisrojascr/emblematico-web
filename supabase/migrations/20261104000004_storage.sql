@@ -40,6 +40,14 @@ create policy business_media_insert on storage.objects
   for insert to authenticated
   with check (bucket_id = 'business-media' and public.storage_can_write(name));
 
+-- Storage API replace (upsert/update) and delete first look the object up, so
+-- they need SELECT on the row. Scoped to the same rows the caller may write;
+-- public downloads do not depend on this (the bucket is public) and anon gets
+-- no listing access.
+create policy business_media_select on storage.objects
+  for select to authenticated
+  using (bucket_id = 'business-media' and public.storage_can_write(name));
+
 create policy business_media_update on storage.objects
   for update to authenticated
   using (bucket_id = 'business-media' and public.storage_can_write(name))

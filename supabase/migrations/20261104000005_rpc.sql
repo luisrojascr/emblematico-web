@@ -135,8 +135,10 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- submit_quote_request(): anon allowed. Validates + rate limits.
--- ip_hash is supplied by the server action (hashed with a secret salt).
+-- submit_quote_request(): TRUSTED SERVER ONLY (service_role). NOT callable by anon
+-- or authenticated: the rate-limit identity (p_ip_hash) is computed by the server
+-- action from the real client IP + a secret salt, so browsers cannot spoof,
+-- omit, or rotate it to bypass limits or exhaust the shared quota.
 -- ---------------------------------------------------------------------------
 create function public.submit_quote_request(
   p_name text,
@@ -162,7 +164,12 @@ begin
     raise exception 'phone or email required' using errcode = '22023';
   end if;
 
-  if p_ip_hash is not null and (
+  -- Identity is mandatory: lowercase SHA-256 hex produced by the server action.
+  if p_ip_hash is null or p_ip_hash !~ '^[0-9a-f]{64}$' then
+    raise exception 'invalid rate-limit identity' using errcode = '22023';
+  end if;
+
+  if (
     select count(*) from public.quote_requests
     where ip_hash = p_ip_hash and created_at > now() - interval '1 hour'
   ) >= 5 then
@@ -200,7 +207,8 @@ grant execute on function public.storage_can_write(text) to authenticated;
 grant execute on function public.get_public_page(text) to anon, authenticated;
 grant execute on function public.publish_page(uuid) to authenticated;
 grant execute on function public.create_business(text, text, text, public.template_key, jsonb) to authenticated;
-grant execute on function public.submit_quote_request(text, text, text, text, uuid, text, text) to anon, authenticated;
+-- submit_quote_request: no grant to anon/authenticated on purpose (service_role only,
+-- via the blanket service_role grant below).
 
 -- service_role bypasses RLS but still needs plain privileges (server-only key).
 grant all on all tables in schema public to service_role;

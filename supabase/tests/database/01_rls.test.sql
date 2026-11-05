@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(36);
+select plan(35);
 
 -- Fixtures -------------------------------------------------------------------
 insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -73,9 +73,8 @@ select pg_temp.act_as_anon();
 select throws_like($$select count(*) from public.businesses$$, '%permission denied%', 'anon cannot read businesses table');
 select is((public.get_public_page('rls-casa-brisa') -> 'content' ->> 'name'), 'Casa Brisa 2', 'anon sees published content via RPC');
 select is(public.get_public_page('rls-cafe-luna'), null, 'unpublished page is not public');
-select lives_ok($$select public.submit_quote_request('Ana', '+50688887777', null, 'hotel', null, 'Hola', 'hash-1')$$, 'anon can submit a quote through the RPC');
+select throws_like($$select public.submit_quote_request('Ana', '+50688887777', null, 'hotel', null, 'Hola', repeat('a', 64))$$, '%permission denied%', 'anon cannot call submit_quote_request');
 select throws_like($$insert into public.quote_requests (name) values ('direct')$$, '%permission denied%', 'anon cannot insert quotes directly');
-select throws_like($$select public.submit_quote_request('Ana', null, null, null, null, null, 'hash-1')$$, '%phone or email%', 'quote requires phone or email');
 reset role;
 
 -- Slug change keeps old URL alive ---------------------------------------------------

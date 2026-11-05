@@ -45,15 +45,32 @@ export async function requireAdmin(): Promise<SessionUser> {
   return user;
 }
 
-/** Only same-origin relative paths; blocks open redirects like //evil.com. */
+const DEFAULT_NEXT_PATH = "/panel";
+// Placeholder origin used only to resolve and compare; never used to redirect.
+const RESOLVE_BASE = "https://app.invalid";
+
+/**
+ * Returns a same-origin path (pathname + search + hash) or "/panel".
+ *
+ * The input is resolved with the WHATWG URL parser, the same one that
+ * NextResponse.redirect(new URL(...)) uses, so inputs the parser rewrites
+ * (e.g. "/\t/evil.com", "/\n/evil.com", "/\\evil.com") are judged by what they
+ * actually resolve to. The returned value is the normalized URL, not the raw input.
+ */
 export function safeNextPath(next: string | null | undefined): string {
-  if (
-    !next ||
-    !next.startsWith("/") ||
-    next.startsWith("//") ||
-    next.includes("\\")
-  ) {
-    return "/panel";
+  if (!next || !next.startsWith("/")) return DEFAULT_NEXT_PATH;
+
+  let resolved: URL;
+  try {
+    resolved = new URL(next, RESOLVE_BASE);
+  } catch {
+    return DEFAULT_NEXT_PATH;
   }
-  return next;
+
+  if (resolved.origin !== RESOLVE_BASE) return DEFAULT_NEXT_PATH;
+
+  const path = `${resolved.pathname}${resolved.search}${resolved.hash}`;
+  // Normalized output must itself be a single-slash absolute path.
+  if (!path.startsWith("/") || path.startsWith("//")) return DEFAULT_NEXT_PATH;
+  return path;
 }
