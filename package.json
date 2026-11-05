@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
     "brand": "node scripts/prepare-brand.mjs ..",
-    "seed:dev": "node --env-file=.env.local scripts/seed-dev-users.mjs"
+    "seed:dev": "node --env-file=.env.local scripts/seed-dev-users.mjs",
+    "images": "node scripts/prepare-images.mjs ../Images"
   },
   "dependencies": {
     "@hookform/resolvers": "^7.0.2",

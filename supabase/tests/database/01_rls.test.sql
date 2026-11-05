@@ -73,7 +73,7 @@ select pg_temp.act_as_anon();
 select throws_like($$select count(*) from public.businesses$$, '%permission denied%', 'anon cannot read businesses table');
 select is((public.get_public_page('rls-casa-brisa') -> 'content' ->> 'name'), 'Casa Brisa 2', 'anon sees published content via RPC');
 select is(public.get_public_page('rls-cafe-luna'), null, 'unpublished page is not public');
-select throws_like($$select public.submit_quote_request('Ana', '+50688887777', null, 'hotel', null, 'Hola', repeat('a', 64))$$, '%permission denied%', 'anon cannot call submit_quote_request');
+select throws_like($$select public.submit_quote_request(p_name => 'Ana', p_phone => '+50688887777', p_email => null, p_business_type => 'hotel', p_product_id => null, p_message => 'Hola', p_ip_hash => repeat('a', 64))$$, '%permission denied%', 'anon cannot call submit_quote_request');
 select throws_like($$insert into public.quote_requests (name) values ('direct')$$, '%permission denied%', 'anon cannot insert quotes directly');
 reset role;
 

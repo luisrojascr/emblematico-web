@@ -410,13 +410,13 @@ export type Database = {
       storage_can_write: { Args: { p_name: string }; Returns: boolean };
       submit_quote_request: {
         Args: {
-          p_business_type: string;
-          p_email: string;
+          p_business_type?: string;
+          p_email?: string;
           p_ip_hash: string;
-          p_message: string;
+          p_message?: string;
           p_name: string;
-          p_phone: string;
-          p_product_id: string;
+          p_phone?: string;
+          p_product_id?: string;
         };
         Returns: string;
       };
