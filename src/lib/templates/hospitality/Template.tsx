@@ -37,7 +37,9 @@ export function HospitalityTemplate({
                 <dt className="text-ink-soft text-xs tracking-wide uppercase">
                   Red
                 </dt>
-                <dd className="text-lg font-medium">{c.wifi.network}</dd>
+                <dd className="text-lg font-medium whitespace-pre-wrap">
+                  {c.wifi.network}
+                </dd>
               </div>
             ) : null}
             {c.wifi.password ? (
@@ -45,7 +47,7 @@ export function HospitalityTemplate({
                 <dt className="text-ink-soft text-xs tracking-wide uppercase">
                   Contraseña
                 </dt>
-                <dd className="font-mono text-lg break-all select-all">
+                <dd className="font-mono text-lg break-all whitespace-pre-wrap select-all">
                   {c.wifi.password}
                 </dd>
               </div>

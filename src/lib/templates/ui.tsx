@@ -10,15 +10,29 @@ import type { themeSchema } from "./common";
 
 type Theme = z.infer<typeof themeSchema>;
 
-/** Pick ink or white text for legibility on the client's accent color (WCAG luminance). */
-export function readableOn(hex: string): "#1F1F1F" | "#FFFFFF" {
+const INK = "#1F1F1F";
+const WHITE = "#FFFFFF";
+
+/** WCAG relative luminance of a #RRGGBB color. */
+function relativeLuminance(hex: string): number {
   const channel = (i: number) => {
     const v = parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16) / 255;
-    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
   };
-  const luminance =
-    0.2126 * channel(0) + 0.7152 * channel(1) + 0.0722 * channel(2);
-  return luminance > 0.4 ? "#1F1F1F" : "#FFFFFF";
+  return 0.2126 * channel(0) + 0.7152 * channel(1) + 0.0722 * channel(2);
+}
+
+/** WCAG contrast ratio between two #RRGGBB colors (1 to 21). */
+export function contrastRatio(a: string, b: string): number {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort(
+    (x, y) => y - x,
+  );
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** Pick whichever of ink or white has the higher contrast ratio on the accent color. */
+export function readableOn(hex: string): typeof INK | typeof WHITE {
+  return contrastRatio(hex, INK) >= contrastRatio(hex, WHITE) ? INK : WHITE;
 }
 
 function isLocalUrl(url: string): boolean {

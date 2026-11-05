@@ -11,7 +11,7 @@ import {
 import { generalContentSchema } from "./general/schema";
 import { hospitalityContentSchema } from "./hospitality/schema";
 import { defaultContent, parsePageContent } from "./registry";
-import { readableOn } from "./ui";
+import { contrastRatio, readableOn } from "./ui";
 
 describe("httpsUrl", () => {
   it.each(["https://example.com", "https://maps.google.com/?q=a b", ""])(
@@ -74,6 +74,19 @@ describe("theme helpers", () => {
     expect(readableOn("#1F1F1F")).toBe("#FFFFFF");
     expect(readableOn("#F6EFE6")).toBe("#1F1F1F");
   });
+  it("chooses the higher-contrast text color for mid-tones", () => {
+    expect(contrastRatio("#888888", "#FFFFFF")).toBeCloseTo(3.54, 1);
+    expect(contrastRatio("#888888", "#1F1F1F")).toBeCloseTo(4.65, 1);
+    expect(readableOn("#888888")).toBe("#1F1F1F");
+    expect(readableOn("#C9AC87")).toBe("#1F1F1F");
+    for (const hex of ["#777777", "#666666", "#0000FF", "#FF0000", "#00AA00"]) {
+      const chosen = readableOn(hex);
+      const other = chosen === "#1F1F1F" ? "#FFFFFF" : "#1F1F1F";
+      expect(contrastRatio(hex, chosen)).toBeGreaterThanOrEqual(
+        contrastRatio(hex, other),
+      );
+    }
+  });
 });
 
 describe("hospitality schema", () => {
@@ -112,6 +125,22 @@ describe("hospitality schema", () => {
       },
     });
     expect(result.success).toBe(false);
+  });
+
+  it("keeps Wi-Fi credentials exactly as typed, including edge spaces", () => {
+    const c = hospitalityContentSchema.parse({
+      wifi: {
+        enabled: true,
+        network: " Casa Brisa ",
+        password: "  pass word  ",
+      },
+    });
+    expect(c.wifi.network).toBe(" Casa Brisa ");
+    expect(c.wifi.password).toBe("  pass word  ");
+    expect(
+      hospitalityContentSchema.safeParse({ wifi: { password: "a".repeat(81) } })
+        .success,
+    ).toBe(false);
   });
 
   it("rejects an unknown schema version", () => {

@@ -7,6 +7,10 @@ export const SCHEMA_VERSION = 1;
 export const text = (max: number) =>
   z.string().trim().max(max, `Máximo ${max} caracteres`);
 
+/** Plain text kept exactly as typed (no trim). For credentials where spaces matter. */
+export const verbatimText = (max: number) =>
+  z.string().max(max, `Máximo ${max} caracteres`);
+
 /** Trimmed text that must not be empty. */
 export const requiredText = (max: number) =>
   text(max).min(1, "Este campo es obligatorio");

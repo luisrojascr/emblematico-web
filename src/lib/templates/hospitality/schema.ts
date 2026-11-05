@@ -6,6 +6,7 @@ import {
   requiredText,
   section,
   text,
+  verbatimText,
   themeSchema,
   whatsappSection,
 } from "../common";
@@ -19,8 +20,8 @@ export const hospitalityContentSchema = z.object({
     message: text(800).default(""),
   }).default({ enabled: false, title: "Bienvenido", message: "" }),
   wifi: section({
-    network: text(60).default(""),
-    password: text(80).default(""),
+    network: verbatimText(60).default(""),
+    password: verbatimText(80).default(""),
     notes: text(200).default(""),
   }).default({ enabled: false, network: "", password: "", notes: "" }),
   stay: section({
