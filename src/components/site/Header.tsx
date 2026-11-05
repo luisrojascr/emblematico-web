@@ -12,7 +12,7 @@ const NAV = [
 export function Header() {
   return (
     <header className="border-cream-dark bg-cream/90 sticky top-0 z-40 border-b backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
         <Link href="/" aria-label="emblemático, inicio">
           <Image
             src="/brand/logo-gold.png"
@@ -23,7 +23,7 @@ export function Header() {
             className="h-8 w-auto"
           />
         </Link>
-        <nav aria-label="Principal" className="hidden gap-8 text-sm md:flex">
+        <nav aria-label="Principal" className="hidden gap-8 text-sm lg:flex">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -43,7 +43,7 @@ export function Header() {
       </div>
       <nav
         aria-label="Principal móvil"
-        className="border-cream-dark flex gap-5 overflow-x-auto border-t px-4 py-2 text-sm md:hidden"
+        className="border-cream-dark flex gap-5 overflow-x-auto border-t px-4 py-2 text-sm lg:hidden"
       >
         {NAV.map((item) => (
           <Link
