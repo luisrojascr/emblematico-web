@@ -220,7 +220,7 @@ async function loadPage(businessId: string) {
   if (error || !data) return { supabase, business: null };
   const { data: page } = await supabase
     .from("pages")
-    .select("template_key, status, draft_content")
+    .select("template_key, status, draft_content, updated_at")
     .eq("business_id", data.id)
     .maybeSingle();
   return { supabase, business: { ...data, page } };
@@ -244,6 +244,7 @@ export async function publishBusiness(formData: FormData): Promise<void> {
 
   const { error } = await supabase.rpc("publish_page", {
     p_business_id: business.id,
+    p_expected_updated_at: business.page.updated_at,
   });
   if (error) {
     console.error("publish_page failed", error.code, error.message);

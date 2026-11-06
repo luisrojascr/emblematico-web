@@ -406,7 +406,10 @@ export type Database = {
       get_public_page: { Args: { p_slug: string }; Returns: Json };
       is_admin: { Args: never; Returns: boolean };
       is_member: { Args: { p_business_id: string }; Returns: boolean };
-      publish_page: { Args: { p_business_id: string }; Returns: string };
+      publish_page: {
+        Args: { p_business_id: string; p_expected_updated_at: string };
+        Returns: Json;
+      };
       storage_can_write: { Args: { p_name: string }; Returns: boolean };
       submit_quote_request: {
         Args: {

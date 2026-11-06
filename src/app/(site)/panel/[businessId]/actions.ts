@@ -161,7 +161,26 @@ function publishMessage(error: { message: string }): string {
   ) {
     return "No tienes permiso para publicar esta página.";
   }
+  if (message.includes("draft changed")) {
+    return "El borrador cambió en otra pestaña. Vuelve a publicarlo.";
+  }
   return "No pudimos publicar la página.";
+}
+
+function publishSnapshot(data: unknown): {
+  previous: unknown;
+  published: unknown;
+} | null {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  if (!("published_content" in data)) return null;
+  const record = data as {
+    previous_content?: unknown;
+    published_content: unknown;
+  };
+  return {
+    previous: record.previous_content,
+    published: record.published_content,
+  };
 }
 
 export async function publishDraft(
@@ -192,29 +211,42 @@ export async function publishDraft(
   }
 
   const supabase = await createClient();
-  const { data: stored, error: storedError } = await supabase
-    .from("pages")
-    .select("published_content")
-    .eq("business_id", businessId)
-    .maybeSingle();
-  const { error } = await supabase.rpc("publish_page", {
+  const { data, error } = await supabase.rpc("publish_page", {
     p_business_id: businessId,
+    p_expected_updated_at: current.updatedAt,
   });
   if (error) {
     console.error("publish failed", error.message);
     return { ok: false, message: publishMessage(error) };
   }
 
-  if (storedError) {
-    console.error("published image lookup failed", storedError.message);
+  // The RPC copies the locked draft and returns that pair. Cleanup uses
+  // those two versions, then keeps any path a later save already stored.
+  const snapshot = publishSnapshot(data);
+  if (!snapshot) {
+    console.error("publish returned no snapshot");
   } else {
-    // publish_page copies the draft over the published page, so a logo or
-    // cover that only the previous published version used can go now.
-    const released = imagesToRelease(
-      themeImagePaths(stored?.published_content),
-      themeImagePaths(parsed.page.content),
-    );
-    for (const path of released) await removeStoredImage(supabase, path);
+    const { data: fresh, error: freshError } = await supabase
+      .from("pages")
+      .select("draft_content, published_content")
+      .eq("business_id", businessId)
+      .maybeSingle();
+    if (freshError || !fresh) {
+      console.error(
+        "published image lookup failed",
+        freshError?.message ?? "missing page",
+      );
+    } else {
+      const released = imagesToRelease(
+        themeImagePaths(snapshot.previous),
+        [
+          ...themeImagePaths(snapshot.published),
+          ...themeImagePaths(fresh.draft_content),
+          ...themeImagePaths(fresh.published_content),
+        ],
+      );
+      for (const path of released) await removeStoredImage(supabase, path);
+    }
   }
 
   await revalidateBusiness(supabase, businessId);
