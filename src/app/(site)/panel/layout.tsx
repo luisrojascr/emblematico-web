@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -16,7 +17,12 @@ async function PanelGate({ children }: { children: React.ReactNode }) {
       <div className="border-cream-dark border-b bg-white/50">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2 text-sm sm:px-6">
           <span className="text-ink-soft">{user.email}</span>
-          <SignOutButton />
+          <span className="flex items-center gap-4">
+            <Link href="/panel" className="hover:text-ink">
+              Mis negocios
+            </Link>
+            <SignOutButton />
+          </span>
         </div>
       </div>
       {children}
