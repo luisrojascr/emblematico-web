@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  experimental: {
+    serverActions: {
+      // Catalog images may be 5 MB. This limit is the raw multipart body,
+      // so it also covers boundaries and the other form fields.
+      bodySizeLimit: "6mb",
+    },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

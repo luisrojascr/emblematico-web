@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/ingresar?error=enlace", origin));
   }
 
-  // Invite links arrive as a URL fragment, which the server never sees.
-  // A rewrite keeps that fragment on /auth/callback while the page reads it.
-  return NextResponse.rewrite(new URL("/auth/confirmar", request.url));
+  // Reached only if the proxy did not rewrite this request. A Location
+  // without a fragment keeps the invite tokens from the original URL.
+  return NextResponse.redirect(new URL("/auth/confirmar", origin));
 }
