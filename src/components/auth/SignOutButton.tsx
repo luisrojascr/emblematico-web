@@ -1,10 +1,11 @@
-export function SignOutButton() {
+export function SignOutButton({
+  className = "text-ink-soft hover:text-ink",
+}: {
+  className?: string;
+}) {
   return (
     <form action="/auth/signout" method="post">
-      <button
-        type="submit"
-        className="text-ink-soft hover:text-ink text-sm underline"
-      >
+      <button type="submit" className={`text-sm underline ${className}`}>
         Cerrar sesión
       </button>
     </form>

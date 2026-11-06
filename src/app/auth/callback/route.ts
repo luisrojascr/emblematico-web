@@ -28,7 +28,10 @@ export async function GET(request: NextRequest) {
       const target = profile?.role === "admin" ? "/admin" : "/panel";
       return NextResponse.redirect(new URL(target, origin));
     }
+    return NextResponse.redirect(new URL("/ingresar?error=enlace", origin));
   }
 
-  return NextResponse.redirect(new URL("/ingresar?error=enlace", origin));
+  // Reached only if the proxy did not rewrite this request. A Location
+  // without a fragment keeps the invite tokens from the original URL.
+  return NextResponse.redirect(new URL("/auth/confirmar", origin));
 }

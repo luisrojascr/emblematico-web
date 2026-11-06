@@ -78,6 +78,12 @@ test("public business page renders its template without site chrome", async ({
   await expect(page.getByRole("link", { name: "Productos" })).toHaveCount(0);
 });
 
+test("admin requires sign-in", async ({ page }) => {
+  await page.goto("/admin");
+  await expect(page).toHaveURL(/\/ingresar/);
+  await expect(page.getByRole("heading", { name: "Ingresar" })).toBeVisible();
+});
+
 test("unpublished or unknown business slug returns 404", async ({ page }) => {
   const response = await page.goto("/negocio/no-existe-este-negocio");
   expect(response?.status()).toBe(404);
