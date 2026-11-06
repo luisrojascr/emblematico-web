@@ -12,6 +12,40 @@ function assertNever(value: never): never {
   throw new Error(`Unhandled template key: ${String(value)}`);
 }
 
+/** Logo and cover paths stored on a page, ignoring blanks. */
+export function themeImagePaths(raw: unknown): string[] {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return [];
+  const theme = (raw as { theme?: unknown }).theme;
+  if (!theme || typeof theme !== "object" || Array.isArray(theme)) return [];
+  const record = theme as { logo_path?: unknown; cover_path?: unknown };
+  const paths: string[] = [];
+  for (const value of [record.logo_path, record.cover_path]) {
+    if (typeof value === "string" && value !== "" && !paths.includes(value)) {
+      paths.push(value);
+    }
+  }
+  return paths;
+}
+
+/**
+ * Images that were in use and are absent from every version that should keep
+ * them. A path still used by the draft or the published page is retained.
+ */
+export function imagesToRelease(
+  candidates: readonly (string | null | undefined)[],
+  retained: readonly (string | null | undefined)[],
+): string[] {
+  const keep = new Set(
+    retained.filter((path): path is string => Boolean(path)),
+  );
+  const released: string[] = [];
+  for (const path of candidates) {
+    if (!path || keep.has(path) || released.includes(path)) continue;
+    released.push(path);
+  }
+  return released;
+}
+
 /** A stored image may only point at this business's folder. */
 export function ownsMediaPath(
   businessId: string,

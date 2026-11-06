@@ -47,7 +47,7 @@ export async function uploadBusinessImage(
   return { path };
 }
 
-/** Best-effort cleanup when a logo or cover is replaced. */
+/** Best-effort cleanup of an image neither page version still uses. */
 export async function removeStoredImage(
   supabase: Client,
   path: string | null | undefined,

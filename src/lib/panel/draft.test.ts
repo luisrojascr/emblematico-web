@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { defaultContent } from "@/lib/templates/registry";
 
-import { businessImagePath, draftForBusiness, ownsMediaPath } from "./draft";
+import {
+  businessImagePath,
+  draftForBusiness,
+  imagesToRelease,
+  ownsMediaPath,
+  themeImagePaths,
+} from "./draft";
 
 const BUSINESS = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
@@ -25,6 +31,25 @@ describe("ownsMediaPath", () => {
         "products/33333333-3333-4333-8333-333333333333.webp",
       ),
     ).toBe(false);
+  });
+});
+
+describe("imagesToRelease", () => {
+  const published = `${BUSINESS}/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa.jpg`;
+  const replacement = `${BUSINESS}/bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb.png`;
+
+  it("reads the logo and cover stored on a page", () => {
+    expect(
+      themeImagePaths({ theme: { logo_path: published, cover_path: "" } }),
+    ).toEqual([published]);
+  });
+
+  it("keeps an image the published page still shows", () => {
+    expect(imagesToRelease([published], [replacement, published])).toEqual([]);
+  });
+
+  it("releases an image neither version uses", () => {
+    expect(imagesToRelease([published], [replacement])).toEqual([published]);
   });
 });
 

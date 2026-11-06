@@ -16,10 +16,13 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     serverActions: {
-      // Catalog images may be 5 MB. This limit is the raw multipart body,
-      // so it also covers boundaries and the other form fields.
-      bodySizeLimit: "6mb",
+      // One catalog image is 5 MB. The panel can send a logo and a cover
+      // together, so the raw multipart body must fit both plus the form JSON.
+      bodySizeLimit: "12mb",
     },
+    // Panel and admin posts pass through the proxy. Its default 10 MB buffer
+    // would cut the body off before the action limit above sees it.
+    proxyClientMaxBodySize: "12mb",
   },
   images: {
     formats: ["image/avif", "image/webp"],

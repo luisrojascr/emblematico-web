@@ -9,7 +9,11 @@ import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import type { PageContent } from "@/lib/templates/registry";
 
-import { draftForBusiness } from "@/lib/panel/draft";
+import {
+  draftForBusiness,
+  imagesToRelease,
+  themeImagePaths,
+} from "@/lib/panel/draft";
 import { loadPanelPage } from "@/lib/panel/load";
 import { removeStoredImage, uploadBusinessImage } from "@/lib/panel/media";
 
@@ -118,15 +122,24 @@ export async function saveDraft(
     return { ok: false, message: "No pudimos guardar el borrador." };
   }
 
-  if (logo && previousLogo && previousLogo !== logo.path) {
-    await removeStoredImage(supabase, previousLogo);
-  } else if (!page.content.theme.logo_path && previousLogo) {
-    await removeStoredImage(supabase, previousLogo);
-  }
-  if (cover && previousCover && previousCover !== cover.path) {
-    await removeStoredImage(supabase, previousCover);
-  } else if (!page.content.theme.cover_path && previousCover) {
-    await removeStoredImage(supabase, previousCover);
+  const { data: stored, error: storedError } = await supabase
+    .from("pages")
+    .select("published_content")
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (storedError) {
+    console.error("published image lookup failed", storedError.message);
+  } else {
+    // The live page keeps its copy until publish. Drop a file only when the
+    // new draft and the published page have both stopped pointing at it.
+    const released = imagesToRelease(
+      [previousLogo, previousCover],
+      [
+        ...themeImagePaths(page.content),
+        ...themeImagePaths(stored?.published_content),
+      ],
+    );
+    for (const path of released) await removeStoredImage(supabase, path);
   }
 
   revalidatePath(`/panel/${businessId}`);
@@ -179,12 +192,29 @@ export async function publishDraft(
   }
 
   const supabase = await createClient();
+  const { data: stored, error: storedError } = await supabase
+    .from("pages")
+    .select("published_content")
+    .eq("business_id", businessId)
+    .maybeSingle();
   const { error } = await supabase.rpc("publish_page", {
     p_business_id: businessId,
   });
   if (error) {
     console.error("publish failed", error.message);
     return { ok: false, message: publishMessage(error) };
+  }
+
+  if (storedError) {
+    console.error("published image lookup failed", storedError.message);
+  } else {
+    // publish_page copies the draft over the published page, so a logo or
+    // cover that only the previous published version used can go now.
+    const released = imagesToRelease(
+      themeImagePaths(stored?.published_content),
+      themeImagePaths(parsed.page.content),
+    );
+    for (const path of released) await removeStoredImage(supabase, path);
   }
 
   await revalidateBusiness(supabase, businessId);
