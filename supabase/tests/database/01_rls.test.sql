@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(35);
+select plan(38);
 
 -- Fixtures -------------------------------------------------------------------
 insert into auth.users (id, instance_id, aud, role, email, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -58,7 +58,7 @@ select throws_like($$select public.create_business('Evil', 'evil-biz', 'x', 'gen
 
 -- Cross-tenant write attempt is silently filtered by RLS
 select lives_ok($$update public.pages set draft_content = '{"hacked":true}' where business_id = (select id from public.businesses where slug = 'rls-cafe-luna')$$, 'cross-tenant update runs (filtered)');
-select throws_like($$select public.publish_page((select id from public.businesses where slug = 'rls-cafe-luna'))$$, '%not allowed%', 'client A cannot publish business B');
+select throws_like($$select public.publish_page((select id from public.businesses where slug = 'rls-cafe-luna'), now())$$, '%not allowed%', 'client A cannot publish business B');
 reset role;
 
 select is((select slug || ':' || status::text from public.businesses where slug like 'rls-casa-brisa%'), 'rls-casa-brisa:active', 'client could not change slug or status');
@@ -66,8 +66,21 @@ select is((select draft_content ->> 'hacked' from public.pages p join public.bus
 
 -- Publish flow --------------------------------------------------------------------
 select pg_temp.act_as('00000000-0000-0000-0000-0000000000c1');
-select lives_ok($$select public.publish_page((select id from public.businesses where slug = 'rls-casa-brisa'))$$, 'client A can publish own page');
+select is(
+  (
+    select public.publish_page(
+      (select id from public.businesses where slug = 'rls-casa-brisa'),
+      (select updated_at from public.pages where business_id = (select id from public.businesses where slug = 'rls-casa-brisa'))
+    ) -> 'published_content' ->> 'name'
+  ),
+  'Casa Brisa 2',
+  'publish returns the draft it copied'
+);
+select lives_ok($$update public.pages set draft_content = '{"schema_version":1,"name":"Version A"}' where business_id = (select id from public.businesses where slug = 'rls-casa-brisa')$$, 'client saves a newer draft');
+select throws_like($$select public.publish_page((select id from public.businesses where slug = 'rls-casa-brisa'), '-infinity')$$, '%draft changed%', 'stale version does not publish');
 reset role;
+
+select is((select published_content ->> 'name' from public.pages p join public.businesses b on b.id = p.business_id where b.slug = 'rls-casa-brisa'), 'Casa Brisa 2', 'stale publish left the live page unchanged');
 
 select pg_temp.act_as_anon();
 select throws_like($$select count(*) from public.businesses$$, '%permission denied%', 'anon cannot read businesses table');
