@@ -40,6 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# storage copies from scripts/backup-storage.mjs
+/backups/
+
 # playwright
 /test-results/
 /playwright-report/

@@ -102,7 +102,8 @@ export default async function ProductPage({
                       : `${product.name}, imagen ${index + 1}`
                   }
                   fill
-                  priority={index === 0}
+                  fetchPriority={index === 0 ? "high" : "auto"}
+                  loading={index === 0 ? "eager" : "lazy"}
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-cover"
                 />

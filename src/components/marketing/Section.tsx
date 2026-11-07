@@ -29,7 +29,9 @@ export function Section({
         {(eyebrow || title || description) && (
           <header className="mb-10 max-w-2xl space-y-3">
             {eyebrow && (
-              <p className="text-sand-dark text-xs font-medium tracking-[0.2em] uppercase">
+              <p
+                className={`text-xs font-medium tracking-[0.2em] uppercase ${tone === "ink" ? "text-sand" : "text-sand-dark"}`}
+              >
                 {eyebrow}
               </p>
             )}

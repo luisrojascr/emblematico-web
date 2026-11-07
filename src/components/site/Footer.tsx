@@ -11,8 +11,8 @@ export function Footer() {
           <Image
             src="/brand/logo-cream.png"
             alt="emblemático"
-            width={1853}
-            height={379}
+            width={156}
+            height={32}
             className="h-8 w-auto"
           />
           <p className="text-cream/70 max-w-xs text-sm">{SITE.tagline}</p>

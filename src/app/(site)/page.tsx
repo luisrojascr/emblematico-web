@@ -68,7 +68,8 @@ export default function HomePage() {
               src="/images/overview.webp"
               alt="Welcome Station, placas de servicios y kit de hospedaje personalizados con código QR"
               fill
-              priority
+              fetchPriority="high"
+              loading="eager"
               sizes="(min-width: 1024px) 50vw, 100vw"
               className="object-cover"
             />
