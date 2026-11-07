@@ -43,7 +43,7 @@ Las rutas importan: están guardadas en el contenido de las páginas (`logo_path
 node --env-file=.env.backup scripts/backup-storage.mjs restore backups/storage-AAAA-MM-DD
 ```
 
-La restauración no sobrescribe: omite los archivos que ya existen.
+La restauración omite una ruta solo cuando ese objeto se descarga con contenido. Si la base recuperada conserva la ficha en `storage.objects` y los bytes ya no están, la descarga falla y el script vuelve a subir esa ruta desde la copia.
 
 ### Restaurar la base de datos
 
