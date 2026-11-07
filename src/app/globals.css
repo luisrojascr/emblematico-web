@@ -5,9 +5,9 @@
   --color-sand: #c9ac87;
   --color-cream: #f6efe6;
 
-  /* Derived tones for text/borders on cream and ink backgrounds */
+  /* Derived tones. sand-dark is dark enough for small text on cream and white. */
   --color-ink-soft: #4a4640;
-  --color-sand-dark: #8f7650;
+  --color-sand-dark: #7a6240;
   --color-cream-dark: #e9dfd1;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;

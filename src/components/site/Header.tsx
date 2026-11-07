@@ -17,9 +17,9 @@ export function Header() {
           <Image
             src="/brand/logo-gold.png"
             alt="emblemático"
-            width={1818}
-            height={372}
-            priority
+            width={156}
+            height={32}
+            loading="eager"
             className="h-8 w-auto"
           />
         </Link>

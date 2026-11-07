@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+import { securityHeaders, storageImageConfig } from "./src/lib/http/security";
+
+const images = storageImageConfig(process.env.NEXT_PUBLIC_SUPABASE_URL);
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   // Off on purpose: with it on, the first hit to an uncached /negocio/{slug} streams from
@@ -26,14 +30,22 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
-    remotePatterns: [
-      // Hosted Supabase Storage (client logos, product images uploaded from /admin).
+    remotePatterns: images.remotePatterns,
+    // Local Supabase is a private address. Allow it only when that is the
+    // configured project, so hosted deploys do not fetch LAN images.
+    dangerouslyAllowLocalIP: images.dangerouslyAllowLocalIP,
+  },
+  async headers() {
+    return [
       {
-        protocol: "https",
-        hostname: "*.supabase.co",
-        pathname: "/storage/v1/object/public/**",
+        source: "/(.*)",
+        headers: securityHeaders({
+          supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+          siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
+          development: process.env.NODE_ENV !== "production",
+        }),
       },
-    ],
+    ];
   },
 };
 

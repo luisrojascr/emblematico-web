@@ -35,10 +35,6 @@ export function readableOn(hex: string): typeof INK | typeof WHITE {
   return contrastRatio(hex, INK) >= contrastRatio(hex, WHITE) ? INK : WHITE;
 }
 
-function isLocalUrl(url: string): boolean {
-  return /^https?:\/\/(localhost|127\.0\.0\.1)/.test(url);
-}
-
 export function MediaImage({
   path,
   alt,
@@ -52,15 +48,14 @@ export function MediaImage({
   sizes: string;
   priority?: boolean;
 }) {
-  const src = mediaUrl(path);
   return (
     <Image
-      src={src}
+      src={mediaUrl(path)}
       alt={alt}
       fill
       sizes={sizes}
-      priority={priority}
-      unoptimized={isLocalUrl(src)}
+      fetchPriority={priority ? "high" : "auto"}
+      loading={priority ? "eager" : "lazy"}
       className={className}
     />
   );
