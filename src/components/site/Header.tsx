@@ -10,15 +10,16 @@ const linkClass = navLinkClass;
 export function Header() {
   return (
     <header className="border-cream-dark bg-cream/90 sticky top-0 z-40 border-b backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-12">
-        <Link href="/" aria-label="emblemático, inicio" className="shrink-0">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:gap-6 sm:px-6 lg:px-12">
+        <Link href="/" aria-label="emblemático, inicio" className="min-w-0 shrink">
           <Image
-            src="/brand/logo-black.png"
+            src="/brand/emblematico-logo.svg"
             alt="emblemático"
             width={156}
-            height={32}
+            height={21}
             loading="eager"
-            className="h-8 w-auto"
+            unoptimized
+            className="h-6 w-auto max-w-full min-[400px]:h-7 sm:h-10"
           />
         </Link>
         <nav

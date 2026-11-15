@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 type Variant = "primary" | "outline" | "bronze";
 
 const STYLES: Record<Variant, string> = {
-  primary: "bg-ink text-cream hover:bg-ink-soft",
+  primary: "bg-sand text-ink hover:bg-sand-hover",
   outline:
     "border border-ink/30 bg-white text-ink hover:border-ink hover:bg-cream-dark",
   bronze: "bg-sand text-ink hover:bg-cream",

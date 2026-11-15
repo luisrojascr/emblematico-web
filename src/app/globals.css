@@ -1,14 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink: #1f1f1f;
-  --color-sand: #c9ac87;
-  --color-cream: #f6efe6;
+  /* Marca (v5): carbón, verde azulado, aqua, dorado y crema. */
+  --color-ink: #35352d; /* carbón: texto y fondos oscuros */
+  --color-sand: #d4a862; /* dorado: botones de acción y línea del menú */
+  --color-cream: #fff8ee; /* crema: fondo principal */
 
-  /* Derived tones. sand-dark is dark enough for small text on cream and white. */
-  --color-ink-soft: #4a4640;
-  --color-sand-dark: #7a6240;
-  --color-cream-dark: #e9dfd1;
+  --color-teal: #4f7f83; /* verde azulado: hojas del ícono, fondos (no para texto chico) */
+  --color-teal-deep: #3d6a6e; /* verde profundo: texto y enlaces (5.7:1 sobre crema) */
+  --color-aqua: #6fc9d0; /* aqua: solo detalles e íconos */
+  --color-sand-hover: #c29a52; /* hover del dorado */
+
+  /* Derived tones. */
+  --color-ink-soft: #55554c;
+  /* Nombre histórico: ahora es el verde profundo (texto/enlaces/acentos legibles). */
+  --color-sand-dark: var(--color-teal-deep);
+  --color-cream-dark: #f0e6d4;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
@@ -44,13 +51,20 @@ h3 {
 }
 
 /*
- * Las páginas de marketing (SiteShell) usan Playfair Display y Plus Jakarta Sans.
+ * Las páginas de marketing (SiteShell) usan Quicksand (títulos) y Nunito (texto).
  * Las rutas de invitados, el panel y el admin se quedan con Inter y Fraunces.
  */
 .marketing-fonts {
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-quicksand), ui-sans-serif, system-ui, sans-serif;
   font-family: var(--font-sans);
+}
+
+@layer base {
+  /* Quicksand se ve muy fina en peso normal: los títulos de marketing van en semibold. */
+  .marketing-fonts :is(h1, h2, h3) {
+    font-weight: 600;
+  }
 }
 
 .app-fonts {

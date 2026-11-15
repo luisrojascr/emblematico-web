@@ -23,8 +23,8 @@ export function Hero() {
             />
             Hospitality · Costa Rica
           </p>
-          <h1 className="text-4xl leading-tight font-normal sm:text-5xl lg:text-[3.4rem] lg:leading-[1.15]">
-            Una mejor bienvenida. <span className="italic">Menos trabajo</span>{" "}
+          <h1 className="text-4xl leading-tight font-semibold sm:text-5xl lg:text-[3.4rem] lg:leading-[1.15]">
+            Una mejor bienvenida. <span className="text-sand-dark">Menos trabajo</span>{" "}
             para tu propiedad.
           </h1>
           <p className="text-ink-soft max-w-xl text-lg leading-relaxed">
