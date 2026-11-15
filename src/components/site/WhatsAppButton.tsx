@@ -4,12 +4,12 @@ export function WhatsAppButton() {
   return (
     <a
       href={whatsappLink(
-        "Hola, me gustaría cotizar un producto de emblemático.",
+        "Hola, me gustaría una propuesta de emblemático para mi alojamiento.",
       )}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Cotizar por WhatsApp"
-      className="bg-ink text-cream hover:bg-sand-dark fixed right-4 bottom-4 z-50 flex items-center gap-2 rounded-full px-4 py-3 text-sm font-medium shadow-lg transition-colors"
+      className="bg-sand text-ink hover:bg-sand-dark hover:text-cream fixed right-4 bottom-4 z-50 flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold shadow-lg transition-colors"
     >
       <svg
         aria-hidden="true"

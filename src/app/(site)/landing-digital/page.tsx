@@ -1,89 +1,45 @@
 import type { Metadata } from "next";
 
 import { CtaBanner } from "@/components/marketing/CtaBanner";
+import { Faq } from "@/components/marketing/Faq";
+import { FeatureGrid } from "@/components/marketing/FeatureGrid";
 import { Section } from "@/components/marketing/Section";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import { SITE } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Landing digital",
+  title: "Guía digital para huéspedes y panel editable",
   description:
-    "Una página móvil con tu marca conectada a tu QR. Actualizas la información cuando quieras y el QR nunca cambia.",
+    "Manual digital para casas vacacionales y alojamientos: Wi-Fi, reglas, recomendaciones y servicios en español, inglés y francés, con un panel que editas tú.",
   alternates: { canonical: "/landing-digital" },
 };
 
 const BENEFITS = [
   {
-    title: "Un QR permanente",
-    text: "Tu código QR apunta siempre a la misma dirección. Si cambias el contenido, o incluso el nombre de tu negocio, lo impreso sigue funcionando.",
+    title: "Un QR que no cambia",
+    text: "El código QR de tu pieza apunta siempre a la misma dirección. Actualizas el contenido y lo impreso sigue funcionando.",
   },
   {
-    title: "Hecha para el celular",
-    text: "Diseño móvil, rápido y claro. Tus huéspedes y clientes encuentran lo importante en segundos, sin descargar nada.",
+    title: "Sin app que instalar",
+    text: "Tus huéspedes escanean y la guía se abre en el navegador del celular, pensada para leerse rápido.",
   },
   {
     title: "La editas tú",
-    text: "Desde un panel con formularios simples cambias textos, fotos, horarios y enlaces. Revisas una vista previa y publicas cuando estés listo.",
+    text: "Desde un panel con formularios simples cambias textos, horarios, recomendaciones y enlaces. Revisas una vista previa y publicas.",
   },
   {
-    title: "Con tu identidad",
-    text: "Tu logo, tus colores y tu información sobre una plantilla probada, sin tener que construir un sitio web desde cero.",
+    title: "Con la identidad de tu propiedad",
+    text: "Tu nombre, tu logo y tus colores sobre una plantilla probada para alojamientos.",
   },
 ] as const;
 
-const TEMPLATES = [
-  {
-    name: "Hospedaje",
-    sections: [
-      "Nombre y logo de la propiedad",
-      "Mensaje de bienvenida",
-      "Información del Wi-Fi",
-      "Check-in y check-out",
-      "Reglas de la casa",
-      "Amenidades e instrucciones",
-      "Contacto por WhatsApp",
-      "Recomendaciones y enlaces útiles",
-    ],
-  },
-  {
-    name: "Negocio general",
-    sections: [
-      "Nombre y logo del negocio",
-      "Descripción",
-      "Ubicación y horarios",
-      "Contacto por WhatsApp",
-      "Enlace a reseñas de Google",
-      "Instagram y otras redes",
-      "Menú, catálogo o sitio web",
-      "Botón de acción principal",
-    ],
-  },
-] as const;
-
-const FAQ = [
-  {
-    q: "¿Necesito saber de tecnología?",
-    a: "No. Editas con formularios simples, sin tocar código. Si prefieres, nosotros dejamos todo listo por ti.",
-  },
-  {
-    q: "¿Qué pasa si cambio algo de mi negocio?",
-    a: "Actualizas la información en tu panel y publicas. El QR impreso sigue llevando a tu página, ahora con los datos nuevos.",
-  },
-  {
-    q: "¿Todas las secciones son obligatorias?",
-    a: "No. Activas solo las secciones que necesitas y ocultas las demás.",
-  },
-  {
-    q: "¿Cuánto cuesta?",
-    a: "Depende de los productos y del servicio de hospedaje de tu página. Escríbenos y te preparamos una cotización.",
-  },
-] as const;
-
-export default function DigitalLandingPage() {
+export default function DigitalGuidePage() {
   return (
     <>
       <Section
-        eyebrow="Landing digital"
-        title="La parte digital de tus productos con QR"
-        description="Cada producto con QR de emblemático puede conectarse a una página móvil con tu marca. Es el puente entre tu espacio físico y la información que tus visitantes necesitan."
+        eyebrow="La solución"
+        title="La guía digital para tus huéspedes"
+        description="Una página móvil con la información que tus huéspedes buscan, conectada a una pieza de bienvenida personalizada impresa en 3D. Es un manual digital de bienvenida para tu casa vacacional, cabina o alojamiento."
         tone="white"
       >
         <div className="grid gap-8 sm:grid-cols-2">
@@ -94,48 +50,36 @@ export default function DigitalLandingPage() {
             </div>
           ))}
         </div>
-      </Section>
-
-      <Section
-        eyebrow="Plantillas"
-        title="Dos plantillas, listas para usar"
-        description="Cada una incluye las secciones que más se necesitan. Tú decides cuáles mostrar."
-      >
-        <div className="grid gap-6 md:grid-cols-2">
-          {TEMPLATES.map((t) => (
-            <div
-              key={t.name}
-              className="border-cream-dark rounded-2xl border bg-white p-6"
-            >
-              <h3 className="mb-4 text-2xl">{t.name}</h3>
-              <ul className="text-ink-soft space-y-2">
-                {t.sections.map((s) => (
-                  <li key={s}>✓ {s}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="mt-10 flex flex-wrap gap-3">
+          <ButtonLink href={SITE.demoPath}>Ver demo</ButtonLink>
         </div>
       </Section>
 
       <Section
+        eyebrow="Qué incluye"
+        title="Seis módulos para tu guía"
+        description="Activas solo los que necesitas. Evita publicar claves de acceso o datos sensibles en una página abierta a quien tenga el QR."
+      >
+        <FeatureGrid />
+      </Section>
+
+      <Section
+        eyebrow="Panel del anfitrión"
+        title="Edita tu guía cuando quieras"
+        description="Ingresas a tu panel, cambias la información, revisas la vista previa y publicas. Sin reimprimir y sin cambiar el código QR."
+        tone="white"
+      />
+
+      <Section
         eyebrow="Preguntas frecuentes"
         title="Lo que suelen preguntarnos"
-        tone="white"
       >
-        <dl className="grid gap-8 md:grid-cols-2">
-          {FAQ.map((item) => (
-            <div key={item.q} className="space-y-2">
-              <dt className="font-serif text-xl">{item.q}</dt>
-              <dd className="text-ink-soft">{item.a}</dd>
-            </div>
-          ))}
-        </dl>
+        <Faq />
       </Section>
 
       <CtaBanner
-        title="¿Quieres una landing para tu negocio?"
-        whatsappMessage="Hola, me interesa una landing digital con QR de emblemático para mi negocio."
+        title="¿Quieres una guía digital para tu propiedad?"
+        whatsappMessage="Hola, me interesa una guía digital de emblemático para mi alojamiento."
       />
     </>
   );

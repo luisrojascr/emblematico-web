@@ -8,9 +8,9 @@ type Props = {
 };
 
 export function CtaBanner({
-  title = "Hablemos de tu negocio",
-  description = "Cuéntanos qué necesitas y te preparamos una cotización a la medida.",
-  whatsappMessage = "Hola, me gustaría cotizar productos de emblemático para mi negocio.",
+  title = "Hablemos de tu alojamiento",
+  description = "Cuéntanos sobre tu propiedad y te preparamos una propuesta a la medida.",
+  whatsappMessage = "Hola, me gustaría una propuesta de emblemático para mi alojamiento.",
 }: Props) {
   return (
     <section className="bg-ink text-cream">
@@ -24,7 +24,7 @@ export function CtaBanner({
             variant="light"
             href={whatsappLink(whatsappMessage)}
           >
-            Cotizar por WhatsApp
+            Escribir por WhatsApp
           </ExternalButtonLink>
           <ButtonLink
             href="/contacto"

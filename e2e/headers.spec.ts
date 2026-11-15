@@ -12,3 +12,25 @@ test("responses send security headers and a CSP", async ({ page }) => {
   expect(csp).toContain("frame-ancestors 'none'");
   expect(csp).toContain("object-src 'none'");
 });
+
+test("only the demo guide can be framed, and /demo can frame the live one", async ({
+  request,
+}) => {
+  const guide = await request.get("/negocio/casa-nebora");
+  expect(guide.headers()["x-frame-options"]).toBeUndefined();
+  expect(guide.headers()["content-security-policy"]).toContain(
+    "frame-ancestors 'self' https://www.emblematicocr.com",
+  );
+
+  const client = await request.get("/negocio/casa-brisa");
+  expect(client.headers()["x-frame-options"]).toBe("DENY");
+  expect(client.headers()["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
+
+  const demo = await request.get("/demo");
+  expect(demo.headers()["x-frame-options"]).toBe("DENY");
+  expect(demo.headers()["content-security-policy"]).toContain(
+    "frame-src 'self' https://www.emblematicocr.com",
+  );
+});

@@ -23,7 +23,7 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
           <AdminNav />
         </div>
       </div>
-      {children}
+      <div className="app-fonts">{children}</div>
     </>
   );
 }

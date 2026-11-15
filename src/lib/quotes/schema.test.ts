@@ -1,65 +1,89 @@
 import { describe, expect, it } from "vitest";
 
-import { quoteRequestSchema } from "./schema";
+import { composeQuoteMessage, quoteRequestSchema } from "./schema";
 
-const base = {
+const valid = {
   name: "Ana",
-  phone: "",
-  email: "",
-  businessType: "",
-  productSlug: "",
+  accommodation: "Casa Brisa",
+  area: "Guanacaste",
+  accommodationType: "Airbnb o anfitrión independiente",
+  size: "2 propiedades",
+  phone: "8899 7060",
   message: "",
+  productSlug: "",
+  plan: "",
+  pieces: "",
 };
 
 describe("quoteRequestSchema", () => {
-  it("accepts a name with a phone", () => {
-    const r = quoteRequestSchema.safeParse({ ...base, phone: "8899 7060" });
+  it("accepts a complete request without an optional message", () => {
+    const r = quoteRequestSchema.safeParse(valid);
     expect(r.success).toBe(true);
-    if (r.success) {
-      expect(r.data.email).toBeUndefined();
-      expect(r.data.message).toBeUndefined();
-    }
+    if (r.success) expect(r.data.message).toBeUndefined();
   });
 
-  it("accepts a name with an email", () => {
+  it.each(["name", "accommodation", "size", "phone"] as const)(
+    "requires %s",
+    (field) => {
+      expect(
+        quoteRequestSchema.safeParse({ ...valid, [field]: "  " }).success,
+      ).toBe(false);
+    },
+  );
+
+  it("rejects unknown areas and accommodation types", () => {
     expect(
-      quoteRequestSchema.safeParse({ ...base, email: "ana@example.com" })
+      quoteRequestSchema.safeParse({ ...valid, area: "Marte" }).success,
+    ).toBe(false);
+    expect(
+      quoteRequestSchema.safeParse({ ...valid, accommodationType: "hacker" })
         .success,
-    ).toBe(true);
-  });
-
-  it("requires phone or email", () => {
-    const r = quoteRequestSchema.safeParse(base);
-    expect(r.success).toBe(false);
-    if (!r.success) expect(r.error.issues[0].path).toEqual(["phone"]);
-  });
-
-  it("requires a name", () => {
-    expect(
-      quoteRequestSchema.safeParse({ ...base, name: "  ", phone: "1" }).success,
-    ).toBe(false);
-  });
-
-  it("rejects invalid emails and unknown business types", () => {
-    expect(
-      quoteRequestSchema.safeParse({ ...base, email: "nope" }).success,
-    ).toBe(false);
-    expect(
-      quoteRequestSchema.safeParse({
-        ...base,
-        phone: "1",
-        businessType: "hacker",
-      }).success,
     ).toBe(false);
   });
 
   it("limits message length", () => {
     expect(
-      quoteRequestSchema.safeParse({
-        ...base,
-        phone: "1",
-        message: "x".repeat(2001),
-      }).success,
+      quoteRequestSchema.safeParse({ ...valid, message: "x".repeat(1201) })
+        .success,
     ).toBe(false);
+  });
+
+  it("accepts a known plan and a number of welcome pieces", () => {
+    const r = quoteRequestSchema.parse({
+      ...valid,
+      plan: "managers",
+      pieces: "12",
+    });
+    expect(r.plan).toBe("managers");
+    expect(r.pieces).toBe(12);
+    const text = composeQuoteMessage(r);
+    expect(text).toContain("Plan: Plan para administradores");
+    expect(text).toContain("Piezas de bienvenida 3D: 12");
+  });
+
+  it("treats an empty plan as undecided and rejects unknown plans", () => {
+    const r = quoteRequestSchema.parse(valid);
+    expect(r.plan).toBeUndefined();
+    expect(r.pieces).toBe(0);
+    expect(composeQuoteMessage(r)).toContain("Plan: Aún no lo sé");
+    expect(
+      quoteRequestSchema.safeParse({ ...valid, plan: "gold" }).success,
+    ).toBe(false);
+  });
+
+  it("rejects invalid piece quantities", () => {
+    for (const pieces of ["-1", "2.5", "abc", "1000"]) {
+      expect(quoteRequestSchema.safeParse({ ...valid, pieces }).success).toBe(
+        false,
+      );
+    }
+  });
+
+  it("composes extra fields into the message and stays under 2000 chars", () => {
+    const r = quoteRequestSchema.parse({ ...valid, message: "x".repeat(1200) });
+    const text = composeQuoteMessage(r);
+    expect(text).toContain("Alojamiento: Casa Brisa");
+    expect(text).toContain("Zona: Guanacaste");
+    expect(text.length).toBeLessThanOrEqual(2000);
   });
 });
