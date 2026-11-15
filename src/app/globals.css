@@ -42,3 +42,19 @@ h3 {
     scroll-behavior: auto;
   }
 }
+
+/*
+ * Las páginas de marketing (SiteShell) usan Playfair Display y Plus Jakarta Sans.
+ * Las rutas de invitados, el panel y el admin se quedan con Inter y Fraunces.
+ */
+.marketing-fonts {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  font-family: var(--font-sans);
+}
+
+.app-fonts {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  font-family: var(--font-sans);
+}

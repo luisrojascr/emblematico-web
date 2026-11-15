@@ -1,24 +1,50 @@
 import { expect, test } from "@playwright/test";
 
-test("home renders brand tagline in Spanish", async ({ page }) => {
+test("home renders hospitality headline in Spanish", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "es-CR");
   await expect(
     page.getByRole("heading", {
-      name: "Diseño y soluciones que distinguen tu negocio.",
+      name: "Una mejor bienvenida. Menos trabajo para tu propiedad.",
     }),
   ).toBeVisible();
+});
+
+test("home lists the Hospitality Free plan", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Hospitality Free").first()).toBeVisible();
+});
+
+test("demo page shows the live guide on desktop and a direct link on mobile", async ({
+  page,
+  isMobile,
+}) => {
+  await page.goto("/demo");
+  await expect(
+    page.getByRole("heading", { level: 1, name: /Casa Nébora/ }),
+  ).toBeVisible();
+  if (isMobile) {
+    await expect(
+      page.getByRole("link", { name: "Abrir la guía de ejemplo" }),
+    ).toHaveAttribute(
+      "href",
+      "https://www.emblematicocr.com/negocio/casa-nebora",
+    );
+    await expect(page.locator("iframe")).toHaveCount(0);
+  } else {
+    await expect(
+      page.locator('iframe[title="Guía de ejemplo de Casa Nébora"]'),
+    ).toHaveAttribute(
+      "src",
+      "https://www.emblematicocr.com/negocio/casa-nebora",
+    );
+  }
 });
 
 test("visitor can browse from catalog to a product and see a WhatsApp quote link", async ({
   page,
 }) => {
   await page.goto("/productos");
-  await page
-    .getByRole("link", { name: /Welcome Station/ })
-    .first()
-    .click();
-  await expect(page).toHaveURL(/\/productos\/welcome-station$/);
   await page.getByRole("link", { name: /Welcome Station clásica/ }).click();
   await expect(page).toHaveURL(
     /\/productos\/welcome-station\/welcome-station-clasica$/,
@@ -38,11 +64,11 @@ test("visitor can browse from catalog to a product and see a WhatsApp quote link
 
 test("contact form validates required fields", async ({ page }) => {
   await page.goto("/contacto");
-  await page.getByRole("button", { name: "Enviar solicitud" }).click();
+  await page
+    .getByRole("button", { name: "Solicitar demo o propuesta" })
+    .click();
   await expect(page.getByText("Ingresa tu nombre")).toBeVisible();
-  await expect(
-    page.getByText("Déjanos un teléfono o un correo para contactarte"),
-  ).toBeVisible();
+  await expect(page.getByText("Ingresa tu número de WhatsApp")).toBeVisible();
 });
 
 test("unknown product shows the Spanish not-found page", async ({ page }) => {
@@ -90,4 +116,24 @@ test("unpublished or unknown business slug returns 404", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Esta página no está disponible" }),
   ).toBeVisible();
+});
+
+test("the menu marks the page being viewed", async ({ page, isMobile }) => {
+  const nav = page.getByRole("navigation", {
+    name: isMobile ? "Principal móvil" : "Principal",
+    exact: true,
+  });
+  await page.goto("/productos/welcome-station/welcome-station-clasica");
+  await expect(nav.getByRole("link", { name: "Productos" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(nav.getByRole("link", { name: "Inicio" })).not.toHaveAttribute(
+    "aria-current",
+  );
+  await page.goto("/demo");
+  await expect(nav.getByRole("link", { name: "Ver demo" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
 });

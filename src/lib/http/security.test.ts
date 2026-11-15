@@ -73,6 +73,31 @@ describe("securityHeaders", () => {
     );
   });
 
+  it("allows framing only by the listed origins", () => {
+    const strict = securityHeaders({});
+    const framed = securityHeaders({
+      frameAncestors: ["'self'", "https://www.emblematicocr.com"],
+    });
+    expect(directive(csp(strict), "frame-ancestors")).toBe("'none'");
+    expect(strict.find((h) => h.key === "X-Frame-Options")?.value).toBe("DENY");
+    expect(directive(csp(framed), "frame-ancestors")).toBe(
+      "'self' https://www.emblematicocr.com",
+    );
+    expect(framed.some((h) => h.key === "X-Frame-Options")).toBe(false);
+  });
+
+  it("lets a page embed only its own origin plus the listed ones", () => {
+    expect(directive(csp(securityHeaders({})), "frame-src")).toBe("'self'");
+    expect(
+      directive(
+        csp(
+          securityHeaders({ frameSources: ["https://www.emblematicocr.com"] }),
+        ),
+        "frame-src",
+      ),
+    ).toBe("'self' https://www.emblematicocr.com");
+  });
+
   it("never allows a wildcard Supabase host", () => {
     const policy = csp(
       securityHeaders({

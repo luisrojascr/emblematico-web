@@ -60,7 +60,19 @@ export function securityHeaders(env: {
   supabaseUrl?: string;
   siteUrl?: string;
   development?: boolean;
+  /**
+   * Origins that may show this route in an iframe (only the guide demo).
+   * Omitted, nobody can frame it. X-Frame-Options can name a single origin at
+   * most, so it is left out when there is a list: CSP frame-ancestors decides.
+   */
+  frameAncestors?: readonly string[];
+  /** Extra origins this page may show in an iframe (the demo on /demo). */
+  frameSources?: readonly string[];
 }): Header[] {
+  const ancestors = env.frameAncestors?.length
+    ? env.frameAncestors.join(" ")
+    : null;
+  const frames = ["'self'", ...(env.frameSources ?? [])];
   const supabase = supabaseUrl(env.supabaseUrl);
   const connect = ["'self'"];
   const images = ["'self'", "data:", "blob:"];
@@ -75,7 +87,7 @@ export function securityHeaders(env: {
   const headers: Header[] = [
     { key: "X-Content-Type-Options", value: "nosniff" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-    { key: "X-Frame-Options", value: "DENY" },
+    ...(ancestors ? [] : [{ key: "X-Frame-Options", value: "DENY" }]),
     {
       key: "Permissions-Policy",
       value: "camera=(), microphone=(), geolocation=()",
@@ -86,7 +98,8 @@ export function securityHeaders(env: {
         "default-src 'self'",
         "base-uri 'self'",
         "object-src 'none'",
-        "frame-ancestors 'none'",
+        `frame-ancestors ${ancestors ?? "'none'"}`,
+        `frame-src ${frames.join(" ")}`,
         "form-action 'self'",
         `script-src ${scripts.join(" ")}`,
         "style-src 'self' 'unsafe-inline'",

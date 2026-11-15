@@ -25,7 +25,7 @@ async function PanelGate({ children }: { children: React.ReactNode }) {
           </span>
         </div>
       </div>
-      {children}
+      <div className="app-fonts">{children}</div>
     </>
   );
 }

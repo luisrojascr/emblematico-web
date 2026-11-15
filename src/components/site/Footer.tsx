@@ -3,51 +3,44 @@ import Link from "next/link";
 
 import { SITE, whatsappLink } from "@/lib/site";
 
+const LINKS = [
+  { href: "/productos", label: "Productos" },
+  { href: "/landing-digital", label: "La solución" },
+  { href: "/como-funciona", label: "Funciones" },
+  { href: "/contacto", label: "Contacto" },
+  { href: "/ingresar", label: "Ingresar" },
+] as const;
+
 export function Footer() {
   return (
-    <footer className="bg-ink text-cream">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
+    <footer className="bg-cream border-cream-dark text-ink border-t">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-12">
         <div className="space-y-4">
           <Image
-            src="/brand/logo-cream.png"
+            src="/brand/logo-black.png"
             alt="emblemático"
             width={156}
             height={32}
             className="h-8 w-auto"
           />
-          <p className="text-cream/70 max-w-xs text-sm">{SITE.tagline}</p>
+          <p className="text-ink-soft max-w-xs text-sm">{SITE.tagline}</p>
         </div>
         <nav aria-label="Pie de página" className="space-y-2 text-sm">
-          <Link
-            href="/productos"
-            className="text-cream/80 hover:text-sand block"
-          >
-            Productos
-          </Link>
-          <Link
-            href="/landing-digital"
-            className="text-cream/80 hover:text-sand block"
-          >
-            Landing digital
-          </Link>
-          <Link
-            href="/como-funciona"
-            className="text-cream/80 hover:text-sand block"
-          >
-            Cómo funciona
-          </Link>
-          <Link
-            href="/nosotros"
-            className="text-cream/80 hover:text-sand block"
-          >
-            Nosotros
-          </Link>
+          {LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="text-ink-soft hover:text-ink block"
+            >
+              {l.label}
+            </Link>
+          ))}
         </nav>
         <div className="space-y-2 text-sm">
-          <p className="text-cream/60">Costa Rica</p>
+          <p className="text-ink-soft">Costa Rica · Alojamientos turísticos</p>
           <a
             href={whatsappLink()}
-            className="text-sand hover:underline"
+            className="text-sand-dark font-medium hover:underline"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -55,7 +48,7 @@ export function Footer() {
           </a>
         </div>
       </div>
-      <div className="border-cream/10 text-cream/50 border-t py-4 text-center text-xs">
+      <div className="border-cream-dark text-ink-soft border-t py-4 text-center text-xs">
         © 2026 {SITE.name}. Todos los derechos reservados.
       </div>
     </footer>

@@ -8,7 +8,7 @@ const STATIC_PATHS = [
   "/productos",
   "/landing-digital",
   "/como-funciona",
-  "/nosotros",
+  "/demo",
   "/contacto",
 ] as const;
 

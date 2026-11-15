@@ -3,14 +3,15 @@ import { Suspense } from "react";
 
 import { ExternalButtonLink } from "@/components/ui/ButtonLink";
 import { getProducts } from "@/lib/catalog/data";
+import { getPlan } from "@/lib/plans";
 import { whatsappLink } from "@/lib/site";
 
 import { QuoteForm } from "./QuoteForm";
 
 export const metadata: Metadata = {
-  title: "Contacto y cotización",
+  title: "Solicita una demo o propuesta para tu alojamiento",
   description:
-    "Solicita tu cotización de productos impresos en 3D con QR y landing digital. Escríbenos por WhatsApp o envía el formulario.",
+    "Pide una demo o una propuesta de guía digital y pieza de bienvenida para tu casa vacacional, Airbnb, cabinas u hotel boutique en Costa Rica.",
   alternates: { canonical: "/contacto" },
 };
 
@@ -20,13 +21,28 @@ async function ContactForm({
   const [products, query] = await Promise.all([getProducts(), searchParams]);
   const requested =
     typeof query.producto === "string" ? query.producto : undefined;
-  const options = products.map((p) => ({ slug: p.slug, name: p.name }));
-  const defaultProductSlug = options.some((p) => p.slug === requested)
+  const defaultProductSlug = products.some((p) => p.slug === requested)
     ? requested
     : undefined;
 
+  const defaultPlan = getPlan(
+    typeof query.plan === "string" ? query.plan : undefined,
+  )?.id;
+  const requestedPieces =
+    typeof query.piezas === "string" ? Number(query.piezas) : 0;
+  const defaultPieces =
+    Number.isInteger(requestedPieces) &&
+    requestedPieces >= 0 &&
+    requestedPieces <= 999
+      ? requestedPieces
+      : 0;
+
   return (
-    <QuoteForm products={options} defaultProductSlug={defaultProductSlug} />
+    <QuoteForm
+      defaultProductSlug={defaultProductSlug}
+      defaultPlan={defaultPlan}
+      defaultPieces={defaultPieces}
+    />
   );
 }
 
@@ -39,10 +55,10 @@ export default function ContactPage(props: PageProps<"/contacto">) {
             <p className="text-sand-dark text-xs font-medium tracking-[0.2em] uppercase">
               Contacto
             </p>
-            <h1 className="text-4xl">Solicita tu cotización</h1>
+            <h1 className="text-4xl">Solicita una demo o propuesta</h1>
             <p className="text-ink-soft max-w-xl">
-              Cuéntanos sobre tu negocio y te respondemos con una propuesta a la
-              medida.
+              Cuéntanos sobre tu alojamiento y te respondemos con una propuesta
+              a la medida.
             </p>
           </header>
           <Suspense
@@ -60,10 +76,10 @@ export default function ContactPage(props: PageProps<"/contacto">) {
           </p>
           <ExternalButtonLink
             href={whatsappLink(
-              "Hola, me gustaría cotizar productos de emblemático.",
+              "Hola, me gustaría una propuesta de emblemático para mi alojamiento.",
             )}
           >
-            Cotizar por WhatsApp
+            Escribir por WhatsApp
           </ExternalButtonLink>
           <p className="text-ink-soft text-sm">+506 8899 7060</p>
         </aside>

@@ -7,13 +7,13 @@ import { WhatsAppButton } from "@/components/site/WhatsAppButton";
 /** emblemático chrome (header, footer, WhatsApp). Client pages under /negocio don't use it. */
 export function SiteShell({ children }: { children: ReactNode }) {
   return (
-    <>
+    <div className="marketing-fonts flex min-h-dvh flex-1 flex-col">
       <Header />
       <main id="contenido" className="flex-1">
         {children}
       </main>
       <Footer />
       <WhatsAppButton />
-    </>
+    </div>
   );
 }

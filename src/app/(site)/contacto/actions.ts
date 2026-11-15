@@ -3,18 +3,23 @@
 import { headers } from "next/headers";
 
 import { quoteRateLimitIdentity } from "@/lib/quotes/identity";
-import { quoteRequestSchema } from "@/lib/quotes/schema";
+import { getPlan } from "@/lib/plans";
+import { composeQuoteMessage, quoteRequestSchema } from "@/lib/quotes/schema";
 import { whatsappLink } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createPublicClient } from "@/lib/supabase/public";
 
 export type QuoteFormValues = {
   name: string;
+  accommodation: string;
+  area: string;
+  accommodationType: string;
+  size: string;
   phone: string;
-  email: string;
-  businessType: string;
-  productSlug: string;
   message: string;
+  productSlug: string;
+  plan: string;
+  pieces: string;
 };
 
 export type QuoteFormState = {
@@ -27,22 +32,30 @@ export type QuoteFormState = {
 
 const FIELDS = [
   "name",
+  "accommodation",
+  "area",
+  "accommodationType",
+  "size",
   "phone",
-  "email",
-  "businessType",
-  "productSlug",
   "message",
+  "productSlug",
+  "plan",
+  "pieces",
 ] as const;
 
 function readValues(formData: FormData): QuoteFormValues {
   const get = (key: string) => String(formData.get(key) ?? "");
   return {
     name: get("name"),
+    accommodation: get("accommodation"),
+    area: get("area"),
+    accommodationType: get("accommodationType"),
+    size: get("size"),
     phone: get("phone"),
-    email: get("email"),
-    businessType: get("businessType"),
-    productSlug: get("productSlug"),
     message: get("message"),
+    productSlug: get("productSlug"),
+    plan: get("plan"),
+    pieces: get("pieces"),
   };
 }
 
@@ -104,14 +117,17 @@ export async function submitQuote(
     };
   }
 
+  // TODO: enviar un correo de notificación al recibir una solicitud nueva.
+  // Por ahora las solicitudes solo se guardan y se ven en /admin/cotizaciones.
+  // Los campos extra (alojamiento, zona, tamaño) viajan dentro del texto del mensaje.
+
   // submit_quote_request is service_role-only; the identity is computed here, never by the client.
   const { error } = await createAdminClient().rpc("submit_quote_request", {
     p_name: input.name,
     p_phone: input.phone,
-    p_email: input.email,
-    p_business_type: input.businessType,
+    p_business_type: input.accommodationType,
     p_product_id: productId ?? undefined,
-    p_message: input.message,
+    p_message: composeQuoteMessage(input),
     p_ip_hash: identity,
   });
 
@@ -134,9 +150,11 @@ export async function submitQuote(
   }
 
   const lines = [
-    `Hola, soy ${input.name}. Acabo de enviar una solicitud de cotización desde el sitio.`,
-    productName ? `Producto: ${productName}.` : null,
-    input.businessType ? `Tipo de negocio: ${input.businessType}.` : null,
+    `Hola, soy ${input.name}. Acabo de enviar una solicitud de demo o propuesta desde el sitio.`,
+    `Alojamiento: ${input.accommodation} (${input.area}).`,
+    getPlan(input.plan) ? `Plan: ${getPlan(input.plan)?.name}.` : null,
+    input.pieces > 0 ? `Piezas de bienvenida 3D: ${input.pieces}.` : null,
+    productName ? `Producto de interés: ${productName}.` : null,
   ].filter(Boolean);
 
   return {
