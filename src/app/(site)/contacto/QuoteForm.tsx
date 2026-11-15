@@ -67,7 +67,7 @@ export function QuoteForm({
             href={state.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-ink text-cream hover:bg-sand-dark inline-flex rounded-full px-6 py-3 text-sm font-medium"
+            className="bg-sand text-ink hover:bg-sand-hover inline-flex rounded-full px-6 py-3 text-sm font-semibold"
           >
             Continuar por WhatsApp
           </a>
@@ -263,7 +263,7 @@ export function QuoteForm({
       <button
         type="submit"
         disabled={pending}
-        className="bg-ink text-cream hover:bg-sand-dark rounded-full px-6 py-3 text-sm font-medium transition-colors disabled:opacity-60"
+        className="bg-sand text-ink hover:bg-sand-hover rounded-full px-6 py-3 text-sm font-semibold transition-colors disabled:opacity-60"
       >
         {pending ? "Enviando..." : "Solicitar demo o propuesta"}
       </button>

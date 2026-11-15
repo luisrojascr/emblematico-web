@@ -6,7 +6,7 @@ import sharp from "sharp";
 
 import { SITE } from "@/lib/site";
 
-const ICON_PATH = path.join(process.cwd(), "public/brand/icon-gold.png");
+const ICON_PATH = path.join(process.cwd(), "public/brand/icon-qr.png");
 
 export function businessPublicUrl(slug: string): string {
   return `${SITE.url.replace(/\/$/, "")}/negocio/${slug}`;
@@ -15,10 +15,10 @@ export function businessPublicUrl(slug: string): string {
 const QR_OPTIONS = {
   errorCorrectionLevel: "H",
   margin: 2,
-  color: { dark: "#1F1F1F", light: "#FFFFFF" },
+  color: { dark: "#35352D", light: "#FFFFFF" },
 } as const;
 
-/** Covers the center modules with a white plate and the gold mark. Level H tolerates it. */
+/** Covers the center modules with a white plate and the brand mark. Level H tolerates it. */
 export function embedCenterMark(svg: string, dataUri: string): string {
   const viewBox = svg.match(/viewBox="0 0 ([0-9.]+) ([0-9.]+)"/);
   if (!viewBox?.[1] || !viewBox[2]) return svg;

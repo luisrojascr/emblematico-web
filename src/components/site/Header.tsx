@@ -13,12 +13,13 @@ export function Header() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4 sm:px-6 lg:px-12">
         <Link href="/" aria-label="emblemático, inicio" className="shrink-0">
           <Image
-            src="/brand/logo-black.png"
+            src="/brand/emblematico-logo.svg"
             alt="emblemático"
             width={156}
-            height={32}
+            height={21}
             loading="eager"
-            className="h-8 w-auto"
+            unoptimized
+            className="h-7 w-auto sm:h-10"
           />
         </Link>
         <nav

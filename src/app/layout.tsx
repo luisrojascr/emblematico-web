@@ -1,10 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import {
-  Fraunces,
-  Inter,
-  Plus_Jakarta_Sans,
-  Playfair_Display,
-} from "next/font/google";
+import { Fraunces, Inter, Nunito, Quicksand } from "next/font/google";
 
 import { SITE } from "@/lib/site";
 
@@ -23,14 +18,14 @@ const fraunces = Fraunces({
 });
 
 // Tipografía de las páginas de marketing (ver `.marketing-fonts` en globals.css).
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
   subsets: ["latin"],
   display: "swap",
 });
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
   display: "swap",
 });
@@ -50,14 +45,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#F6EFE6",
+  themeColor: "#FFF8EE",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es-CR"
-      className={`${inter.variable} ${fraunces.variable} ${playfair.variable} ${jakarta.variable}`}
+      className={`${inter.variable} ${fraunces.variable} ${quicksand.variable} ${nunito.variable}`}
     >
       <body className="flex min-h-dvh flex-col">{children}</body>
     </html>
