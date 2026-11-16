@@ -34,6 +34,57 @@ export type Database = {
   };
   public: {
     Tables: {
+      business_orders: {
+        Row: {
+          business_id: string;
+          created_at: string;
+          id: string;
+          notes: string | null;
+          product_id: string | null;
+          product_name: string;
+          quantity: number;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          business_id: string;
+          created_at?: string;
+          id?: string;
+          notes?: string | null;
+          product_id?: string | null;
+          product_name: string;
+          quantity?: number;
+          status?: string;
+          updated_at?: string;
+        };
+        Update: {
+          business_id?: string;
+          created_at?: string;
+          id?: string;
+          notes?: string | null;
+          product_id?: string | null;
+          product_name?: string;
+          quantity?: number;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "business_orders_business_id_fkey";
+            columns: ["business_id"];
+            isOneToOne: false;
+            referencedRelation: "businesses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "business_orders_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       business_members: {
         Row: {
           business_id: string;
@@ -267,6 +318,7 @@ export type Database = {
           email: string | null;
           full_name: string | null;
           id: string;
+          max_properties: number;
           role: Database["public"]["Enums"]["user_role"];
         };
         Insert: {
@@ -274,6 +326,7 @@ export type Database = {
           email?: string | null;
           full_name?: string | null;
           id: string;
+          max_properties?: number;
           role?: Database["public"]["Enums"]["user_role"];
         };
         Update: {
@@ -281,6 +334,7 @@ export type Database = {
           email?: string | null;
           full_name?: string | null;
           id?: string;
+          max_properties?: number;
           role?: Database["public"]["Enums"]["user_role"];
         };
         Relationships: [];
@@ -401,6 +455,10 @@ export type Database = {
           p_slug: string;
           p_template: Database["public"]["Enums"]["template_key"];
         };
+        Returns: string;
+      };
+      create_my_business: {
+        Args: { p_content?: Json; p_name: string; p_slug: string };
         Returns: string;
       };
       get_public_page: { Args: { p_slug: string }; Returns: Json };

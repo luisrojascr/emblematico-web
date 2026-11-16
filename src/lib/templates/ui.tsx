@@ -7,6 +7,8 @@ import { SITE } from "@/lib/site";
 import type { z } from "zod";
 
 import type { themeSchema } from "./common";
+import { T, type GuideLanguage } from "./i18n";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 type Theme = z.infer<typeof themeSchema>;
 
@@ -66,11 +68,17 @@ export function TemplateFrame({
   name,
   tagline,
   theme,
+  language,
+  switcher,
   children,
 }: {
   name: string;
   tagline: string;
   theme: Theme;
+  /** Idioma inicial de la guía (el del anfitrión). */
+  language?: GuideLanguage;
+  /** Muestra los botones ES/EN/FR (solo plantillas con textos traducidos). */
+  switcher?: boolean;
   children: ReactNode;
 }) {
   const style = {
@@ -79,9 +87,19 @@ export function TemplateFrame({
   } as CSSProperties;
 
   return (
-    <div style={style} className="bg-cream text-ink min-h-dvh">
+    <div
+      style={style}
+      data-guide-lang={language ?? "es"}
+      lang={language ?? "es"}
+      className="bg-cream text-ink min-h-dvh"
+    >
       <header>
         <div className="relative h-44 w-full overflow-hidden bg-[var(--accent)] sm:h-64">
+          {switcher ? (
+            <div className="absolute top-3 right-3 z-10">
+              <LanguageSwitcher initial={language ?? "es"} />
+            </div>
+          ) : null}
           {theme.cover_path ? (
             <MediaImage
               path={theme.cover_path}
@@ -118,7 +136,7 @@ export function TemplateFrame({
           className="underline-offset-4 hover:underline"
           rel="noopener"
         >
-          Página creada con {SITE.name}
+          <T k="madeWith" /> {SITE.name}
         </a>
       </footer>
     </div>
@@ -128,10 +146,42 @@ export function TemplateFrame({
 export function Card({
   title,
   children,
+  collapsible,
+  defaultOpen,
 }: {
-  title?: string;
+  title?: ReactNode;
   children: ReactNode;
+  /** Acordeón: el título abre y cierra la sección (sin JavaScript). */
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
+  if (collapsible && title) {
+    return (
+      <details
+        open={defaultOpen}
+        className="group rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
+      >
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
+          <h2 className="text-xl">{title}</h2>
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="text-ink-soft shrink-0 transition-transform group-open:rotate-180"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </summary>
+        <div className="px-5 pb-5">{children}</div>
+      </details>
+    );
+  }
   return (
     <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
       {title ? <h2 className="mb-3 text-xl">{title}</h2> : null}

@@ -5,13 +5,13 @@ import { useState, useTransition, type FormEvent, type ReactNode } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 
 import {
-  primaryButtonClass,
-  secondaryButtonClass,
-} from "@/components/admin/ui";
+  panelPrimaryButtonClass as primaryButtonClass,
+  panelSecondaryButtonClass as secondaryButtonClass,
+} from "./ui";
 import {
   publishDraft,
   saveDraft,
-} from "@/app/(site)/panel/[businessId]/actions";
+} from "@/app/(panel)/panel/[businessId]/actions";
 import { businessStatusLabel, pageStatusLabel } from "@/lib/admin/labels";
 import type { PanelPage } from "@/lib/panel/load";
 import type { GeneralContent } from "@/lib/templates/general/schema";
@@ -22,11 +22,14 @@ import { TEMPLATE_LABELS, type PageContent } from "@/lib/templates/registry";
 
 import { GeneralFields } from "./GeneralFields";
 import { HospitalityFields } from "./HospitalityFields";
+import { PhonePreview } from "./PhonePreview";
 import { ImageField, useImageSlot } from "./fields";
 
 const NOTICES: Record<string, string> = {
   guardado: "Borrador guardado.",
   publicada: "La página pública ya muestra este borrador.",
+  creado:
+    "Tu hospedaje está creado como borrador. Revisa los datos y publícalo cuando quieras.",
 };
 
 export function PageEditor({
@@ -134,6 +137,9 @@ function HospitalityEditor({
       onSubmit={form.handleSubmit(panel.submit)}
       logoPath={content.theme.logo_path}
       coverPath={content.theme.cover_path}
+      preview={
+        <PhonePreview name={page.name} control={form.control} fallback={content} />
+      }
     >
       <HospitalityFields form={form} />
     </EditorChrome>
@@ -181,8 +187,10 @@ function EditorChrome({
   onSubmit,
   logoPath,
   coverPath,
+  preview,
   children,
 }: {
+  preview?: ReactNode;
   page: PanelPage;
   invalidDraft: boolean;
   notice?: string;
@@ -197,7 +205,7 @@ function EditorChrome({
   const dirty = formDirty || panel.logo.dirty || panel.cover.dirty;
   const savedNotice = notice ? NOTICES[notice] : undefined;
 
-  return (
+  const editor = (
     <form className="space-y-6" onSubmit={onSubmit} noValidate>
       <header className="space-y-1">
         <p className="text-ink-soft text-sm">
@@ -247,7 +255,7 @@ function EditorChrome({
         {children}
       </fieldset>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="border-cream-dark bg-cream/95 sticky bottom-0 z-10 -mx-4 flex flex-wrap gap-3 border-t px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
         <button
           type="submit"
           disabled={!canEdit || panel.pending}
@@ -270,5 +278,14 @@ function EditorChrome({
         </p>
       ) : null}
     </form>
+  );
+  if (!preview) return editor;
+  return (
+    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="min-w-0">{editor}</div>
+      <aside className="hidden xl:block">
+        <div className="sticky top-8">{preview}</div>
+      </aside>
+    </div>
   );
 }

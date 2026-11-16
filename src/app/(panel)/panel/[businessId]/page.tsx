@@ -24,7 +24,7 @@ async function Editor({
   const query = await searchParams;
 
   return (
-    <PanelHeading id={page.id} name={page.name} slug={page.slug}>
+    <PanelHeading page={page} wide>
       <PageEditor
         key={page.updatedAt}
         page={page}

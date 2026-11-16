@@ -51,6 +51,9 @@ async function magicLink(email: string, sentAt: number): Promise<string> {
 export async function signIn(page: Page, email: string): Promise<void> {
   const sentAt = Date.now();
   await page.goto("/ingresar");
+  await page
+    .getByRole("button", { name: "Entrar con un enlace por correo" })
+    .click();
   await page.getByLabel("Correo electrónico").fill(email);
   await page.getByRole("button", { name: "Enviar enlace de acceso" }).click();
   await expect(page.getByRole("status")).toContainText(

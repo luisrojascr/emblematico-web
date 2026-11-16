@@ -7,7 +7,11 @@ import { createClient } from "@/lib/supabase/browser";
 
 export function ConfirmHashSession() {
   useEffect(() => {
-    const tokens = sessionFromHash(window.location.hash);
+    const hash = window.location.hash;
+    const tokens = sessionFromHash(hash);
+    // Invitación o recuperación: la persona aún no tiene (o perdió) su contraseña.
+    const linkType = new URLSearchParams(hash.replace(/^#/, "")).get("type");
+    const needsPassword = linkType === "invite" || linkType === "recovery";
     if (!tokens) {
       window.location.replace("/ingresar?error=enlace");
       return;
@@ -29,6 +33,10 @@ export function ConfirmHashSession() {
           .select("role")
           .eq("id", data.user.id)
           .maybeSingle();
+        if (needsPassword) {
+          window.location.replace("/panel/contrasena?primera=1");
+          return;
+        }
         window.location.replace(
           profile?.role === "admin" ? "/admin" : "/panel",
         );

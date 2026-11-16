@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { z } from "zod";
 
 import { AssignForm } from "@/components/admin/AssignForm";
+import { BusinessOrders } from "@/components/admin/BusinessOrders";
 import { BusinessForm } from "@/components/admin/BusinessForm";
 import { CopyUrl } from "@/components/admin/CopyUrl";
 import { SubmitButton } from "@/components/admin/SubmitButton";
@@ -210,6 +211,7 @@ async function BusinessDetail({
           }))}
         />
       </section>
+      <BusinessOrders businessId={business.id} />
       <p>
         <Link
           href="/admin/negocios"

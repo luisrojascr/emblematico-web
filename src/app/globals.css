@@ -72,3 +72,10 @@ h3 {
   --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
   font-family: var(--font-sans);
 }
+
+/* Guía del huésped: solo se ve el idioma elegido (ver src/lib/templates/i18n.tsx). */
+[data-guide-lang="es"] [data-l]:not([data-l="es"]),
+[data-guide-lang="en"] [data-l]:not([data-l="en"]),
+[data-guide-lang="fr"] [data-l]:not([data-l="fr"]) {
+  display: none;
+}

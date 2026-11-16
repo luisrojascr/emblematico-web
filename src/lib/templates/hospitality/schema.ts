@@ -14,6 +14,8 @@ import {
 export const hospitalityContentSchema = z.object({
   schema_version: z.literal(SCHEMA_VERSION).default(SCHEMA_VERSION),
   theme: themeSchema,
+  /** Idioma en que el anfitrión escribe la guía (aún no hay traducciones). */
+  language: z.enum(["es", "en", "fr"]).default("es"),
   tagline: text(140).default(""),
   welcome: section({
     title: text(80).default("Bienvenido"),

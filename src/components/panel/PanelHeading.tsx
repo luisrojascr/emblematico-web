@@ -1,31 +1,80 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { mediaUrl } from "@/lib/catalog/media";
+import type { PanelPage } from "@/lib/panel/load";
+import { coverOf } from "@/lib/panel/overview";
 import { businessPublicUrl } from "@/lib/qr/render";
 
 import { PanelNav } from "./PanelNav";
+import { panelSecondaryButtonClass } from "./ui";
+
+const STATUS: Record<PanelPage["pageStatus"], { label: string; live: boolean }> = {
+  published: { label: "Guía publicada", live: true },
+  draft: { label: "Borrador sin publicar", live: false },
+  unpublished: { label: "Fuera de línea", live: false },
+};
 
 export function PanelHeading({
-  id,
-  name,
-  slug,
+  page,
+  wide,
   children,
 }: {
-  id: string;
-  name: string;
-  slug: string;
+  page: PanelPage;
+  wide?: boolean;
   children: ReactNode;
 }) {
+  const publicUrl = businessPublicUrl(page.slug);
+  const cover = coverOf(page.draft);
+  const status = STATUS[page.pageStatus];
+
   return (
-    <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <Link href="/panel" className="text-ink-soft hover:text-ink text-sm">
-        Mis negocios
-      </Link>
-      <h1 className="mt-2 mb-4 text-3xl">{name}</h1>
-      <div className="mb-8">
-        <PanelNav businessId={id} publicUrl={businessPublicUrl(slug)} />
+    <div
+      className={`mx-auto px-4 py-8 sm:px-8 lg:py-10 ${wide ? "max-w-6xl" : "max-w-3xl"}`}
+    >
+      <nav aria-label="Ruta" className="text-ink-soft mb-5 text-sm">
+        <Link href="/panel/hospedajes" className="hover:text-ink">
+          Mis hospedajes
+        </Link>
+        <span aria-hidden="true"> › </span>
+        <span className="text-ink">{page.name}</span>
+      </nav>
+
+      <header className="mb-6 flex flex-wrap items-center gap-4">
+        <div className="bg-cream-dark size-16 shrink-0 overflow-hidden rounded-2xl sm:size-20">
+          {cover ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={mediaUrl(cover)} alt="" className="size-full object-cover" />
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-2xl sm:text-3xl">{page.name}</h1>
+          <p className="mt-1 flex items-center gap-2 text-sm">
+            <span
+              aria-hidden="true"
+              className={`size-2 rounded-full ${status.live ? "bg-teal" : "bg-sand"}`}
+            />
+            <span className={status.live ? "text-teal-deep font-semibold" : "text-ink-soft"}>
+              {status.label}
+            </span>
+          </p>
+        </div>
+        {page.pageStatus === "published" ? (
+          <a
+            href={publicUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={panelSecondaryButtonClass}
+          >
+            Abrir guía ↗
+          </a>
+        ) : null}
+      </header>
+
+      <div className="border-cream-dark mb-8 border-b">
+        <PanelNav businessId={page.id} />
       </div>
       {children}
-    </section>
+    </div>
   );
 }
