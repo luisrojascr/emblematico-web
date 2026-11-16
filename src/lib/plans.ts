@@ -23,6 +23,8 @@ export const BILLING_LABELS: Record<BillingPeriod, string> = {
 export function parseBilling(
   value: string | undefined,
 ): BillingPeriod | undefined {
+  if (value === "mensual") return "monthly";
+  if (value === "anual") return "annual";
   return BILLING_PERIODS.find((b) => b === value);
 }
 

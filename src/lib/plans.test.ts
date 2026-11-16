@@ -70,8 +70,17 @@ describe("PLANS", () => {
   });
 
   it("parses billing periods", () => {
+    expect(parseBilling("annual")).toBe("annual");
     expect(parseBilling("monthly")).toBe("monthly");
     expect(parseBilling("weekly")).toBeUndefined();
+    expect(parseBilling(undefined)).toBeUndefined();
+  });
+
+  it.each([
+    ["mensual", "monthly"],
+    ["anual", "annual"],
+  ])("parses %s from contact links as %s", (value, expected) => {
+    expect(parseBilling(value)).toBe(expected);
   });
 
   it("highlights only Plus", () => {
