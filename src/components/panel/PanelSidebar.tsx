@@ -4,8 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
+import { PanelLanguageSwitcher } from "./PanelLanguageSwitcher";
 
-type Item = { href: string; label: string; icon: ReactNode; match: (p: string) => boolean };
+type Item = {
+  href: string;
+  label: string;
+  icon: ReactNode;
+  match: (p: string) => boolean;
+};
 
 const icon = (path: ReactNode) => (
   <svg
@@ -75,7 +82,8 @@ const ITEMS: readonly Item[] = [
         <circle cx="18" cy="18" r="2" />
       </>,
     ),
-    match: (p) => p.startsWith("/panel/configuracion") || p === "/panel/contrasena",
+    match: (p) =>
+      p.startsWith("/panel/configuracion") || p === "/panel/contrasena",
   },
 ];
 
@@ -88,6 +96,7 @@ export function PanelSidebar({
   email: string | null;
   isAdmin: boolean;
 }) {
+  const { t } = usePanelI18n();
   const pathname = usePathname();
   const links = (
     <>
@@ -105,7 +114,7 @@ export function PanelSidebar({
             }`}
           >
             {item.icon}
-            {item.label}
+            {t(item.label)}
           </Link>
         );
       })}
@@ -115,10 +124,10 @@ export function PanelSidebar({
   return (
     <aside className="bg-ink text-cream lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-64 lg:shrink-0 lg:flex-col">
       <div className="flex items-center justify-between gap-4 px-4 py-4 lg:block lg:px-6 lg:py-7">
-        <Link href="/panel" aria-label="emblemático, inicio del panel">
+        <Link href="/panel" aria-label={t("emblemático, inicio del panel")}>
           <Image
             src="/brand/emblematico-logo-claro.svg"
-            alt="emblemático"
+            alt={"emblemático"}
             width={156}
             height={21}
             unoptimized
@@ -128,26 +137,30 @@ export function PanelSidebar({
         <div className="flex items-center gap-3 lg:hidden">
           <form action="/auth/signout" method="post">
             <button type="submit" className="text-cream/70 text-xs underline">
-              Salir
+              {t("Salir")}
             </button>
           </form>
         </div>
       </div>
 
       <nav
-        aria-label="Panel"
+        aria-label={t("Panel")}
         className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:pb-0"
       >
         {links}
       </nav>
 
-      <div className="hidden space-y-3 border-t border-cream/10 p-4 lg:block">
+      <div className="border-cream/10 border-t px-4 py-3">
+        <PanelLanguageSwitcher />
+      </div>
+
+      <div className="border-cream/10 hidden space-y-3 border-t p-4 lg:block">
         {isAdmin ? (
           <Link
             href="/admin"
             className="text-cream/70 hover:text-cream block px-2 text-sm"
           >
-            Administración
+            {t("Administración")}
           </Link>
         ) : null}
         <div className="px-2">
@@ -157,8 +170,11 @@ export function PanelSidebar({
           ) : null}
         </div>
         <form action="/auth/signout" method="post" className="px-2">
-          <button type="submit" className="text-cream/70 hover:text-cream text-sm underline">
-            Cerrar sesión
+          <button
+            type="submit"
+            className="text-cream/70 hover:text-cream text-sm underline"
+          >
+            {t("Cerrar sesión")}
           </button>
         </form>
       </div>

@@ -5,7 +5,14 @@ import { useState } from "react";
 
 import { SquareLink } from "@/components/ui/SquareButton";
 import {
+  BILLING_LABELS,
+  BILLING_PERIODS,
   CURRENCY_NOTE,
+  DEFAULT_BILLING,
+  type BillingPeriod,
+  annualSavings,
+  firstChargeTotal,
+  maxAnnualSavingsPercent,
   MAX_PIECES_ONLINE,
   MAX_SELF_SERVE_PROPERTIES,
   PIECE_TIERS,
@@ -13,7 +20,6 @@ import {
   SHOW_PRICES,
   WELCOME_PIECE,
   type Plan,
-  firstYearTotal,
   formatUsd,
   pieceUnitPrice,
 } from "@/lib/plans";
@@ -108,7 +114,55 @@ function PieceSelector({
   );
 }
 
-function PlanPrice({ plan }: { plan: Plan }) {
+function BillingToggle({
+  value,
+  onChange,
+}: {
+  value: BillingPeriod;
+  onChange: (b: BillingPeriod) => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <div
+        role="radiogroup"
+        aria-label="Periodo de facturación"
+        className="border-cream-dark inline-flex rounded-full border bg-white p-1"
+      >
+        {BILLING_PERIODS.map((b) => {
+          const active = b === value;
+          return (
+            <button
+              key={b}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(b)}
+              className={`rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+                active ? "bg-sand text-ink" : "text-ink-soft hover:text-ink"
+              }`}
+            >
+              {BILLING_LABELS[b]}
+              {b === "annual" && (
+                <span className="text-teal-deep ml-2 text-[11px] font-bold">
+                  Ahorra hasta {maxAnnualSavingsPercent()}%
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-ink-soft text-sm" aria-live="polite">
+        {value === "annual"
+          ? "Pagando por año ahorras frente a 12 pagos mensuales."
+          : "Pago mes a mes. Pagando por año ahorras hasta " +
+            maxAnnualSavingsPercent() +
+            "%."}
+      </p>
+    </div>
+  );
+}
+
+function PlanPrice({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
   if (plan.price === 0)
     return (
       <>
@@ -117,27 +171,50 @@ function PlanPrice({ plan }: { plan: Plan }) {
       </>
     );
   if (!SHOW_PRICES || plan.price === null) return <>Cotiza</>;
+  const monthly = billing === "monthly" && plan.monthlyPrice !== undefined;
+  const savings = annualSavings(plan);
   return (
     <>
-      {formatUsd(plan.price)}
-      <span className="text-ink-soft ml-1 font-sans text-sm">/año</span>
+      {formatUsd(monthly ? plan.monthlyPrice! : plan.price)}
+      <span className="text-ink-soft ml-1 font-sans text-sm">
+        {monthly ? "/mes" : "/año"}
+      </span>
+      {!monthly && savings ? (
+        <span className="bg-sand/25 text-ink ml-2 inline-block rounded-[4px] px-2 py-0.5 align-middle font-sans text-[11px] font-semibold">
+          Ahorras {formatUsd(savings)}
+        </span>
+      ) : null}
     </>
   );
 }
 
-function totalText(plan: Plan, pieces: number): string {
+function totalText(plan: Plan, pieces: number, billing: BillingPeriod): string {
   if (pieces === 0 || !SHOW_PRICES) return "";
-  const total = firstYearTotal(plan, pieces);
+  const total = firstChargeTotal(plan, pieces, billing);
   if (total === null) return "Te enviamos una cotización por las piezas.";
-  return plan.price === 0
-    ? `Total: ${formatUsd(total)}, pago único`
+  if (plan.price === 0) return `Total: ${formatUsd(total)}, pago único`;
+  return billing === "monthly"
+    ? `Primer cobro: ${formatUsd(total)} (primer mes + piezas)`
     : `Total el primer año: ${formatUsd(total)}`;
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+/** Línea bajo el precio: equivalente mensual (anual) o lo que se ahorra pagando anual (mensual). */
+function billingNote(plan: Plan, billing: BillingPeriod): string {
+  const savings = annualSavings(plan);
+  if (!SHOW_PRICES || !plan.price || !plan.monthlyPrice || !savings) return "";
+  return billing === "annual"
+    ? `Equivale a ${formatUsd(Math.round((plan.price / 12) * 100) / 100)}/mes · en lugar de ${formatUsd(plan.monthlyPrice * 12)} al pagar mensual`
+    : `Pagando anual: ${formatUsd(plan.price)}/año, ahorras ${formatUsd(savings)}`;
+}
+
+function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
   const [pieces, setPieces] = useState(0);
   const isFree = plan.id === "free";
-  const href = `/contacto?plan=${plan.id}${pieces > 0 ? `&piezas=${pieces}` : ""}`;
+  const params = new URLSearchParams({ plan: plan.id });
+  if (plan.price)
+    params.set("periodo", billing === "monthly" ? "mensual" : "anual");
+  if (pieces > 0) params.set("piezas", String(pieces));
+  const href = `/contacto?${params.toString()}`;
 
   return (
     <article
@@ -155,12 +232,17 @@ function PlanCard({ plan }: { plan: Plan }) {
       <h3 className="text-2xl">{plan.name}</h3>
       <p className="text-ink-soft mt-2 text-sm lg:min-h-10">{plan.summary}</p>
       <p className="mt-6 font-serif text-4xl">
-        <PlanPrice plan={plan} />
+        <PlanPrice plan={plan} billing={billing} />
       </p>
-      {/* Misma altura en todas las tarjetas, haya o no alojamiento adicional. */}
+      {/* Misma altura en todas las tarjetas, haya o no nota de facturación. */}
+      <p className="text-teal-deep mt-1 min-h-4 text-xs font-medium">
+        {billingNote(plan, billing)}
+      </p>
       <p className="text-ink-soft mt-1 min-h-4 text-xs">
         {SHOW_PRICES && plan.extraProperty
-          ? `Alojamiento adicional: +${formatUsd(plan.extraProperty)}/año (hasta ${MAX_SELF_SERVE_PROPERTIES})`
+          ? billing === "monthly" && plan.extraPropertyMonthly
+            ? `Alojamiento adicional: +$${plan.extraPropertyMonthly.toFixed(2)}/mes (hasta ${MAX_SELF_SERVE_PROPERTIES})`
+            : `Alojamiento adicional: +${formatUsd(plan.extraProperty)}/año (hasta ${MAX_SELF_SERVE_PROPERTIES})`
           : ""}
       </p>
       <ul className="text-ink-soft mt-6 mb-6 flex-1 space-y-2 text-sm">
@@ -174,7 +256,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         className="text-ink-soft mt-3 min-h-5 text-sm font-medium"
         aria-live="polite"
       >
-        {totalText(plan, pieces)}
+        {totalText(plan, pieces, billing)}
       </p>
 
       <SquareLink
@@ -213,11 +295,13 @@ function ManagersCard({ plan }: { plan: Plan }) {
 export function PlanCards() {
   const selfServe = PLANS.filter((p) => p.price !== null);
   const custom = PLANS.filter((p) => p.price === null);
+  const [billing, setBilling] = useState<BillingPeriod>(DEFAULT_BILLING);
   return (
     <div className="space-y-6">
+      {SHOW_PRICES && <BillingToggle value={billing} onChange={setBilling} />}
       <div className="grid gap-6 lg:grid-cols-3">
         {selfServe.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} />
+          <PlanCard key={plan.id} plan={plan} billing={billing} />
         ))}
       </div>
       {custom.map((plan) => (

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { getPanelI18n } from "@/lib/panel/i18n-server";
+import { PanelLoading } from "@/components/panel/PanelLanguageProvider";
 import { PanelPage } from "@/components/panel/PanelPage";
 import {
   panelCardClass,
@@ -24,13 +26,16 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 async function Products() {
+  const { t, locale } = await getPanelI18n();
   await requireUser();
   const supabase = await createClient();
   const [ordersResult, { data: businesses }, products, categories] =
     await Promise.all([
       supabase
         .from("business_orders")
-        .select("id, business_id, product_id, product_name, quantity, status, notes, created_at")
+        .select(
+          "id, business_id, product_id, product_name, quantity, status, notes, created_at",
+        )
         .order("created_at", { ascending: false }),
       supabase.from("businesses").select("id, name"),
       getProducts(),
@@ -46,17 +51,22 @@ async function Products() {
 
   return (
     <PanelPage
-      title="Productos"
-      subtitle="Las piezas físicas de tus hospedajes y otras ideas para tus huéspedes."
+      title={t("Productos")}
+      subtitle={t(
+        "Las piezas físicas de tus hospedajes y otras ideas para tus huéspedes.",
+      )}
     >
       <section className="mb-12 space-y-4">
-        <h2 className="text-xl">Tus productos</h2>
+        <h2 className="text-xl">{t("Tus productos")}</h2>
         {orders.length === 0 ? (
           <div className={`${panelCardClass} p-6`}>
-            <p className="font-semibold">Todavía no tienes productos físicos.</p>
+            <p className="font-semibold">
+              {t("Todavía no tienes productos físicos.")}
+            </p>
             <p className="text-ink-soft mt-1 text-sm">
-              La pieza de bienvenida 3D con tu código QR es la favorita de los
-              anfitriones. Cuando hagas un pedido, aquí verás su estado.
+              {t(
+                "La pieza de bienvenida 3D con tu código QR es la favorita de los anfitriones. Cuando hagas un pedido, aquí verás su estado.",
+              )}
             </p>
           </div>
         ) : (
@@ -74,22 +84,31 @@ async function Products() {
                   <div className="bg-cream-dark size-16 shrink-0 overflow-hidden rounded-xl">
                     {image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={mediaUrl(image)} alt="" className="size-full object-cover" />
+                      <img
+                        src={mediaUrl(image)}
+                        alt=""
+                        className="size-full object-cover"
+                      />
                     ) : null}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold">
                       {order.product_name}
-                      <span className="text-ink-soft font-normal"> × {order.quantity}</span>
+                      <span className="text-ink-soft font-normal">
+                        {" "}
+                        × {order.quantity}
+                      </span>
                     </p>
                     <p className="text-ink-soft text-sm">
-                      {businessName.get(order.business_id) ?? "Hospedaje"} ·{" "}
-                      {new Intl.DateTimeFormat("es-CR", { dateStyle: "medium" }).format(
-                        new Date(order.created_at),
-                      )}
+                      {businessName.get(order.business_id) ?? t("Hospedaje")} ·{" "}
+                      {new Intl.DateTimeFormat(locale, {
+                        dateStyle: "medium",
+                      }).format(new Date(order.created_at))}
                     </p>
                     {order.notes ? (
-                      <p className="text-ink-soft mt-1 text-sm">{order.notes}</p>
+                      <p className="text-ink-soft mt-1 text-sm">
+                        {order.notes}
+                      </p>
                     ) : null}
                   </div>
                   <span
@@ -97,7 +116,7 @@ async function Products() {
                       STATUS_STYLE[order.status] ?? "bg-cream-dark"
                     }`}
                   >
-                    {orderStatusLabel(order.status)}
+                    {t(orderStatusLabel(order.status))}
                   </span>
                 </li>
               );
@@ -109,9 +128,12 @@ async function Products() {
       {recommended.length ? (
         <section className="space-y-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-xl">Recomendados para ti</h2>
-            <Link href="/productos" className="text-teal-deep text-sm font-semibold">
-              Ver catálogo completo
+            <h2 className="text-xl">{t("Recomendados para ti")}</h2>
+            <Link
+              href="/productos"
+              className="text-teal-deep text-sm font-semibold"
+            >
+              {t("Ver catálogo completo")}
             </Link>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -119,18 +141,27 @@ async function Products() {
               const image = product.images[0];
               const slug = categorySlug.get(product.category_id);
               return (
-                <li key={product.id} className={`${panelCardClass} flex flex-col overflow-hidden`}>
+                <li
+                  key={product.id}
+                  className={`${panelCardClass} flex flex-col overflow-hidden`}
+                >
                   <div className="bg-cream-dark aspect-[4/3] overflow-hidden">
                     {image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={mediaUrl(image)} alt="" className="size-full object-cover" />
+                      <img
+                        src={mediaUrl(image)}
+                        alt=""
+                        className="size-full object-cover"
+                      />
                     ) : null}
                   </div>
                   <div className="flex flex-1 flex-col gap-3 p-4">
                     <div className="flex-1">
                       <h3 className="text-lg leading-tight">{product.name}</h3>
                       {product.summary ? (
-                        <p className="text-ink-soft mt-1 text-sm">{product.summary}</p>
+                        <p className="text-ink-soft mt-1 text-sm">
+                          {product.summary}
+                        </p>
                       ) : null}
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -138,14 +169,14 @@ async function Products() {
                         href={`/contacto?producto=${product.slug}`}
                         className={panelPrimaryButtonClass}
                       >
-                        Solicitar
+                        {t("Solicitar")}
                       </Link>
                       {slug ? (
                         <Link
                           href={`/productos/${slug}/${product.slug}`}
                           className={panelSecondaryButtonClass}
                         >
-                          Ver detalle
+                          {t("Ver detalle")}
                         </Link>
                       ) : null}
                     </div>
@@ -162,7 +193,7 @@ async function Products() {
 
 export default function PanelProductsPage() {
   return (
-    <Suspense fallback={<p className="text-ink-soft p-8">Cargando...</p>}>
+    <Suspense fallback={<PanelLoading />}>
       <Products />
     </Suspense>
   );

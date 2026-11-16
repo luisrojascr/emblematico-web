@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_SELF_SERVE_PROPERTIES,
   PLANS,
+  annualSavings,
+  firstChargeTotal,
   firstYearTotal,
+  maxAnnualSavingsPercent,
+  parseBilling,
   formatUsd,
   getPlan,
   pieceUnitPrice,
@@ -44,6 +48,39 @@ describe("PLANS", () => {
     for (const plan of PLANS.filter((p) => p.id !== "managers")) {
       expect(plan.includes.join(" ")).not.toMatch(/3D|piezas? f[ií]sicas?/i);
     }
+  });
+
+  it("prices monthly billing and computes what annual saves", () => {
+    expect(getPlan("essential")?.monthlyPrice).toBe(6);
+    expect(getPlan("essential")?.extraPropertyMonthly).toBe(1.5);
+    expect(getPlan("plus")?.monthlyPrice).toBe(12);
+    expect(getPlan("free")?.monthlyPrice).toBeUndefined();
+    expect(getPlan("managers")?.monthlyPrice).toBeUndefined();
+    expect(annualSavings(getPlan("essential")!)).toBe(23);
+    expect(annualSavings(getPlan("plus")!)).toBe(45);
+    expect(annualSavings(getPlan("free")!)).toBeNull();
+    expect(maxAnnualSavingsPercent()).toBe(32);
+  });
+
+  it("charges the first month plus pieces on monthly billing", () => {
+    const essential = getPlan("essential")!;
+    expect(firstChargeTotal(essential, 2, "monthly")).toBe(6 + 70);
+    expect(firstChargeTotal(essential, 2, "annual")).toBe(49 + 70);
+    expect(firstChargeTotal(essential, 11, "monthly")).toBeNull();
+  });
+
+  it("parses billing periods", () => {
+    expect(parseBilling("annual")).toBe("annual");
+    expect(parseBilling("monthly")).toBe("monthly");
+    expect(parseBilling("weekly")).toBeUndefined();
+    expect(parseBilling(undefined)).toBeUndefined();
+  });
+
+  it.each([
+    ["mensual", "monthly"],
+    ["anual", "annual"],
+  ])("parses %s from contact links as %s", (value, expected) => {
+    expect(parseBilling(value)).toBe(expected);
   });
 
   it("highlights only Plus", () => {

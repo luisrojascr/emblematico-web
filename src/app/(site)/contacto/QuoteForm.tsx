@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 
-import { PLANS } from "@/lib/plans";
+import { BILLING_LABELS, BILLING_PERIODS, PLANS } from "@/lib/plans";
 import { ACCOMMODATION_TYPES, CR_AREAS } from "@/lib/quotes/schema";
 
 import { type QuoteFormState, submitQuote } from "./actions";
@@ -46,10 +46,12 @@ function Field({
 export function QuoteForm({
   defaultProductSlug,
   defaultPlan,
+  defaultBilling = "annual",
   defaultPieces = 0,
 }: {
   defaultProductSlug?: string;
   defaultPlan?: string;
+  defaultBilling?: string;
   defaultPieces?: number;
 }) {
   const [state, action, pending] = useActionState(submitQuote, initialState);
@@ -226,6 +228,25 @@ export function QuoteForm({
             ))}
           </select>
         </Field>
+        <Field id="billing" label="Facturación" error={errors.billing}>
+          <select
+            id="billing"
+            name="billing"
+            defaultValue={v?.billing ?? defaultBilling}
+            aria-invalid={Boolean(errors.billing)}
+            aria-describedby={errors.billing ? "billing-error" : undefined}
+            className={inputClass}
+          >
+            {BILLING_PERIODS.map((b) => (
+              <option key={b} value={b}>
+                {BILLING_LABELS[b]}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2">
         <Field
           id="pieces"
           label="Piezas de bienvenida 3D (cantidad)"

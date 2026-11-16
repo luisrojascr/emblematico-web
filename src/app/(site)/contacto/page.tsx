@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { ExternalButtonLink } from "@/components/ui/ButtonLink";
 import { getProducts } from "@/lib/catalog/data";
-import { getPlan } from "@/lib/plans";
+import { DEFAULT_BILLING, getPlan, parseBilling } from "@/lib/plans";
 import { whatsappLink } from "@/lib/site";
 
 import { QuoteForm } from "./QuoteForm";
@@ -28,6 +28,10 @@ async function ContactForm({
   const defaultPlan = getPlan(
     typeof query.plan === "string" ? query.plan : undefined,
   )?.id;
+  const defaultBilling =
+    parseBilling(
+      typeof query.periodo === "string" ? query.periodo : undefined,
+    ) ?? DEFAULT_BILLING;
   const requestedPieces =
     typeof query.piezas === "string" ? Number(query.piezas) : 0;
   const defaultPieces =
@@ -41,6 +45,7 @@ async function ContactForm({
     <QuoteForm
       defaultProductSlug={defaultProductSlug}
       defaultPlan={defaultPlan}
+      defaultBilling={defaultBilling}
       defaultPieces={defaultPieces}
     />
   );

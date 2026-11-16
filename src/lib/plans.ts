@@ -1,5 +1,5 @@
 /**
- * Planes digitales (cobro anual, en dólares) y la pieza de bienvenida 3D como extra
+ * Planes digitales (cobro anual o mensual, en dólares) y la pieza de bienvenida 3D como extra
  * de pago único con precio por cantidad. Todo es configurable aquí.
  * Pon `SHOW_PRICES` en false para ocultar los montos de pago (se muestra "Cotiza").
  */
@@ -11,11 +11,30 @@ export const CURRENCY_NOTE =
 export const PLAN_IDS = ["free", "essential", "plus", "managers"] as const;
 export type PlanId = (typeof PLAN_IDS)[number];
 
+/** Periodo de cobro. El anual es el que se muestra por defecto. */
+export const BILLING_PERIODS = ["annual", "monthly"] as const;
+export type BillingPeriod = (typeof BILLING_PERIODS)[number];
+export const DEFAULT_BILLING: BillingPeriod = "annual";
+export const BILLING_LABELS: Record<BillingPeriod, string> = {
+  annual: "Anual",
+  monthly: "Mensual",
+};
+
+export function parseBilling(
+  value: string | undefined,
+): BillingPeriod | undefined {
+  if (value === "mensual") return "monthly";
+  if (value === "anual") return "annual";
+  return BILLING_PERIODS.find((b) => b === value);
+}
+
 export type Plan = {
   id: PlanId;
   name: string;
   /** Precio anual en USD (solo la parte digital). `null` = se cotiza. */
   price: number | null;
+  /** Precio mensual en USD. Solo los planes de pago que se pueden cobrar por mes. */
+  monthlyPrice?: number;
   /** Alojamientos incluidos. `null` = a la medida. */
   properties: number | null;
   /**
@@ -23,6 +42,8 @@ export type Plan = {
    * Plus ya llega al máximo, así que no lo tiene.
    */
   extraProperty?: number;
+  /** Igual, pero por mes cuando se cobra mensual. */
+  extraPropertyMonthly?: number;
   summary: string;
   includes: readonly string[];
   highlighted?: boolean;
@@ -52,8 +73,10 @@ export const PLANS: readonly Plan[] = [
     id: "essential",
     name: "Hospitality Essential",
     price: 49,
+    monthlyPrice: 6,
     properties: 3,
     extraProperty: 15,
+    extraPropertyMonthly: 1.5,
     summary: "Lo necesario para dar una bienvenida clara y ordenada.",
     includes: [
       "Hasta 3 alojamientos",
@@ -68,6 +91,7 @@ export const PLANS: readonly Plan[] = [
     id: "plus",
     name: "Hospitality Plus",
     price: 99,
+    monthlyPrice: 12,
     properties: 5,
     summary: "Para propiedades que quieren ofrecer más a sus huéspedes.",
     includes: [
@@ -133,6 +157,37 @@ export function firstYearTotal(plan: Plan, pieces: number): number | null {
   const piecesCost = piecesTotal(pieces);
   if (plan.price === null || piecesCost === null) return null;
   return plan.price + piecesCost;
+}
+
+/** Lo que se ahorra al año pagando anual en vez de 12 meses. `null` si no aplica. */
+export function annualSavings(plan: Plan): number | null {
+  if (!plan.price || !plan.monthlyPrice) return null;
+  return plan.monthlyPrice * 12 - plan.price;
+}
+
+/** Ahorro anual como porcentaje entero (el mayor de los planes), para la etiqueta del selector. */
+export function maxAnnualSavingsPercent(): number {
+  return Math.max(
+    0,
+    ...PLANS.map((p) => {
+      const saved = annualSavings(p);
+      return saved && p.monthlyPrice
+        ? Math.round((saved / (p.monthlyPrice * 12)) * 100)
+        : 0;
+    }),
+  );
+}
+
+/** Primer cobro: un mes (o el año) del plan más las piezas. `null` si algo se cotiza. */
+export function firstChargeTotal(
+  plan: Plan,
+  pieces: number,
+  billing: BillingPeriod,
+): number | null {
+  if (billing === "annual" || plan.monthlyPrice === undefined)
+    return firstYearTotal(plan, pieces);
+  const piecesCost = piecesTotal(pieces);
+  return piecesCost === null ? null : plan.monthlyPrice + piecesCost;
 }
 
 export function formatUsd(amount: number): string {

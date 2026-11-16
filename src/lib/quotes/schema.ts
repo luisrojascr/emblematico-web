@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { PLAN_IDS, getPlan } from "@/lib/plans";
+import {
+  BILLING_LABELS,
+  BILLING_PERIODS,
+  PLAN_IDS,
+  getPlan,
+} from "@/lib/plans";
 
 export const ACCOMMODATION_TYPES = [
   "Villa o casa vacacional",
@@ -44,6 +49,8 @@ export const quoteRequestSchema = z.object({
   message: optionalText(1200),
   productSlug: optionalText(160),
   plan: optionalText(20).pipe(z.enum(PLAN_IDS).optional()),
+  /** Periodo de cobro elegido (vacío = sin elegir). */
+  billing: optionalText(20).pipe(z.enum(BILLING_PERIODS).optional()),
   /** Cantidad de piezas de bienvenida 3D (vacío = 0). */
   pieces: z
     .string()
@@ -68,6 +75,11 @@ export function composeQuoteMessage(input: QuoteRequestInput): string {
   const plan = getPlan(input.plan);
   const lines = [
     `Plan: ${plan?.name ?? "Aún no lo sé"}`,
+    ...(plan?.price
+      ? [
+          `Facturación: ${input.billing ? BILLING_LABELS[input.billing] : "Sin definir"}`,
+        ]
+      : []),
     `Piezas de bienvenida 3D: ${input.pieces}`,
     `Alojamiento: ${input.accommodation}`,
     `Zona: ${input.area}`,
