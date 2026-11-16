@@ -11,6 +11,7 @@ describe("detectPlan", () => {
     expect(detectPlan([], null).id).toBe("free");
     expect(detectPlan([null], 3).id).toBe("essential");
     expect(detectPlan([], 5).id).toBe("plus");
-    expect(detectPlan([], 8).id).toBe("managers");
+    expect(detectPlan([], 8).id).toBe("plus");
+    expect(detectPlan([], 11).id).toBe("managers");
   });
 });

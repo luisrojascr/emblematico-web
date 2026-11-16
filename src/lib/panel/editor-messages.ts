@@ -772,6 +772,135 @@ export const PANEL_EDITOR_TEXT: Readonly<
     en: "Setup tailored to your portfolio",
     fr: "Configuration adaptée à votre portefeuille",
   },
+  "Tu idioma original, sin traducciones": {
+    en: "Your original language, no translations",
+    fr: "Votre langue d’origine, sans traductions",
+  },
+  "Cinco servicios estándar: Wi-Fi, Contacto, Información de la casa, Check-out, Normas de la casa":
+    {
+      en: "Five standard services: Wi-Fi, Contact, House information, Check-out, House rules",
+      fr: "Cinq services standard : Wi-Fi, Contact, Informations sur la maison, Départ, Règlement intérieur",
+    },
+  "Código QR permanente": {
+    en: "Permanent QR code",
+    fr: "Code QR permanent",
+  },
+  "Pequeña nota al final de la guía: «Creado con emblemático»": {
+    en: "Small note at the end of the guide: “Made with emblemático”",
+    fr: "Petite mention en fin de guide : « Créé avec emblemático »",
+  },
+  "Hasta 3 idiomas de traducción": {
+    en: "Up to 3 translation languages",
+    fr: "Jusqu’à 3 langues de traduction",
+  },
+  "Incluye los 15 servicios estándar": {
+    en: "Includes the 15 standard services",
+    fr: "Comprend les 15 services standard",
+  },
+  "Wi-Fi": {
+    en: "Wi-Fi",
+    fr: "Wi-Fi",
+  },
+  "Información de la casa": {
+    en: "House information",
+    fr: "Informations sur la maison",
+  },
+  "Check-out": {
+    en: "Check-out",
+    fr: "Départ",
+  },
+  "Normas de la casa": {
+    en: "House rules",
+    fr: "Règlement intérieur",
+  },
+  "Restaurantes recomendados": {
+    en: "Recommended restaurants",
+    fr: "Restaurants recommandés",
+  },
+  "Tours recomendados": {
+    en: "Recommended tours",
+    fr: "Excursions recommandées",
+  },
+  "Bienestar y gimnasio: spa, bienestar y gimnasios cercanos": {
+    en: "Wellness and gym: nearby spas, wellness and gyms",
+    fr: "Bien-être et salle de sport : spas, bien-être et salles de sport à proximité",
+  },
+  "Compras y servicios: supermercados, farmacias y licorerías cercanas": {
+    en: "Shopping and services: nearby supermarkets, pharmacies and liquor stores",
+    fr: "Courses et services : supermarchés, pharmacies et cavistes à proximité",
+  },
+  "Emergencias: números de emergencia y hospitales más cercanos": {
+    en: "Emergencies: emergency numbers and nearest hospitals",
+    fr: "Urgences : numéros d’urgence et hôpitaux les plus proches",
+  },
+  "Limpieza: información sobre la limpieza para los huéspedes": {
+    en: "Cleaning: cleaning information for guests",
+    fr: "Ménage : informations sur le ménage pour les voyageurs",
+  },
+  "Minibar y precios": {
+    en: "Minibar and prices",
+    fr: "Minibar et tarifs",
+  },
+  "Taxi: compañías de taxi con teléfonos y enlaces": {
+    en: "Taxi: taxi companies with phone numbers and links",
+    fr: "Taxi : compagnies de taxi avec téléphones et liens",
+  },
+  "Parqueos cercanos": {
+    en: "Nearby parking",
+    fr: "Parkings à proximité",
+  },
+  "Preguntas frecuentes": {
+    en: "FAQ",
+    fr: "Questions fréquentes",
+  },
+  "Sin marca de emblemático": {
+    en: "No emblemático branding",
+    fr: "Sans la marque emblemático",
+  },
+  "Servicios propios": {
+    en: "Your own services",
+    fr: "Vos propres services",
+  },
+  "Estadísticas de la guía: aperturas, visitas y acciones": {
+    en: "Guide statistics: opens, visits and actions",
+    fr: "Statistiques du guide : ouvertures, visites et actions",
+  },
+  "Reseñas y opiniones, para mejorar tus calificaciones": {
+    en: "Reviews, to improve your ratings",
+    fr: "Avis, pour améliorer vos notes",
+  },
+  "Ventana «Deja una reseña»": {
+    en: "“Leave a review” prompt",
+    fr: "Fenêtre « Laissez un avis »",
+  },
+  "Recogida automática de reseñas de Google": {
+    en: "Automatic Google review collection",
+    fr: "Collecte automatique d’avis Google",
+  },
+  "Soporte por email": {
+    en: "Email support",
+    fr: "Assistance par e-mail",
+  },
+  "Todo lo de Essential, más:": {
+    en: "Everything in Essential, plus:",
+    fr: "Tout le forfait Essential, plus :",
+  },
+  "Hasta 7 alojamientos": {
+    en: "Up to 7 properties",
+    fr: "Jusqu’à 7 hébergements",
+  },
+  "Onboarding personalizado: te ayudamos a montar las guías y el sistema": {
+    en: "Personalized onboarding: we help you set up your guides and system",
+    fr: "Accompagnement personnalisé : nous vous aidons à créer vos guides et à tout configurer",
+  },
+  "Soporte con respuesta más rápida por WhatsApp": {
+    en: "Faster support via WhatsApp",
+    fr: "Assistance plus rapide par WhatsApp",
+  },
+  "Más de 10 alojamientos": {
+    en: "More than 10 properties",
+    fr: "Plus de 10 hébergements",
+  },
   "Listo, trajimos: {fields}. Revisa y corrige lo que quieras en el siguiente paso.":
     {
       en: "Imported: {fields}. Review and adjust anything in the next step.",

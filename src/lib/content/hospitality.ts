@@ -80,7 +80,7 @@ export const FAQ = [
   },
   {
     q: "¿Sirve para más de una propiedad?",
-    a: "Sí. Essential incluye hasta 3 alojamientos (puedes sumar hasta 2 adicionales) y Plus hasta 5. Si administras más de 5, el plan para administradores se cotiza a la medida.",
+    a: "Sí. Essential incluye 3 alojamientos y puedes sumar hasta 4 adicionales (7 en total). Plus incluye 7 y puedes sumar los que necesites. Cada adicional cuesta $15 al año o $1.50 al mes. Si administras una cartera grande, el plan para administradores se cotiza a la medida.",
   },
   {
     q: "¿Cuánto cuesta y qué incluye la renovación?",

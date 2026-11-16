@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ESSENTIAL_MAX_PROPERTIES,
   MAX_SELF_SERVE_PROPERTIES,
+  STANDARD_SERVICES,
   PLANS,
   annualSavings,
   firstChargeTotal,
+  featureLabel,
   firstYearTotal,
   maxAnnualSavingsPercent,
   parseBilling,
@@ -38,15 +41,23 @@ describe("PLANS", () => {
       properties: 3,
       extraProperty: 15,
     });
-    expect(getPlan("plus")).toMatchObject({ properties: 5 });
-    expect(getPlan("plus")?.extraProperty).toBeUndefined();
-    expect(MAX_SELF_SERVE_PROPERTIES).toBe(5);
-    expect(getPlan("managers")?.includes[0]).toBe("Más de 5 alojamientos");
+    expect(getPlan("plus")).toMatchObject({ properties: 7 });
+    expect(getPlan("plus")).toMatchObject({
+      extraProperty: 15,
+      extraPropertyMonthly: 1.5,
+    });
+    expect(getPlan("plus")?.maxProperties).toBeUndefined();
+    expect(getPlan("essential")?.maxProperties).toBe(7);
+    expect(MAX_SELF_SERVE_PROPERTIES).toBe(7);
+    expect(ESSENTIAL_MAX_PROPERTIES).toBe(7);
+    expect(getPlan("managers")?.includes[0]).toBe("Más de 10 alojamientos");
   });
 
   it("does not include the 3D piece in the self-serve plans", () => {
     for (const plan of PLANS.filter((p) => p.id !== "managers")) {
-      expect(plan.includes.join(" ")).not.toMatch(/3D|piezas? f[ií]sicas?/i);
+      expect(plan.includes.map(featureLabel).join(" ")).not.toMatch(
+        /3D|piezas? f[ií]sicas?/i,
+      );
     }
   });
 
@@ -69,6 +80,16 @@ describe("PLANS", () => {
     expect(firstChargeTotal(essential, 11, "monthly")).toBeNull();
   });
 
+  it("lists the 15 standard services in an Essential dropdown", () => {
+    expect(STANDARD_SERVICES).toHaveLength(15);
+    const dropdown = getPlan("essential")?.includes.find(
+      (f) => typeof f !== "string" && f.items === STANDARD_SERVICES,
+    );
+    expect(dropdown).toMatchObject({
+      label: "Incluye los 15 servicios estándar",
+    });
+  });
+
   it("parses billing periods", () => {
     expect(parseBilling("annual")).toBe("annual");
     expect(parseBilling("monthly")).toBe("monthly");
@@ -83,10 +104,8 @@ describe("PLANS", () => {
     expect(parseBilling(value)).toBe(expected);
   });
 
-  it("highlights only Plus", () => {
-    expect(PLANS.filter((p) => p.highlighted).map((p) => p.id)).toEqual([
-      "plus",
-    ]);
+  it("highlights no plan (all cards look the same)", () => {
+    expect(PLANS.filter((p) => p.highlighted)).toEqual([]);
   });
 
   it("returns undefined for unknown plans", () => {

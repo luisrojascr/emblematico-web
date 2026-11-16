@@ -1,4 +1,4 @@
-import { PLANS, type Plan } from "@/lib/plans";
+import { MANAGERS_MIN_PROPERTIES, PLANS, type Plan } from "@/lib/plans";
 
 /**
  * El plan aún no tiene tabla propia: se deduce del texto que el admin pone en
@@ -13,11 +13,12 @@ export function detectPlan(
     if (!text) continue;
     if (text.includes("admin") || text.includes("manager")) return PLANS[3];
     if (text.includes("plus")) return PLANS[2];
-    if (text.includes("essential") || text.includes("esencial")) return PLANS[1];
+    if (text.includes("essential") || text.includes("esencial"))
+      return PLANS[1];
     if (text.includes("free") || text.includes("grat")) return PLANS[0];
   }
   if (maxProperties === null || maxProperties <= 1) return PLANS[0];
   if (maxProperties < 5) return PLANS[1];
-  if (maxProperties === 5) return PLANS[2];
+  if (maxProperties <= MANAGERS_MIN_PROPERTIES) return PLANS[2];
   return PLANS[3];
 }

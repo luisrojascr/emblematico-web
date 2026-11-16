@@ -28,6 +28,13 @@ export function parseBilling(
   return BILLING_PERIODS.find((b) => b === value);
 }
 
+/** Un punto de la lista del plan; con `items` se muestra como desplegable. */
+export type PlanFeature = string | { label: string; items: readonly string[] };
+
+export function featureLabel(feature: PlanFeature): string {
+  return typeof feature === "string" ? feature : feature.label;
+}
+
 export type Plan = {
   id: PlanId;
   name: string;
@@ -37,20 +44,53 @@ export type Plan = {
   monthlyPrice?: number;
   /** Alojamientos incluidos. `null` = a la medida. */
   properties: number | null;
-  /**
-   * Precio anual en USD por cada alojamiento adicional, hasta MAX_SELF_SERVE_PROPERTIES.
-   * Plus ya llega al máximo, así que no lo tiene.
-   */
+  /** Precio anual en USD por cada alojamiento adicional. */
   extraProperty?: number;
   /** Igual, pero por mes cuando se cobra mensual. */
   extraPropertyMonthly?: number;
+  /** Máximo de alojamientos en total sumando adicionales. Sin valor = sin límite. */
+  maxProperties?: number;
   summary: string;
-  includes: readonly string[];
+  includes: readonly PlanFeature[];
   highlighted?: boolean;
 };
 
-/** Más de esta cantidad de alojamientos pasa al plan para administradores. */
-export const MAX_SELF_SERVE_PROPERTIES = 5;
+/** Alojamientos incluidos en Plus (y tope de Essential con adicionales). */
+export const MAX_SELF_SERVE_PROPERTIES = 7;
+
+/** Essential puede sumar alojamientos adicionales hasta esta cantidad. */
+export const ESSENTIAL_MAX_PROPERTIES = MAX_SELF_SERVE_PROPERTIES;
+
+/** El plan para administradores se anuncia para más de esta cantidad de alojamientos. */
+export const MANAGERS_MIN_PROPERTIES = 10;
+
+/** Precio de cada alojamiento adicional (Essential hasta 7 en total; Plus sin límite). */
+export const EXTRA_PROPERTY_YEARLY = 15;
+export const EXTRA_PROPERTY_MONTHLY = 1.5;
+
+/** Los 5 servicios estándar que trae cualquier guía. */
+export const BASIC_SERVICES = [
+  "Wi-Fi",
+  "Contacto",
+  "Información de la casa",
+  "Check-out",
+  "Normas de la casa",
+] as const;
+
+/** Los 15 servicios estándar de Essential y Plus (incluye los 5 básicos). */
+export const STANDARD_SERVICES = [
+  ...BASIC_SERVICES,
+  "Restaurantes recomendados",
+  "Tours recomendados",
+  "Bienestar y gimnasio: spa, bienestar y gimnasios cercanos",
+  "Compras y servicios: supermercados, farmacias y licorerías cercanas",
+  "Emergencias: números de emergencia y hospitales más cercanos",
+  "Limpieza: información sobre la limpieza para los huéspedes",
+  "Minibar y precios",
+  "Taxi: compañías de taxi con teléfonos y enlaces",
+  "Parqueos cercanos",
+  "Preguntas frecuentes",
+] as const;
 
 export const PLANS: readonly Plan[] = [
   {
@@ -61,12 +101,11 @@ export const PLANS: readonly Plan[] = [
     summary: "Para probar la guía en un solo alojamiento.",
     includes: [
       "1 alojamiento",
-      "1 idioma, sin traducciones",
-      "Tema estándar",
-      "Wi-Fi, contacto, información de la casa, check-out, normas y recomendaciones",
-      "Código QR permanente y plantilla PDF",
-      "Panel editable",
-      "Una cuenta gratuita por persona o empresa",
+      "Tu idioma original, sin traducciones",
+      `Cinco servicios estándar: ${BASIC_SERVICES.join(", ")}`,
+      "Código QR permanente",
+      "Alojamiento web (hosting) incluido",
+      "Pequeña nota al final de la guía: «Creado con emblemático»",
     ],
   },
   {
@@ -75,16 +114,28 @@ export const PLANS: readonly Plan[] = [
     price: 49,
     monthlyPrice: 6,
     properties: 3,
-    extraProperty: 15,
-    extraPropertyMonthly: 1.5,
+    extraProperty: EXTRA_PROPERTY_YEARLY,
+    extraPropertyMonthly: EXTRA_PROPERTY_MONTHLY,
+    maxProperties: ESSENTIAL_MAX_PROPERTIES,
     summary: "Lo necesario para dar una bienvenida clara y ordenada.",
     includes: [
       "Hasta 3 alojamientos",
-      "Guía digital bilingüe",
-      "Información básica del alojamiento",
-      "Contacto por WhatsApp",
-      "Panel editable",
-      "Alojamiento web (hosting) incluido",
+      "Hasta 3 idiomas de traducción",
+      {
+        label: `Incluye los ${STANDARD_SERVICES.length} servicios estándar`,
+        items: STANDARD_SERVICES,
+      },
+      "Sin marca de emblemático",
+      "Servicios propios",
+      "Estadísticas de la guía: aperturas, visitas y acciones",
+      {
+        label: "Reseñas y opiniones, para mejorar tus calificaciones",
+        items: [
+          "Ventana «Deja una reseña»",
+          "Recogida automática de reseñas de Google",
+        ],
+      },
+      "Soporte por email",
     ],
   },
   {
@@ -92,15 +143,16 @@ export const PLANS: readonly Plan[] = [
     name: "Hospitality Plus",
     price: 99,
     monthlyPrice: 12,
-    properties: 5,
+    properties: MAX_SELF_SERVE_PROPERTIES,
+    extraProperty: EXTRA_PROPERTY_YEARLY,
+    extraPropertyMonthly: EXTRA_PROPERTY_MONTHLY,
     summary: "Para propiedades que quieren ofrecer más a sus huéspedes.",
     includes: [
-      "Hasta 5 alojamientos",
-      "Todo lo de Essential",
-      "Recomendaciones ampliadas de la zona",
-      "Catálogo de experiencias o servicios",
+      "Todo lo de Essential, más:",
+      `Hasta ${MAX_SELF_SERVE_PROPERTIES} alojamientos`,
+      "Onboarding personalizado: te ayudamos a montar las guías y el sistema",
+      "Soporte con respuesta más rápida por WhatsApp",
     ],
-    highlighted: true,
   },
   {
     id: "managers",
@@ -109,7 +161,7 @@ export const PLANS: readonly Plan[] = [
     properties: null,
     summary: "Para administradores de propiedades con una cartera grande.",
     includes: [
-      `Más de ${MAX_SELF_SERVE_PROPERTIES} alojamientos`,
+      `Más de ${MANAGERS_MIN_PROPERTIES} alojamientos`,
       "Todo lo de Plus",
       "Precio por volumen en guías y piezas 3D",
       "Configuración a la medida de tu cartera",
