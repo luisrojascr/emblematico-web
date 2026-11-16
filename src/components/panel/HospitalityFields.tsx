@@ -275,11 +275,55 @@ export function HospitalityFields({ form }: { form: Form }) {
     name: "recommendations.items",
   });
 
+  // Si al guardar hay errores, abre la primera sección que los tiene para
+  // que se vean (ajuste de estado durante el render, sin efecto).
+  const submitCount = form.formState.submitCount;
+  const [seenSubmit, setSeenSubmit] = useState(submitCount);
+  if (submitCount !== seenSubmit) {
+    setSeenSubmit(submitCount);
+    const withError = ORDER.find((key) => errors[key]);
+    if (withError && withError !== open) openSection(withError);
+  }
+
   const setEnabled = (key: SectionKey, value: boolean) =>
     form.setValue(`${key}.enabled`, value, { shouldDirty: true });
 
-  const shown = ORDER.filter((key) => content[key]?.enabled);
-  const available = ORDER.filter((key) => !content[key]?.enabled);
+  /** Cierra la sección abierta solo si es válida; si no, quedan los errores a la vista. */
+  const switchTo = async (next: SectionKey | null) => {
+    if (open && !(await form.trigger(open))) return;
+    openSection(next);
+  };
+
+  /** Quita los elementos vacíos (sin nombre) y saca la sección de la guía. */
+  const hideSection = async (key: SectionKey) => {
+    if (key === "rules") {
+      const items = form.getValues("rules.items");
+      const kept = items.filter((r) => r.trim());
+      if (kept.length !== items.length) {
+        form.setValue("rules.items", kept, { shouldDirty: true });
+      }
+    }
+    if (key === "amenities") {
+      const blank = form
+        .getValues("amenities.items")
+        .flatMap((a, i) => (a.label.trim() ? [] : [i]));
+      if (blank.length) amenities.remove(blank);
+    }
+    if (key === "recommendations") {
+      const blank = form
+        .getValues("recommendations.items")
+        .flatMap((r, i) => (r.name.trim() ? [] : [i]));
+      if (blank.length) recommendations.remove(blank);
+    }
+    // Lo que sigue inválido (p. ej. un enlace mal escrito) se queda abierto.
+    if (!(await form.trigger(key))) return;
+    setEnabled(key, false);
+    openSection(null);
+  };
+
+  // Una sección oculta con errores se sigue mostrando, para poder corregirla.
+  const shown = ORDER.filter((key) => content[key]?.enabled || errors[key]);
+  const available = ORDER.filter((key) => !content[key]?.enabled && !errors[key]);
   const readyCount = shown.filter((key) => status(key, content).ready).length;
 
   const body: Record<SectionKey, ReactNode> = {
@@ -390,11 +434,8 @@ export function HospitalityFields({ form }: { form: Form }) {
                     ready={s.ready}
                     summary={s.summary}
                     open={open === key}
-                    onOpen={() => openSection(open === key ? null : key)}
-                    onHide={() => {
-                      setEnabled(key, false);
-                      openSection(null);
-                    }}
+                    onOpen={() => void switchTo(open === key ? null : key)}
+                    onHide={() => void hideSection(key)}
                     onCancel={() => {
                       if (snapshot) {
                         form.setValue(key, snapshot as never, { shouldDirty: true });
@@ -425,7 +466,8 @@ export function HospitalityFields({ form }: { form: Form }) {
               <li key={key}>
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={async () => {
+                    if (open && !(await form.trigger(open))) return;
                     setEnabled(key, true);
                     openSection(key);
                   }}
