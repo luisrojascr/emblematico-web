@@ -27,8 +27,9 @@ export default function LoginPage({ searchParams }: PageProps<"/ingresar">) {
     <section className="mx-auto max-w-md px-4 py-20 sm:px-6">
       <h1 className="mb-2 text-3xl">Ingresar</h1>
       <p className="text-ink-soft mb-8">
-        Te enviaremos un enlace seguro a tu correo. Solo cuentas creadas por
-        emblemático.
+        Entra con tu correo y contraseña. Las cuentas las crea emblemático:
+        si recibiste una invitación y aún no tienes contraseña, usa
+        &ldquo;¿Olvidaste tu contraseña?&rdquo;.
       </p>
       <Suspense fallback={null}>
         <LoginNotice searchParams={searchParams} />

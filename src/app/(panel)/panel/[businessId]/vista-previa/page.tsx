@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { secondaryButtonClass } from "@/components/admin/ui";
+import { panelSecondaryButtonClass as secondaryButtonClass } from "@/components/panel/ui";
 import { PanelHeading } from "@/components/panel/PanelHeading";
 import { loadPanelPage } from "@/lib/panel/load";
 import { parsePageContent, TemplateView } from "@/lib/templates/registry";
@@ -13,14 +13,21 @@ async function Preview({ id }: { id: string }) {
   const content = parsePageContent(page.templateKey, page.draft);
 
   return (
-    <PanelHeading id={page.id} name={page.name} slug={page.slug}>
+    <PanelHeading page={page}>
       <p className="text-ink-soft mb-6 text-sm">
         Vista previa del borrador guardado. La página pública no cambia hasta
         que publiques.
       </p>
       {content ? (
-        <div className="border-cream-dark overflow-hidden rounded-xl border">
-          <TemplateView name={page.name} page={content} />
+        <div className="bg-ink mx-auto w-full max-w-[390px] rounded-[2.75rem] p-3 shadow-xl shadow-ink/20">
+          <div className="relative overflow-hidden rounded-[2.1rem] bg-white">
+            <div aria-hidden="true" className="flex h-9 items-center justify-center bg-white">
+              <span className="bg-ink h-6 w-24 rounded-full" />
+            </div>
+            <div className="h-[720px] max-h-[75dvh] overflow-y-auto [&_.min-h-dvh]:min-h-full">
+              <TemplateView name={page.name} page={content} />
+            </div>
+          </div>
         </div>
       ) : (
         <p className="text-sm text-red-700">
@@ -31,7 +38,7 @@ async function Preview({ id }: { id: string }) {
           y guárdalo de nuevo.
         </p>
       )}
-      <p className="mt-6">
+      <p className="mt-6 text-center">
         <Link href={`/panel/${page.id}`} className={secondaryButtonClass}>
           Volver al editor
         </Link>

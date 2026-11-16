@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
 import { CopyUrl } from "@/components/admin/CopyUrl";
-import { secondaryButtonClass } from "@/components/admin/ui";
+import { panelSecondaryButtonClass as secondaryButtonClass } from "@/components/panel/ui";
 import { PanelHeading } from "@/components/panel/PanelHeading";
 import { loadPanelPage } from "@/lib/panel/load";
 import { businessPublicUrl } from "@/lib/qr/render";
@@ -13,7 +13,7 @@ async function Qr({ id }: { id: string }) {
   const url = businessPublicUrl(page.slug);
 
   return (
-    <PanelHeading id={page.id} name={page.name} slug={page.slug}>
+    <PanelHeading page={page}>
       <div className="space-y-4">
         <p className="text-ink-soft text-sm">
           El código abre la página publicada. Un borrador sin publicar no se ve

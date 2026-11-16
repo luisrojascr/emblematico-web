@@ -3,25 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function PanelNav({
-  businessId,
-  publicUrl,
-}: {
-  businessId: string;
-  publicUrl: string;
-}) {
+export function PanelNav({ businessId }: { businessId: string }) {
   const pathname = usePathname();
   const base = `/panel/${businessId}`;
   const links = [
-    { href: base, label: "Editar" },
+    { href: base, label: "Contenido de la guía" },
     { href: `${base}/vista-previa`, label: "Vista previa" },
-    { href: `${base}/qr`, label: "Código QR" },
+    { href: `${base}/qr`, label: "Compartir y QR" },
   ] as const;
 
   return (
     <nav
-      aria-label="Página del negocio"
-      className="flex flex-wrap gap-4 text-sm"
+      aria-label="Secciones del hospedaje"
+      className="-mb-px flex gap-6 overflow-x-auto text-sm"
     >
       {links.map((link) => {
         const current =
@@ -33,24 +27,16 @@ export function PanelNav({
             key={link.href}
             href={link.href}
             aria-current={current ? "page" : undefined}
-            className={
+            className={`shrink-0 border-b-2 pb-3 font-semibold transition-colors ${
               current
-                ? "text-sand-dark font-medium"
-                : "text-ink-soft hover:text-ink"
-            }
+                ? "border-sand text-ink"
+                : "text-ink-soft hover:text-ink border-transparent"
+            }`}
           >
             {link.label}
           </Link>
         );
       })}
-      <a
-        href={publicUrl}
-        className="text-ink-soft hover:text-ink"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Ver publicada
-      </a>
     </nav>
   );
 }

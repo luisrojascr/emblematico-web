@@ -1,4 +1,7 @@
 import { whatsappHref } from "../common";
+import { CopyButton } from "../CopyButton";
+import { displayTime } from "../time";
+import { T, isDefaultWelcome, isDefaultWhatsapp } from "../i18n";
 import { ActionLink, Card, PlainText, TemplateFrame } from "../ui";
 
 import type { HospitalityContent } from "./schema";
@@ -16,26 +19,36 @@ export function HospitalityTemplate({
   const whatsappShown = c.whatsapp.enabled && c.whatsapp.phone;
 
   return (
-    <TemplateFrame name={name} tagline={c.tagline} theme={c.theme}>
+    <TemplateFrame
+      name={name}
+      tagline={c.tagline}
+      theme={c.theme}
+      language={c.language}
+      switcher
+    >
       {whatsappShown ? (
         <ActionLink href={whatsappHref(c.whatsapp.phone, c.whatsapp.message)}>
-          {c.whatsapp.label || "Escribir por WhatsApp"}
+          {isDefaultWhatsapp(c.whatsapp.label) ? <T k="whatsapp" /> : c.whatsapp.label}
         </ActionLink>
       ) : null}
 
       {c.welcome.enabled && c.welcome.message ? (
-        <Card title={c.welcome.title || undefined}>
+        <Card
+          title={isDefaultWelcome(c.welcome.title) ? <T k="welcome" /> : c.welcome.title}
+          collapsible
+          defaultOpen
+        >
           <PlainText>{c.welcome.message}</PlainText>
         </Card>
       ) : null}
 
       {wifiShown ? (
-        <Card title="Wi-Fi">
+        <Card title={<T k="wifi" />} collapsible>
           <dl className="space-y-2">
             {c.wifi.network ? (
               <div>
                 <dt className="text-ink-soft text-xs tracking-wide uppercase">
-                  Red
+                  <T k="network" />
                 </dt>
                 <dd className="text-lg font-medium whitespace-pre-wrap">
                   {c.wifi.network}
@@ -45,10 +58,13 @@ export function HospitalityTemplate({
             {c.wifi.password ? (
               <div>
                 <dt className="text-ink-soft text-xs tracking-wide uppercase">
-                  Contraseña
+                  <T k="password" />
                 </dt>
-                <dd className="font-mono text-lg break-all whitespace-pre-wrap select-all">
-                  {c.wifi.password}
+                <dd className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-lg break-all whitespace-pre-wrap select-all">
+                    {c.wifi.password}
+                  </span>
+                  <CopyButton value={c.wifi.password} />
                 </dd>
               </div>
             ) : null}
@@ -62,22 +78,22 @@ export function HospitalityTemplate({
       ) : null}
 
       {stayShown ? (
-        <Card title="Tu estadía">
+        <Card title={<T k="stay" />} collapsible>
           <dl className="grid grid-cols-2 gap-4">
             {c.stay.check_in ? (
               <div>
                 <dt className="text-ink-soft text-xs tracking-wide uppercase">
-                  Check-in
+                  <T k="checkIn" />
                 </dt>
-                <dd className="font-medium">{c.stay.check_in}</dd>
+                <dd className="font-medium">{displayTime(c.stay.check_in)}</dd>
               </div>
             ) : null}
             {c.stay.check_out ? (
               <div>
                 <dt className="text-ink-soft text-xs tracking-wide uppercase">
-                  Check-out
+                  <T k="checkOut" />
                 </dt>
-                <dd className="font-medium">{c.stay.check_out}</dd>
+                <dd className="font-medium">{displayTime(c.stay.check_out)}</dd>
               </div>
             ) : null}
           </dl>
@@ -90,7 +106,7 @@ export function HospitalityTemplate({
       ) : null}
 
       {c.rules.enabled && c.rules.items.length > 0 ? (
-        <Card title="Reglas de la casa">
+        <Card title={<T k="rules" />} collapsible>
           <ul className="list-disc space-y-1.5 pl-5">
             {c.rules.items.map((rule, i) => (
               <li key={i}>{rule}</li>
@@ -100,7 +116,7 @@ export function HospitalityTemplate({
       ) : null}
 
       {c.amenities.enabled && c.amenities.items.length > 0 ? (
-        <Card title="Servicios">
+        <Card title={<T k="amenities" />} collapsible>
           <ul className="space-y-3">
             {c.amenities.items.map((item, i) => (
               <li key={i}>
@@ -115,7 +131,7 @@ export function HospitalityTemplate({
       ) : null}
 
       {c.recommendations.enabled && c.recommendations.items.length > 0 ? (
-        <Card title="Recomendaciones">
+        <Card title={<T k="recommendations" />} collapsible>
           <ul className="divide-y divide-black/5">
             {c.recommendations.items.map((item, i) => (
               <li key={i} className="py-3 first:pt-0 last:pb-0">
