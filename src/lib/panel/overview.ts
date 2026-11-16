@@ -14,6 +14,13 @@ export type PanelOverview = {
   properties: PanelProperty[];
   /** null = sin límite conocido (admin, o la migración aún no se aplicó). */
   limit: number | null;
+  /**
+   * Hospedajes de los que el usuario es dueño. Es lo que cuenta para el
+   * límite (igual que create_my_business); los que solo edita no cuentan.
+   */
+  owned: number;
+  /** Si todavía puede crear otro hospedaje. */
+  canCreate: boolean;
 };
 
 export function coverOf(draft: unknown): string | null {
@@ -29,7 +36,7 @@ export async function loadOverview(
   isAdmin: boolean,
 ): Promise<PanelOverview> {
   const supabase = await createClient();
-  const [{ data: businesses }, { data: pages }, profile] = await Promise.all([
+  const [{ data: businesses }, { data: pages }, profile, ownedResult] = await Promise.all([
     supabase.from("businesses").select("id, name, status").order("name"),
     supabase.from("pages").select("business_id, status, draft_content"),
     isAdmin
@@ -39,6 +46,11 @@ export async function loadOverview(
           .select("max_properties")
           .eq("id", userId)
           .maybeSingle(),
+    supabase
+      .from("business_members")
+      .select("business_id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("role", "owner"),
   ]);
   const byBusiness = new Map((pages ?? []).map((p) => [p.business_id, p]));
   const properties = (businesses ?? []).map((business) => {
@@ -51,8 +63,12 @@ export async function loadOverview(
       coverPath: coverOf(page?.draft_content),
     };
   });
+  const limit = profile?.data?.max_properties ?? null;
+  const owned = ownedResult.count ?? 0;
   return {
     properties,
-    limit: profile?.data?.max_properties ?? null,
+    limit,
+    owned,
+    canCreate: limit === null || owned < limit,
   };
 }

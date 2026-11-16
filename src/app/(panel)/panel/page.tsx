@@ -26,7 +26,7 @@ function greeting(): string {
 
 async function Home() {
   const user = await requireUser();
-  const { properties, limit } = await loadOverview(
+  const { properties, canCreate } = await loadOverview(
     user.id,
     user.role === "admin",
   );
@@ -34,7 +34,6 @@ async function Home() {
     user.fullName?.trim().split(/\s+/)[0] ||
     user.email?.split("@")[0] ||
     "";
-  const canCreate = limit === null || properties.length < limit;
 
   return (
     <PanelPage title={first ? `${greeting()}, ${first}` : greeting()}>

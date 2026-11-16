@@ -40,7 +40,7 @@ const sectionsSchema = z.object({
 });
 
 /** Lo que el asistente de "Agregar hospedaje" recoge, en forma plana. */
-export const wizardSchema = z.object({
+const wizardFields = z.object({
   name: requiredText(120),
   language: z.enum(["es", "en", "fr"]).default("es"),
   sections: sectionsSchema.default({
@@ -73,8 +73,38 @@ export const wizardSchema = z.object({
   whatsapp: whatsappPhone.default(""),
 });
 
-export type WizardValues = z.input<typeof wizardSchema>;
-export type WizardParsed = z.output<typeof wizardSchema>;
+/** Campos que pertenecen a cada sección opcional del paso 2. */
+const SECTION_FIELDS: Record<WizardSection, readonly (keyof z.input<typeof wizardFields>)[]> = {
+  welcome: ["welcome"],
+  wifi: ["wifiNetwork", "wifiPassword"],
+  contact: ["whatsapp"],
+  stay: ["checkIn", "checkOut", "stayNotes"],
+  rules: ["rules"],
+  amenities: ["amenities"],
+  recommendations: ["recommendations"],
+};
+
+/**
+ * Lo escrito en una sección desmarcada no se valida: se descarta antes,
+ * igual que hace buildContent. Así un número a medias en "Cómo contactarte"
+ * no bloquea el asistente si la sección se desmarcó. Los valores del
+ * formulario no se tocan, por si la vuelven a marcar.
+ */
+function dropDisabledSections(input: unknown): unknown {
+  if (!input || typeof input !== "object") return input;
+  const values = { ...(input as Record<string, unknown>) };
+  const sections = (values.sections ?? {}) as Partial<Record<WizardSection, unknown>>;
+  for (const section of WIZARD_SECTIONS) {
+    if (sections[section] === true) continue;
+    for (const field of SECTION_FIELDS[section]) delete values[field];
+  }
+  return values;
+}
+
+export const wizardSchema = z.preprocess(dropDisabledSections, wizardFields);
+
+export type WizardValues = z.input<typeof wizardFields>;
+export type WizardParsed = z.output<typeof wizardFields>;
 export type WizardForm = Required<Omit<WizardValues, "sections" | "recommendations">> & {
   sections: Record<WizardSection, boolean>;
   recommendations: { name: string; description: string }[];

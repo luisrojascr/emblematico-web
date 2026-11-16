@@ -53,3 +53,25 @@ describe("buildContent", () => {
     expect(content.welcome.enabled).toBe(false);
   });
 });
+
+describe("wizardSchema", () => {
+  it("ignora datos inválidos de una sección desmarcada", () => {
+    const values = {
+      ...EMPTY_WIZARD,
+      name: "Casa",
+      whatsapp: "88",
+      sections: { ...EMPTY_WIZARD.sections, contact: false },
+    };
+    expect(wizardSchema.safeParse(values).success).toBe(true);
+  });
+
+  it("valida la sección cuando está marcada", () => {
+    const values = {
+      ...EMPTY_WIZARD,
+      name: "Casa",
+      whatsapp: "88",
+      sections: { ...EMPTY_WIZARD.sections, contact: true },
+    };
+    expect(wizardSchema.safeParse(values).success).toBe(false);
+  });
+});

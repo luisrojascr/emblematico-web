@@ -17,11 +17,10 @@ async function List({
 }) {
   const user = await requireUser();
   const query = await searchParams;
-  const { properties, limit } = await loadOverview(
+  const { properties, limit, owned, canCreate } = await loadOverview(
     user.id,
     user.role === "admin",
   );
-  const canCreate = limit === null || properties.length < limit;
   const live = properties.filter((p) => p.pageStatus === "published").length;
   const limitNotice = query.aviso === "limite";
 
@@ -31,7 +30,7 @@ async function List({
       subtitle={
         properties.length === 0
           ? "Aún no tienes hospedajes."
-          : `${properties.length} ${properties.length === 1 ? "hospedaje" : "hospedajes"}. ${live === 0 ? "Ninguno está publicado todavía." : `${live} publicado${live === 1 ? "" : "s"}.`}${limit !== null ? ` Tu plan incluye ${limit}.` : ""}`
+          : `${properties.length} ${properties.length === 1 ? "hospedaje" : "hospedajes"}. ${live === 0 ? "Ninguno está publicado todavía." : `${live} publicado${live === 1 ? "" : "s"}.`}${limit !== null ? ` Tu plan incluye ${limit} propio${limit === 1 ? "" : "s"}${owned !== properties.length ? ` (tienes ${owned})` : ""}.` : ""}`
       }
       action={
         canCreate ? (

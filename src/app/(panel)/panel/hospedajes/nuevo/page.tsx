@@ -7,11 +7,8 @@ import { loadOverview } from "@/lib/panel/overview";
 
 async function Gate() {
   const user = await requireUser();
-  const { properties, limit } = await loadOverview(
-    user.id,
-    user.role === "admin",
-  );
-  if (limit !== null && properties.length >= limit) {
+  const { canCreate } = await loadOverview(user.id, user.role === "admin");
+  if (!canCreate) {
     redirect("/panel/hospedajes?aviso=limite");
   }
   return <PropertyWizard closeHref="/panel/hospedajes" />;
