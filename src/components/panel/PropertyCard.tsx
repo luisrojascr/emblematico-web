@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { getPanelI18n } from "@/lib/panel/i18n-server";
 import { mediaUrl } from "@/lib/catalog/media";
 import type { PanelProperty } from "@/lib/panel/overview";
 
@@ -11,7 +12,8 @@ const STATE: Record<string, string> = {
   unpublished: "Fuera de línea",
 };
 
-export function PropertyCard({ property }: { property: PanelProperty }) {
+export async function PropertyCard({ property }: { property: PanelProperty }) {
+  const { t } = await getPanelI18n();
   const published = property.pageStatus === "published";
   const inactive = property.status !== "active";
   return (
@@ -29,7 +31,17 @@ export function PropertyCard({ property }: { property: PanelProperty }) {
           />
         ) : (
           <div className="text-teal/50 flex h-full items-center justify-center">
-            <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              width="40"
+              height="40"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
               <path d="M3 11.5 12 4l9 7.5" />
               <path d="M5.5 10v9.5h13V10" />
             </svg>
@@ -46,11 +58,11 @@ export function PropertyCard({ property }: { property: PanelProperty }) {
           <span className="text-ink-soft">
             {inactive
               ? property.status === "suspended"
-                ? "Suspendido"
-                : "Archivado"
+                ? t("Suspendido")
+                : t("Archivado")
               : property.pageStatus
-                ? STATE[property.pageStatus]
-                : "Sin borrador"}
+                ? t(STATE[property.pageStatus]!)
+                : t("Sin borrador")}
           </span>
         </p>
       </div>

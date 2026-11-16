@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
+
 export function PanelNav({ businessId }: { businessId: string }) {
+  const { t } = usePanelI18n();
   const pathname = usePathname();
   const base = `/panel/${businessId}`;
   const links = [
@@ -14,7 +17,7 @@ export function PanelNav({ businessId }: { businessId: string }) {
 
   return (
     <nav
-      aria-label="Secciones del hospedaje"
+      aria-label={t("Secciones del hospedaje")}
       className="-mb-px flex gap-6 overflow-x-auto text-sm"
     >
       {links.map((link) => {
@@ -33,7 +36,7 @@ export function PanelNav({ businessId }: { businessId: string }) {
                 : "text-ink-soft hover:text-ink border-transparent"
             }`}
           >
-            {link.label}
+            {t(link.label)}
           </Link>
         );
       })}

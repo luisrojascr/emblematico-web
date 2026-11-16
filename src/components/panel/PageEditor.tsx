@@ -12,6 +12,7 @@ import {
   publishDraft,
   saveDraft,
 } from "@/app/(panel)/panel/[businessId]/actions";
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import { businessStatusLabel, pageStatusLabel } from "@/lib/admin/labels";
 import type { PanelPage } from "@/lib/panel/load";
 import type { GeneralContent } from "@/lib/templates/general/schema";
@@ -70,6 +71,7 @@ export function PageEditor({
 }
 
 function usePanelSubmit(businessId: string) {
+  const { t } = usePanelI18n();
   const logo = useImageSlot();
   const cover = useImageSlot();
   const [message, setMessage] = useState<string | null>(null);
@@ -95,7 +97,7 @@ function usePanelSubmit(businessId: string) {
   function publish() {
     if (
       !window.confirm(
-        "La página pública pasará a mostrar el borrador guardado.",
+        t("La página pública pasará a mostrar el borrador guardado."),
       )
     ) {
       return;
@@ -138,7 +140,11 @@ function HospitalityEditor({
       logoPath={content.theme.logo_path}
       coverPath={content.theme.cover_path}
       preview={
-        <PhonePreview name={page.name} control={form.control} fallback={content} />
+        <PhonePreview
+          name={page.name}
+          control={form.control}
+          fallback={content}
+        />
       }
     >
       <HospitalityFields form={form} />
@@ -201,6 +207,7 @@ function EditorChrome({
   coverPath?: string | null;
   children: ReactNode;
 }) {
+  const { t } = usePanelI18n();
   const canEdit = page.status === "active";
   const dirty = formDirty || panel.logo.dirty || panel.cover.dirty;
   const savedNotice = notice ? NOTICES[notice] : undefined;
@@ -209,30 +216,32 @@ function EditorChrome({
     <form className="space-y-6" onSubmit={onSubmit} noValidate>
       <header className="space-y-1">
         <p className="text-ink-soft text-sm">
-          {TEMPLATE_LABELS[page.templateKey]} ·{" "}
-          {pageStatusLabel(page.pageStatus)} ·{" "}
-          {businessStatusLabel(page.status)}
+          {t(TEMPLATE_LABELS[page.templateKey])} ·{" "}
+          {t(pageStatusLabel(page.pageStatus))} ·{" "}
+          {t(businessStatusLabel(page.status))}
         </p>
         {savedNotice ? (
           <p role="status" className="text-ink-soft text-sm">
-            {savedNotice}
+            {t(savedNotice)}
           </p>
         ) : null}
         {invalidDraft ? (
           <p role="alert" className="text-sm text-red-700">
-            El borrador guardado no se pudo leer. Corrige los campos y vuelve a
-            guardarlo antes de publicar.
+            {t(
+              "El borrador guardado no se pudo leer. Corrige los campos y vuelve a guardarlo antes de publicar.",
+            )}
           </p>
         ) : null}
         {!canEdit ? (
           <p role="status" className="text-sm text-red-700">
-            Este negocio está suspendido o archivado. Puedes ver el contenido,
-            no editarlo.
+            {t(
+              "Este negocio está suspendido o archivado. Puedes ver el contenido, no editarlo.",
+            )}
           </p>
         ) : null}
         {panel.message ? (
           <p role="alert" className="text-sm text-red-700">
-            {panel.message}
+            {t(panel.message)}
           </p>
         ) : null}
       </header>
@@ -241,13 +250,13 @@ function EditorChrome({
         <div className="grid gap-4 sm:grid-cols-2">
           <ImageField
             id="logo"
-            label="Logo"
+            label={"Logo"}
             currentPath={logoPath}
             slot={panel.logo}
           />
           <ImageField
             id="cover"
-            label="Foto de portada"
+            label={t("Foto de portada")}
             currentPath={coverPath}
             slot={panel.cover}
           />
@@ -261,7 +270,7 @@ function EditorChrome({
           disabled={!canEdit || panel.pending}
           className={primaryButtonClass}
         >
-          {panel.pending ? "Procesando..." : "Guardar borrador"}
+          {panel.pending ? t("Procesando...") : t("Guardar borrador")}
         </button>
         <button
           type="button"
@@ -269,12 +278,12 @@ function EditorChrome({
           className={secondaryButtonClass}
           onClick={panel.publish}
         >
-          Publicar
+          {t("Publicar")}
         </button>
       </div>
       {canEdit && (dirty || invalidDraft) ? (
         <p className="text-ink-soft text-sm">
-          Publicar usa el último borrador guardado.
+          {t("Publicar usa el último borrador guardado.")}
         </p>
       ) : null}
     </form>

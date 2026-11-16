@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 
-export function CopyUrl({ url }: { url: string }) {
+export function CopyUrl({
+  url,
+  copyLabel = "Copiar",
+  copiedLabel = "Copiado",
+}: {
+  url: string;
+  copyLabel?: string;
+  copiedLabel?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   return (
@@ -19,7 +27,7 @@ export function CopyUrl({ url }: { url: string }) {
           });
         }}
       >
-        {copied ? "Copiado" : "Copiar"}
+        {copied ? copiedLabel : copyLabel}
       </button>
     </div>
   );

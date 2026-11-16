@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { getPanelI18n } from "@/lib/panel/i18n-server";
+import { PanelLoading } from "@/components/panel/PanelLanguageProvider";
 import { CopyUrl } from "@/components/admin/CopyUrl";
 import { panelSecondaryButtonClass as secondaryButtonClass } from "@/components/panel/ui";
 import { PanelHeading } from "@/components/panel/PanelHeading";
@@ -8,6 +10,7 @@ import { loadPanelPage } from "@/lib/panel/load";
 import { businessPublicUrl } from "@/lib/qr/render";
 
 async function Qr({ id }: { id: string }) {
+  const { t } = await getPanelI18n();
   const page = await loadPanelPage(id);
   if (!page) notFound();
   const url = businessPublicUrl(page.slug);
@@ -16,27 +19,28 @@ async function Qr({ id }: { id: string }) {
     <PanelHeading page={page}>
       <div className="space-y-4">
         <p className="text-ink-soft text-sm">
-          El código abre la página publicada. Un borrador sin publicar no se ve
-          al escanearlo.
+          {t(
+            "El código abre la página publicada. Un borrador sin publicar no se ve al escanearlo.",
+          )}
         </p>
         {page.pageStatus !== "published" ? (
           <p className="text-sm text-red-700">
-            Esta página todavía no está publicada.
+            {t("Esta página todavía no está publicada.")}
           </p>
         ) : null}
-        <CopyUrl url={url} />
+        <CopyUrl url={url} copyLabel={t("Copiar")} copiedLabel={t("Copiado")} />
         <div className="flex flex-wrap gap-3">
           <a
             href={`/api/qr/${page.id}?format=svg`}
             className={secondaryButtonClass}
           >
-            Descargar SVG
+            {t("Descargar SVG")}
           </a>
           <a
             href={`/api/qr/${page.id}?format=png`}
             className={secondaryButtonClass}
           >
-            Descargar PNG
+            {t("Descargar PNG")}
           </a>
         </div>
       </div>
@@ -48,7 +52,7 @@ export default function QrPage({
   params,
 }: PageProps<"/panel/[businessId]/qr">) {
   return (
-    <Suspense fallback={<p className="text-ink-soft p-8">Cargando...</p>}>
+    <Suspense fallback={<PanelLoading />}>
       <QrLoader params={params} />
     </Suspense>
   );

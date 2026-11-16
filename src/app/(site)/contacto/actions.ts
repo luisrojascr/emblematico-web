@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 
 import { quoteRateLimitIdentity } from "@/lib/quotes/identity";
-import { getPlan } from "@/lib/plans";
+import { BILLING_LABELS, getPlan } from "@/lib/plans";
 import { composeQuoteMessage, quoteRequestSchema } from "@/lib/quotes/schema";
 import { whatsappLink } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -19,6 +19,7 @@ export type QuoteFormValues = {
   message: string;
   productSlug: string;
   plan: string;
+  billing: string;
   pieces: string;
 };
 
@@ -40,6 +41,7 @@ const FIELDS = [
   "message",
   "productSlug",
   "plan",
+  "billing",
   "pieces",
 ] as const;
 
@@ -55,6 +57,7 @@ function readValues(formData: FormData): QuoteFormValues {
     message: get("message"),
     productSlug: get("productSlug"),
     plan: get("plan"),
+    billing: get("billing"),
     pieces: get("pieces"),
   };
 }
@@ -153,6 +156,9 @@ export async function submitQuote(
     `Hola, soy ${input.name}. Acabo de enviar una solicitud de demo o propuesta desde el sitio.`,
     `Alojamiento: ${input.accommodation} (${input.area}).`,
     getPlan(input.plan) ? `Plan: ${getPlan(input.plan)?.name}.` : null,
+    getPlan(input.plan)?.price && input.billing
+      ? `Facturación: ${BILLING_LABELS[input.billing].toLowerCase()}.`
+      : null,
     input.pieces > 0 ? `Piezas de bienvenida 3D: ${input.pieces}.` : null,
     productName ? `Producto de interés: ${productName}.` : null,
   ].filter(Boolean);

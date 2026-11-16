@@ -2,6 +2,7 @@
 
 import { useFieldArray, type UseFormReturn } from "react-hook-form";
 
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import type { GeneralContent } from "@/lib/templates/general/schema";
 
 import { AddButton, AccentField, Section, TextField } from "./fields";
@@ -11,6 +12,7 @@ export function GeneralFields({
 }: {
   form: UseFormReturn<GeneralContent>;
 }) {
+  const { t } = usePanelI18n();
   const {
     register,
     formState: { errors },
@@ -35,104 +37,104 @@ export function GeneralFields({
       />
       <TextField
         id="tagline"
-        label="Lema"
+        label={t("Lema")}
         registration={register("tagline")}
         error={errors.tagline?.message}
       />
       <Section
-        title="Botón principal"
+        title={t("Botón principal")}
         enabled={<input type="checkbox" {...register("cta.enabled")} />}
       >
         <TextField
           id="cta-label"
-          label="Texto"
+          label={t("Texto")}
           registration={register("cta.label")}
           error={errors.cta?.label?.message}
         />
         <TextField
           id="cta-url"
-          label="Enlace"
-          hint="https:// o tel:+506..."
+          label={t("Enlace")}
+          hint={t("https:// o tel:+506...")}
           registration={register("cta.url")}
           error={errors.cta?.url?.message}
         />
       </Section>
       <Section
-        title="Descripción"
+        title={t("Descripción")}
         enabled={<input type="checkbox" {...register("description.enabled")} />}
       >
         <TextField
           id="description-title"
-          label="Título"
+          label={t("Título")}
           registration={register("description.title")}
           error={errors.description?.title?.message}
         />
         <TextField
           id="description-body"
-          label="Texto"
+          label={t("Texto")}
           multiline
           registration={register("description.body")}
           error={errors.description?.body?.message}
         />
       </Section>
       <Section
-        title="Ubicación y horario"
+        title={t("Ubicación y horario")}
         enabled={<input type="checkbox" {...register("location.enabled")} />}
       >
         <TextField
           id="location-address"
-          label="Dirección"
+          label={t("Dirección")}
           multiline
           registration={register("location.address")}
           error={errors.location?.address?.message}
         />
         <TextField
           id="location-hours"
-          label="Horario"
+          label={t("Horario")}
           multiline
           registration={register("location.hours")}
           error={errors.location?.hours?.message}
         />
         <TextField
           id="location-maps"
-          label="Enlace de mapa"
-          hint="https://"
+          label={t("Enlace de mapa")}
+          hint={"https://"}
           registration={register("location.maps_url")}
           error={errors.location?.maps_url?.message}
         />
       </Section>
       <Section
-        title="Menú o catálogo"
+        title={t("Menú o catálogo")}
         enabled={<input type="checkbox" {...register("menu.enabled")} />}
       >
         <TextField
           id="menu-label"
-          label="Texto"
+          label={t("Texto")}
           registration={register("menu.label")}
           error={errors.menu?.label?.message}
         />
         <TextField
           id="menu-url"
-          label="Enlace"
-          hint="https://"
+          label={t("Enlace")}
+          hint={"https://"}
           registration={register("menu.url")}
           error={errors.menu?.url?.message}
         />
       </Section>
       <Section
-        title="Reseñas de Google"
+        title={t("Reseñas de Google")}
         enabled={<input type="checkbox" {...register("reviews.enabled")} />}
       >
         <TextField
           id="reviews-url"
-          label="Enlace"
-          hint="https://"
+          label={t("Enlace")}
+          hint={"https://"}
           registration={register("reviews.url")}
           error={errors.reviews?.url?.message}
         />
       </Section>
       <Section
-        title="Redes"
+        title={t("Redes")}
         enabled={<input type="checkbox" {...register("social.enabled")} />}
       >
         <div className="space-y-3">
@@ -143,14 +145,14 @@ export function GeneralFields({
             >
               <TextField
                 id={`social-label-${index}`}
-                label="Nombre"
+                label={t("Nombre")}
                 registration={register(`social.links.${index}.label`)}
                 error={errors.social?.links?.[index]?.label?.message}
               />
               <TextField
                 id={`social-url-${index}`}
-                label="Enlace"
-                hint="https://"
+                label={t("Enlace")}
+                hint={"https://"}
                 registration={register(`social.links.${index}.url`)}
                 error={errors.social?.links?.[index]?.url?.message}
               />
@@ -159,7 +161,7 @@ export function GeneralFields({
                 className="text-sm text-red-700"
                 onClick={() => links.remove(index)}
               >
-                Quitar
+                {t("Quitar")}
               </button>
             </div>
           ))}
@@ -167,30 +169,30 @@ export function GeneralFields({
             disabled={links.fields.length >= 8}
             onClick={() => links.append({ label: "", url: "" })}
           >
-            Agregar red
+            {t("Agregar red")}
           </AddButton>
         </div>
       </Section>
       <Section
-        title="WhatsApp"
+        title={"WhatsApp"}
         enabled={<input type="checkbox" {...register("whatsapp.enabled")} />}
       >
         <TextField
           id="wa-phone"
-          label="Teléfono"
-          hint="Ejemplo: 8899 7060"
+          label={t("Teléfono")}
+          hint={t("Ejemplo: 8899 7060")}
           registration={register("whatsapp.phone")}
           error={errors.whatsapp?.phone?.message}
         />
         <TextField
           id="wa-label"
-          label="Texto del botón"
+          label={t("Texto del botón")}
           registration={register("whatsapp.label")}
           error={errors.whatsapp?.label?.message}
         />
         <TextField
           id="wa-message"
-          label="Mensaje"
+          label={t("Mensaje")}
           multiline
           registration={register("whatsapp.message")}
           error={errors.whatsapp?.message?.message}

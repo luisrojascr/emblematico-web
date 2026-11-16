@@ -7,9 +7,11 @@ import {
   updateProfile,
 } from "@/app/(panel)/panel/configuracion/actions";
 
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import { panelInputClass, panelPrimaryButtonClass } from "./ui";
 
 export function ProfileForm({ fullName }: { fullName: string }) {
+  const { t } = usePanelI18n();
   const [state, action, pending] = useActionState<ProfileState, FormData>(
     updateProfile,
     { status: "idle" },
@@ -17,7 +19,7 @@ export function ProfileForm({ fullName }: { fullName: string }) {
   return (
     <form action={action} className="space-y-3">
       <label htmlFor="fullName" className="text-sm font-semibold">
-        Nombre
+        {t("Nombre")}
       </label>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
@@ -28,8 +30,12 @@ export function ProfileForm({ fullName }: { fullName: string }) {
           autoComplete="name"
           className={panelInputClass}
         />
-        <button type="submit" disabled={pending} className={panelPrimaryButtonClass}>
-          {pending ? "Guardando..." : "Guardar"}
+        <button
+          type="submit"
+          disabled={pending}
+          className={panelPrimaryButtonClass}
+        >
+          {pending ? t("Guardando...") : t("Guardar")}
         </button>
       </div>
       {state.message ? (
@@ -37,7 +43,7 @@ export function ProfileForm({ fullName }: { fullName: string }) {
           role="status"
           className={`text-sm ${state.status === "error" ? "text-red-700" : "text-teal-deep"}`}
         >
-          {state.message}
+          {t(state.message)}
         </p>
       ) : null}
     </form>

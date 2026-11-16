@@ -1,12 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { getPanelI18n } from "@/lib/panel/i18n-server";
+import { PanelLoading } from "@/components/panel/PanelLanguageProvider";
 import { PanelPage } from "@/components/panel/PanelPage";
 import { PropertyCard } from "@/components/panel/PropertyCard";
-import {
-  panelCardClass,
-  panelPrimaryButtonClass,
-} from "@/components/panel/ui";
+import { panelCardClass, panelPrimaryButtonClass } from "@/components/panel/ui";
 import { requireUser } from "@/lib/auth/session";
 import { loadOverview } from "@/lib/panel/overview";
 
@@ -15,6 +14,7 @@ async function List({
 }: {
   searchParams: PageProps<"/panel/hospedajes">["searchParams"];
 }) {
+  const { t } = await getPanelI18n();
   const user = await requireUser();
   const query = await searchParams;
   const { properties, limit, owned, canCreate } = await loadOverview(
@@ -26,11 +26,31 @@ async function List({
 
   return (
     <PanelPage
-      title="Mis hospedajes"
+      title={t("Mis hospedajes")}
       subtitle={
         properties.length === 0
-          ? "Aún no tienes hospedajes."
-          : `${properties.length} ${properties.length === 1 ? "hospedaje" : "hospedajes"}. ${live === 0 ? "Ninguno está publicado todavía." : `${live} publicado${live === 1 ? "" : "s"}.`}${limit !== null ? ` Tu plan incluye ${limit} propio${limit === 1 ? "" : "s"}${owned !== properties.length ? ` (tienes ${owned})` : ""}.` : ""}`
+          ? t("Aún no tienes hospedajes.")
+          : [
+              t(
+                properties.length === 1
+                  ? "1 hospedaje."
+                  : "{count} hospedajes.",
+                { count: properties.length },
+              ),
+              live === 0
+                ? t("Ninguno está publicado todavía.")
+                : t(live === 1 ? "1 publicado." : "{count} publicados.", {
+                    count: live,
+                  }),
+              limit !== null
+                ? t(
+                    "Tu plan incluye {limit} hospedajes propios (tienes {owned}).",
+                    { limit, owned },
+                  )
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")
       }
       action={
         canCreate ? (
@@ -38,16 +58,22 @@ async function List({
             href="/panel/hospedajes/nuevo"
             className={panelPrimaryButtonClass}
           >
-            + Agregar hospedaje
+            {t("+ Agregar hospedaje")}
           </Link>
         ) : null
       }
     >
       {limitNotice || !canCreate ? (
-        <p role="status" className="bg-cream-dark/60 mb-6 rounded-xl px-4 py-3 text-sm">
-          Ya usaste los hospedajes de tu plan.{" "}
-          <Link href="/contacto" className="text-teal-deep font-semibold underline">
-            Escríbenos para ampliarlo
+        <p
+          role="status"
+          className="bg-cream-dark/60 mb-6 rounded-xl px-4 py-3 text-sm"
+        >
+          {t("Ya usaste los hospedajes de tu plan.")}{" "}
+          <Link
+            href="/contacto"
+            className="text-teal-deep font-semibold underline"
+          >
+            {t("Escríbenos para ampliarlo")}
           </Link>
           .
         </p>
@@ -64,8 +90,10 @@ async function List({
               href="/panel/hospedajes/nuevo"
               className={`${panelCardClass} border-ink/20 text-ink-soft hover:text-ink flex h-full min-h-40 flex-col items-center justify-center gap-2 border-dashed p-6 text-center transition-colors`}
             >
-              <span className="text-2xl" aria-hidden="true">+</span>
-              <span className="font-semibold">Agregar hospedaje</span>
+              <span className="text-2xl" aria-hidden="true">
+                +
+              </span>
+              <span className="font-semibold">{t("Agregar hospedaje")}</span>
             </Link>
           </li>
         ) : null}
@@ -78,7 +106,7 @@ export default function PropertiesPage({
   searchParams,
 }: PageProps<"/panel/hospedajes">) {
   return (
-    <Suspense fallback={<p className="text-ink-soft p-8">Cargando...</p>}>
+    <Suspense fallback={<PanelLoading />}>
       <List searchParams={searchParams} />
     </Suspense>
   );

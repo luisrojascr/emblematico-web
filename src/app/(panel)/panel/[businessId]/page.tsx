@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
+import { PanelLoading } from "@/components/panel/PanelLanguageProvider";
 import { PageEditor } from "@/components/panel/PageEditor";
 import { PanelHeading } from "@/components/panel/PanelHeading";
 import { loadPanelPage } from "@/lib/panel/load";
@@ -41,7 +42,7 @@ export default function PanelBusinessPage({
   searchParams,
 }: PageProps<"/panel/[businessId]">) {
   return (
-    <Suspense fallback={<p className="text-ink-soft p-8">Cargando...</p>}>
+    <Suspense fallback={<PanelLoading />}>
       <EditorLoader params={params} searchParams={searchParams} />
     </Suspense>
   );

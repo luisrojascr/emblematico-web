@@ -7,9 +7,11 @@ import {
   updatePassword,
 } from "@/app/(panel)/panel/contrasena/actions";
 
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import { panelInputClass, panelPrimaryButtonClass } from "./ui";
 
 export function PasswordForm() {
+  const { t } = usePanelI18n();
   const [state, action, pending] = useActionState<PasswordState, FormData>(
     updatePassword,
     {},
@@ -18,7 +20,7 @@ export function PasswordForm() {
     <form action={action} className="space-y-4">
       <div className="space-y-1.5">
         <label htmlFor="password" className="text-sm font-semibold">
-          Contraseña nueva
+          {t("Contraseña nueva")}
         </label>
         <input
           id="password"
@@ -30,11 +32,11 @@ export function PasswordForm() {
           autoComplete="new-password"
           className={panelInputClass}
         />
-        <p className="text-ink-soft text-xs">Al menos 8 caracteres.</p>
+        <p className="text-ink-soft text-xs">{t("Al menos 8 caracteres.")}</p>
       </div>
       <div className="space-y-1.5">
         <label htmlFor="confirm" className="text-sm font-semibold">
-          Repite la contraseña
+          {t("Repite la contraseña")}
         </label>
         <input
           id="confirm"
@@ -47,11 +49,15 @@ export function PasswordForm() {
       </div>
       {state.message ? (
         <p role="alert" className="text-sm text-red-700">
-          {state.message}
+          {t(state.message)}
         </p>
       ) : null}
-      <button type="submit" disabled={pending} className={panelPrimaryButtonClass}>
-        {pending ? "Guardando..." : "Guardar contraseña"}
+      <button
+        type="submit"
+        disabled={pending}
+        className={panelPrimaryButtonClass}
+      >
+        {pending ? t("Guardando...") : t("Guardar contraseña")}
       </button>
     </form>
   );

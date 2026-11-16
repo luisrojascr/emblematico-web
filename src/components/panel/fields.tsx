@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 
 import type { UseFormRegisterReturn } from "react-hook-form";
 
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import { mediaUrl } from "@/lib/catalog/media";
 import {
   FieldError,
@@ -65,21 +66,22 @@ export function AccentField({
   error?: string;
   onPick: (value: string) => void;
 }) {
+  const { t } = usePanelI18n();
   const safe = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#C9AC87";
   return (
     <div className="flex items-end gap-3">
       <div className="min-w-0 flex-1">
         <TextField
           id="accent"
-          label="Color de acento"
-          hint="Ejemplo: #C9AC87"
+          label={t("Color de acento")}
+          hint={t("Ejemplo: #C9AC87")}
           registration={registration}
           error={error}
         />
       </div>
       <input
         type="color"
-        aria-label="Elegir color de acento"
+        aria-label={t("Elegir color de acento")}
         value={safe}
         onChange={(event) => onPick(event.target.value)}
         className="border-cream-dark mb-1 h-10 w-14 cursor-pointer rounded border bg-white"
@@ -103,11 +105,12 @@ export function TextField({
   multiline?: boolean;
   hint?: string;
 }) {
+  const { t } = usePanelI18n();
   const describedBy = error ? `${id}-error` : undefined;
   return (
     <div className="space-y-1">
       <label htmlFor={id} className="text-sm font-medium">
-        {label}
+        {t(label)}
       </label>
       {multiline ? (
         <textarea
@@ -127,8 +130,8 @@ export function TextField({
           {...registration}
         />
       )}
-      {hint ? <p className="text-ink-soft text-xs">{hint}</p> : null}
-      <FieldError id={`${id}-error`} message={error} />
+      {hint ? <p className="text-ink-soft text-xs">{t(hint)}</p> : null}
+      <FieldError id={`${id}-error`} message={error ? t(error) : undefined} />
     </div>
   );
 }
@@ -142,12 +145,13 @@ export function Section({
   enabled: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = usePanelI18n();
   return (
     <fieldset className="border-cream-dark space-y-3 rounded-xl border bg-white p-4">
-      <legend className="px-1 text-base font-medium">{title}</legend>
+      <legend className="px-1 text-base font-medium">{t(title)}</legend>
       <label className="flex items-center gap-2 text-sm">
         {enabled}
-        Mostrar esta sección
+        {t("Mostrar esta sección")}
       </label>
       {children}
     </fieldset>
@@ -165,11 +169,12 @@ export function ImageField({
   currentPath?: string | null;
   slot: ImageSlot;
 }) {
+  const { t } = usePanelI18n();
   const shown = currentPath && !slot.remove && !slot.file;
   return (
     <div className="space-y-2">
       <label htmlFor={id} className="text-sm font-medium">
-        {label}
+        {t(label)}
       </label>
       {shown ? (
         // The public template uses next/image. A plain image here avoids a
@@ -192,7 +197,7 @@ export function ImageField({
       />
       {slot.file ? (
         <p className="text-ink-soft text-xs">
-          {slot.file.name} se guardará con el borrador.
+          {t("{file} se guardará con el borrador.", { file: slot.file.name })}
         </p>
       ) : null}
       {currentPath ? (
@@ -205,10 +210,13 @@ export function ImageField({
               if (event.target.checked) slot.choose(null);
             }}
           />
-          Quitar imagen
+          {t("Quitar imagen")}
         </label>
       ) : null}
-      <FieldError id={`${id}-error`} message={slot.error ?? undefined} />
+      <FieldError
+        id={`${id}-error`}
+        message={slot.error ? t(slot.error) : undefined}
+      />
     </div>
   );
 }
@@ -222,6 +230,7 @@ export function AddButton({
   onClick: () => void;
   disabled?: boolean;
 }) {
+  const { t } = usePanelI18n();
   return (
     <button
       type="button"
@@ -229,7 +238,7 @@ export function AddButton({
       disabled={disabled}
       className={secondaryButtonClass}
     >
-      {children}
+      {t(children)}
     </button>
   );
 }

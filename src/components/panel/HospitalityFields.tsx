@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import {
-  useFieldArray,
-  useWatch,
-  type UseFormReturn,
-} from "react-hook-form";
+import { useFieldArray, useWatch, type UseFormReturn } from "react-hook-form";
 
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import type { HospitalityContent } from "@/lib/templates/hospitality/schema";
+import type { PanelTranslator } from "@/lib/panel/i18n";
 import { displayTime, toTime24 } from "@/lib/templates/time";
 
 import { AddButton, AccentField, TextField } from "./fields";
@@ -23,7 +21,17 @@ type SectionKey =
   | "recommendations";
 
 const icon = (path: ReactNode) => (
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+  <svg
+    viewBox="0 0 24 24"
+    width="20"
+    height="20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
     {path}
   </svg>
 );
@@ -82,7 +90,9 @@ const SECTIONS: Record<
   amenities: {
     title: "Servicios del lugar",
     help: "Piscina, parqueo, aire acondicionado…",
-    icon: icon(<path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6-5.4-3.2-5.4 3.2 1.3-6-4.5-4 6-.6z" />),
+    icon: icon(
+      <path d="M12 3l2.6 5.6 6 .6-4.5 4 1.3 6-5.4-3.2-5.4 3.2 1.3-6-4.5-4 6-.6z" />,
+    ),
   },
   recommendations: {
     title: "Recomendaciones",
@@ -113,25 +123,41 @@ function truncate(value: string, max = 70): string {
 }
 
 /** Resumen de una línea y si la sección tiene lo mínimo para mostrarse. */
-function status(key: SectionKey, c: HospitalityContent): { ready: boolean; summary: string } {
+function status(
+  key: SectionKey,
+  c: HospitalityContent,
+  t: PanelTranslator,
+): { ready: boolean; summary: string } {
   switch (key) {
     case "welcome":
-      return { ready: Boolean(c.welcome.message.trim()), summary: truncate(c.welcome.message) };
+      return {
+        ready: Boolean(c.welcome.message.trim()),
+        summary: truncate(c.welcome.message),
+      };
     case "wifi":
       return {
         ready: Boolean(c.wifi.network || c.wifi.password),
-        summary: [c.wifi.network, c.wifi.password && "contraseña agregada"]
+        summary: [c.wifi.network, c.wifi.password && t("contraseña agregada")]
           .filter(Boolean)
           .join(" · "),
       };
     case "whatsapp":
-      return { ready: Boolean(c.whatsapp.phone), summary: c.whatsapp.phone ? `WhatsApp ${c.whatsapp.phone}` : "" };
+      return {
+        ready: Boolean(c.whatsapp.phone),
+        summary: c.whatsapp.phone ? `WhatsApp ${c.whatsapp.phone}` : "",
+      };
     case "stay":
       return {
         ready: Boolean(c.stay.check_in || c.stay.check_out || c.stay.notes),
-        summary: [c.stay.check_in && `Llegada ${displayTime(c.stay.check_in)}`, c.stay.check_out && `Salida ${displayTime(c.stay.check_out)}`]
-          .filter(Boolean)
-          .join(" · ") || truncate(c.stay.notes),
+        summary:
+          [
+            c.stay.check_in &&
+              t("Llegada {time}", { time: displayTime(c.stay.check_in) }),
+            c.stay.check_out &&
+              t("Salida {time}", { time: displayTime(c.stay.check_out) }),
+          ]
+            .filter(Boolean)
+            .join(" · ") || truncate(c.stay.notes),
       };
     case "rules": {
       const items = c.rules.items.filter((r) => r.trim());
@@ -149,7 +175,9 @@ function status(key: SectionKey, c: HospitalityContent): { ready: boolean; summa
       return {
         ready: items.length > 0,
         summary: items.length
-          ? truncate(`${items.length} ${items.length === 1 ? "lugar" : "lugares"} · ${items.map((r) => r.name).join(", ")}`)
+          ? truncate(
+              `${t("{count} lugares", { count: items.length })} · ${items.map((r) => r.name).join(", ")}`,
+            )
           : "",
       };
     }
@@ -175,6 +203,7 @@ function SectionCard({
   onHide: () => void;
   children: ReactNode;
 }) {
+  const { t } = usePanelI18n();
   const info = SECTIONS[sectionKey];
   return (
     <li
@@ -190,7 +219,16 @@ function SectionCard({
           }`}
         >
           {ready ? (
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="m5 12.5 4.5 4.5L19 7.5" />
             </svg>
           ) : (
@@ -202,24 +240,24 @@ function SectionCard({
         </span>
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-x-2 font-semibold">
-            {info.title}
+            {t(info.title)}
             <span
               className={`text-xs font-bold ${ready ? "text-teal-deep" : "text-ink-soft"}`}
             >
-              {ready ? "Lista" : "Falta completar"}
+              {ready ? t("Lista") : t("Falta completar")}
             </span>
           </p>
           <p className="text-ink-soft truncate text-sm">
-            {summary || info.help}
+            {summary || t(info.help)}
           </p>
         </div>
         <button
           type="button"
           aria-expanded={open}
           onClick={onOpen}
-          className="text-teal-deep shrink-0 rounded-lg px-2 py-1 text-sm font-semibold hover:bg-cream"
+          className="text-teal-deep hover:bg-cream shrink-0 rounded-lg px-2 py-1 text-sm font-semibold"
         >
-          {open ? "Cerrar" : "Editar"}
+          {open ? t("Cerrar") : t("Editar")}
         </button>
       </div>
       {open ? (
@@ -231,7 +269,7 @@ function SectionCard({
               onClick={onHide}
               className="text-ink-soft hover:text-ink text-sm underline"
             >
-              Quitar de la guía
+              {t("Quitar de la guía")}
             </button>
             <div className="flex items-center gap-2">
               <button
@@ -239,14 +277,14 @@ function SectionCard({
                 onClick={onCancel}
                 className="text-ink-soft hover:text-ink rounded-full px-4 py-2 text-sm font-semibold"
               >
-                Cancelar
+                {t("Cancelar")}
               </button>
               <button
                 type="button"
                 onClick={onOpen}
                 className="bg-sand text-ink hover:bg-sand-hover rounded-full px-5 py-2 text-sm font-semibold"
               >
-                Listo
+                {t("Listo")}
               </button>
             </div>
           </div>
@@ -257,6 +295,7 @@ function SectionCard({
 }
 
 export function HospitalityFields({ form }: { form: Form }) {
+  const { t } = usePanelI18n();
   const {
     register,
     formState: { errors },
@@ -269,7 +308,10 @@ export function HospitalityFields({ form }: { form: Form }) {
     setSnapshot(key ? structuredClone(form.getValues(key)) : null);
     setOpen(key);
   };
-  const amenities = useFieldArray({ control: form.control, name: "amenities.items" });
+  const amenities = useFieldArray({
+    control: form.control,
+    name: "amenities.items",
+  });
   const recommendations = useFieldArray({
     control: form.control,
     name: "recommendations.items",
@@ -323,28 +365,78 @@ export function HospitalityFields({ form }: { form: Form }) {
 
   // Una sección oculta con errores se sigue mostrando, para poder corregirla.
   const shown = ORDER.filter((key) => content[key]?.enabled || errors[key]);
-  const available = ORDER.filter((key) => !content[key]?.enabled && !errors[key]);
-  const readyCount = shown.filter((key) => status(key, content).ready).length;
+  const available = ORDER.filter(
+    (key) => !content[key]?.enabled && !errors[key],
+  );
+  const readyCount = shown.filter(
+    (key) => status(key, content, t).ready,
+  ).length;
 
   const body: Record<SectionKey, ReactNode> = {
     welcome: (
       <>
-        <TextField id="welcome-title" label="Título" registration={register("welcome.title")} error={errors.welcome?.title?.message} />
-        <TextField id="welcome-message" label="Mensaje" multiline registration={register("welcome.message")} error={errors.welcome?.message?.message} />
+        <TextField
+          id="welcome-title"
+          label={t("Título")}
+          registration={register("welcome.title")}
+          error={errors.welcome?.title?.message}
+        />
+        <TextField
+          id="welcome-message"
+          label={t("Mensaje")}
+          multiline
+          registration={register("welcome.message")}
+          error={errors.welcome?.message?.message}
+        />
       </>
     ),
     wifi: (
       <>
-        <TextField id="wifi-network" label="Nombre de la red" registration={register("wifi.network")} error={errors.wifi?.network?.message} />
-        <TextField id="wifi-password" label="Contraseña" hint="Se muestra a tus huéspedes. Déjala vacía si la red es abierta." registration={register("wifi.password")} error={errors.wifi?.password?.message} />
-        <TextField id="wifi-notes" label="Notas" registration={register("wifi.notes")} error={errors.wifi?.notes?.message} />
+        <TextField
+          id="wifi-network"
+          label={t("Nombre de la red")}
+          registration={register("wifi.network")}
+          error={errors.wifi?.network?.message}
+        />
+        <TextField
+          id="wifi-password"
+          label={t("Contraseña")}
+          hint={t(
+            "Se muestra a tus huéspedes. Déjala vacía si la red es abierta.",
+          )}
+          registration={register("wifi.password")}
+          error={errors.wifi?.password?.message}
+        />
+        <TextField
+          id="wifi-notes"
+          label={t("Notas")}
+          registration={register("wifi.notes")}
+          error={errors.wifi?.notes?.message}
+        />
       </>
     ),
     whatsapp: (
       <>
-        <TextField id="wa-phone" label="WhatsApp" hint="Ejemplo: 8899 7060" registration={register("whatsapp.phone")} error={errors.whatsapp?.phone?.message} />
-        <TextField id="wa-label" label="Texto del botón" registration={register("whatsapp.label")} error={errors.whatsapp?.label?.message} />
-        <TextField id="wa-message" label="Mensaje inicial" multiline registration={register("whatsapp.message")} error={errors.whatsapp?.message?.message} />
+        <TextField
+          id="wa-phone"
+          label={"WhatsApp"}
+          hint={t("Ejemplo: 8899 7060")}
+          registration={register("whatsapp.phone")}
+          error={errors.whatsapp?.phone?.message}
+        />
+        <TextField
+          id="wa-label"
+          label={t("Texto del botón")}
+          registration={register("whatsapp.label")}
+          error={errors.whatsapp?.label?.message}
+        />
+        <TextField
+          id="wa-message"
+          label={t("Mensaje inicial")}
+          multiline
+          registration={register("whatsapp.message")}
+          error={errors.whatsapp?.message?.message}
+        />
       </>
     ),
     stay: (
@@ -353,10 +445,20 @@ export function HospitalityFields({ form }: { form: Form }) {
         checkOut={content.stay?.check_out ?? ""}
         notes={content.stay?.notes ?? ""}
         notesField={
-          <TextField id="stay-notes" label="Indicaciones" hint="Dónde están las llaves, qué hacer antes de irse…" multiline registration={register("stay.notes")} error={errors.stay?.notes?.message} />
+          <TextField
+            id="stay-notes"
+            label={t("Indicaciones")}
+            hint={t("Dónde están las llaves, qué hacer antes de irse…")}
+            multiline
+            registration={register("stay.notes")}
+            error={errors.stay?.notes?.message}
+          />
         }
         onTime={(field, value) =>
-          form.setValue(`stay.${field}`, value, { shouldDirty: true, shouldValidate: true })
+          form.setValue(`stay.${field}`, value, {
+            shouldDirty: true,
+            shouldValidate: true,
+          })
         }
       />
     ),
@@ -365,44 +467,108 @@ export function HospitalityFields({ form }: { form: Form }) {
         items={content.rules?.items ?? []}
         error={firstMessage(errors.rules?.items)}
         onChange={(items) =>
-          form.setValue("rules.items", items, { shouldDirty: true, shouldValidate: true })
+          form.setValue("rules.items", items, {
+            shouldDirty: true,
+            shouldValidate: true,
+          })
         }
       />
     ),
     amenities: (
       <div className="space-y-3">
         {amenities.fields.map((field, index) => (
-          <div key={field.id} className="border-cream-dark space-y-2 rounded-xl border p-3">
-            <TextField id={`amenity-label-${index}`} label="Nombre" registration={register(`amenities.items.${index}.label`)} error={errors.amenities?.items?.[index]?.label?.message} />
-            <TextField id={`amenity-detail-${index}`} label="Detalle" registration={register(`amenities.items.${index}.detail`)} error={errors.amenities?.items?.[index]?.detail?.message} />
-            <button type="button" className="text-sm text-red-700" onClick={() => amenities.remove(index)}>
-              Quitar
+          <div
+            key={field.id}
+            className="border-cream-dark space-y-2 rounded-xl border p-3"
+          >
+            <TextField
+              id={`amenity-label-${index}`}
+              label={t("Nombre")}
+              registration={register(`amenities.items.${index}.label`)}
+              error={errors.amenities?.items?.[index]?.label?.message}
+            />
+            <TextField
+              id={`amenity-detail-${index}`}
+              label={t("Detalle")}
+              registration={register(`amenities.items.${index}.detail`)}
+              error={errors.amenities?.items?.[index]?.detail?.message}
+            />
+            <button
+              type="button"
+              className="text-sm text-red-700"
+              onClick={() => amenities.remove(index)}
+            >
+              {t("Quitar")}
             </button>
           </div>
         ))}
-        <AddButton disabled={amenities.fields.length >= 20} onClick={() => amenities.append({ label: "", detail: "" })}>
-          Agregar servicio
+        <AddButton
+          disabled={amenities.fields.length >= 20}
+          onClick={() => amenities.append({ label: "", detail: "" })}
+        >
+          {t("Agregar servicio")}
         </AddButton>
       </div>
     ),
     recommendations: (
       <div className="space-y-3">
         {recommendations.fields.map((field, index) => (
-          <div key={field.id} className="border-cream-dark space-y-2 rounded-xl border p-3">
-            <TextField id={`rec-name-${index}`} label="Nombre" registration={register(`recommendations.items.${index}.name`)} error={errors.recommendations?.items?.[index]?.name?.message} />
-            <TextField id={`rec-category-${index}`} label="Tipo" hint="Restaurante, playa, tour…" registration={register(`recommendations.items.${index}.category`)} error={errors.recommendations?.items?.[index]?.category?.message} />
-            <TextField id={`rec-description-${index}`} label="Descripción" multiline registration={register(`recommendations.items.${index}.description`)} error={errors.recommendations?.items?.[index]?.description?.message} />
-            <TextField id={`rec-url-${index}`} label="Enlace" hint="https://" registration={register(`recommendations.items.${index}.url`)} error={errors.recommendations?.items?.[index]?.url?.message} />
-            <button type="button" className="text-sm text-red-700" onClick={() => recommendations.remove(index)}>
-              Quitar
+          <div
+            key={field.id}
+            className="border-cream-dark space-y-2 rounded-xl border p-3"
+          >
+            <TextField
+              id={`rec-name-${index}`}
+              label={t("Nombre")}
+              registration={register(`recommendations.items.${index}.name`)}
+              error={errors.recommendations?.items?.[index]?.name?.message}
+            />
+            <TextField
+              id={`rec-category-${index}`}
+              label={t("Tipo")}
+              hint={t("Restaurante, playa, tour…")}
+              registration={register(`recommendations.items.${index}.category`)}
+              error={errors.recommendations?.items?.[index]?.category?.message}
+            />
+            <TextField
+              id={`rec-description-${index}`}
+              label={t("Descripción")}
+              multiline
+              registration={register(
+                `recommendations.items.${index}.description`,
+              )}
+              error={
+                errors.recommendations?.items?.[index]?.description?.message
+              }
+            />
+            <TextField
+              id={`rec-url-${index}`}
+              label={t("Enlace")}
+              hint={"https://"}
+              registration={register(`recommendations.items.${index}.url`)}
+              error={errors.recommendations?.items?.[index]?.url?.message}
+            />
+            <button
+              type="button"
+              className="text-sm text-red-700"
+              onClick={() => recommendations.remove(index)}
+            >
+              {t("Quitar")}
             </button>
           </div>
         ))}
         <AddButton
           disabled={recommendations.fields.length >= 12}
-          onClick={() => recommendations.append({ name: "", category: "", description: "", url: "" })}
+          onClick={() =>
+            recommendations.append({
+              name: "",
+              category: "",
+              description: "",
+              url: "",
+            })
+          }
         >
-          Agregar recomendación
+          {t("Agregar recomendación")}
         </AddButton>
       </div>
     ),
@@ -412,21 +578,27 @@ export function HospitalityFields({ form }: { form: Form }) {
     <div className="space-y-8">
       <section className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-xl">Información para tus huéspedes</h2>
+          <h2 className="text-xl">{t("Información para tus huéspedes")}</h2>
           {shown.length ? (
             <p className="text-ink-soft text-sm">
-              {readyCount} de {shown.length} listas
+              {t("{ready} de {total} listas", {
+                ready: readyCount,
+                total: shown.length,
+              })}
             </p>
           ) : null}
         </div>
         <div className="bg-cream/70 rounded-3xl p-3 sm:p-4">
           <p className="text-ink-soft mb-3 px-1 text-xs font-bold tracking-wider">
-            EN TU GUÍA <span className="font-normal tracking-normal">· en el orden en que la ven</span>
+            {t("EN TU GUÍA")}
+            <span className="ml-1 font-normal tracking-normal">
+              {t("· en el orden en que la ven")}
+            </span>
           </p>
           {shown.length ? (
             <ul className="space-y-2">
               {shown.map((key) => {
-                const s = status(key, content);
+                const s = status(key, content, t);
                 return (
                   <SectionCard
                     key={key}
@@ -438,7 +610,9 @@ export function HospitalityFields({ form }: { form: Form }) {
                     onHide={() => void hideSection(key)}
                     onCancel={() => {
                       if (snapshot) {
-                        form.setValue(key, snapshot as never, { shouldDirty: true });
+                        form.setValue(key, snapshot as never, {
+                          shouldDirty: true,
+                        });
                       }
                       openSection(null);
                     }}
@@ -450,7 +624,7 @@ export function HospitalityFields({ form }: { form: Form }) {
             </ul>
           ) : (
             <p className="text-ink-soft px-1 pb-2 text-sm">
-              Tu guía aún no tiene secciones. Agrega una abajo.
+              {t("Tu guía aún no tiene secciones. Agrega una abajo.")}
             </p>
           )}
         </div>
@@ -459,7 +633,7 @@ export function HospitalityFields({ form }: { form: Form }) {
       {available.length ? (
         <section className="border-ink/15 rounded-3xl border-2 border-dashed p-4">
           <p className="text-ink-soft mb-3 text-xs font-bold tracking-wider">
-            AGREGAR A TU GUÍA
+            {t("AGREGAR A TU GUÍA")}
           </p>
           <ul className="grid gap-3 sm:grid-cols-2">
             {available.map((key) => (
@@ -477,10 +651,19 @@ export function HospitalityFields({ form }: { form: Form }) {
                     {SECTIONS[key].icon}
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">{SECTIONS[key].title}</span>
-                    <span className="text-ink-soft block text-sm">{SECTIONS[key].help}</span>
+                    <span className="block font-semibold">
+                      {t(SECTIONS[key].title)}
+                    </span>
+                    <span className="text-ink-soft block text-sm">
+                      {t(SECTIONS[key].help)}
+                    </span>
                   </span>
-                  <span aria-hidden="true" className="text-teal-deep text-xl leading-none">+</span>
+                  <span
+                    aria-hidden="true"
+                    className="text-teal-deep text-xl leading-none"
+                  >
+                    +
+                  </span>
                 </button>
               </li>
             ))}
@@ -489,32 +672,42 @@ export function HospitalityFields({ form }: { form: Form }) {
       ) : null}
 
       <section className="space-y-4">
-        <h2 className="text-xl">Apariencia e idioma</h2>
+        <h2 className="text-xl">{t("Apariencia e idioma")}</h2>
         <div className="space-y-1">
           <label htmlFor="guide-language" className="text-sm font-medium">
-            Idioma en que escribes la guía
+            {t("Idioma en que escribes la guía")}
           </label>
           <select
             id="guide-language"
             className="border-cream-dark w-full rounded-xl border bg-white px-3 py-2"
             {...register("language")}
           >
-            <option value="es">Español</option>
-            <option value="en">English</option>
-            <option value="fr">Français</option>
+            <option value="es">{"Español"}</option>
+            <option value="en">{"English"}</option>
+            <option value="fr">{"Français"}</option>
           </select>
           <p className="text-ink-soft text-xs">
-            La guía abre en este idioma. Tus huéspedes pueden cambiar a ES/EN/FR:
-            por ahora se traducen los títulos y botones, no tu texto.
+            {t(
+              "La guía abre en este idioma. Tus huéspedes pueden cambiar a ES/EN/FR: por ahora se traducen los títulos y botones, no tu texto.",
+            )}
           </p>
         </div>
-        <TextField id="tagline" label="Lema" hint="Una frase corta bajo el nombre." registration={register("tagline")} error={errors.tagline?.message} />
+        <TextField
+          id="tagline"
+          label={t("Lema")}
+          hint={t("Una frase corta bajo el nombre.")}
+          registration={register("tagline")}
+          error={errors.tagline?.message}
+        />
         <AccentField
           value={content.theme?.accent ?? ""}
           registration={register("theme.accent")}
           error={errors.theme?.accent?.message}
           onPick={(value) =>
-            form.setValue("theme.accent", value, { shouldDirty: true, shouldValidate: true })
+            form.setValue("theme.accent", value, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
           }
         />
       </section>
@@ -533,6 +726,7 @@ export function TimeField({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const { t } = usePanelI18n();
   const time = toTime24(value);
   const legacy = value.trim() && !time;
   return (
@@ -540,7 +734,7 @@ export function TimeField({
       htmlFor={id}
       className="border-cream-dark focus-within:border-teal-deep focus-within:ring-aqua/40 block rounded-2xl border bg-white px-4 py-3 focus-within:ring-2"
     >
-      <span className="block text-sm font-semibold">{label}</span>
+      <span className="block text-sm font-semibold">{t(label)}</span>
       <input
         id={id}
         type="time"
@@ -550,7 +744,9 @@ export function TimeField({
       />
       {legacy ? (
         <span className="text-ink-soft block text-xs">
-          Antes decía “{value}”. Elige una hora para reemplazarlo.
+          {t("Antes decía “{value}”. Elige una hora para reemplazarlo.", {
+            value,
+          })}
         </span>
       ) : null}
     </label>
@@ -570,12 +766,23 @@ function StayFields({
   notesField: ReactNode;
   onTime: (field: "check_in" | "check_out", value: string) => void;
 }) {
+  const { t } = usePanelI18n();
   const [showNotes, setShowNotes] = useState(Boolean(notes.trim()));
   return (
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
-        <TimeField id="stay-in" label="Llegada desde" value={checkIn} onChange={(v) => onTime("check_in", v)} />
-        <TimeField id="stay-out" label="Salida antes de" value={checkOut} onChange={(v) => onTime("check_out", v)} />
+        <TimeField
+          id="stay-in"
+          label={t("Llegada desde")}
+          value={checkIn}
+          onChange={(v) => onTime("check_in", v)}
+        />
+        <TimeField
+          id="stay-out"
+          label={t("Salida antes de")}
+          value={checkOut}
+          onChange={(v) => onTime("check_out", v)}
+        />
       </div>
       {showNotes ? (
         notesField
@@ -585,7 +792,7 @@ function StayFields({
           onClick={() => setShowNotes(true)}
           className="border-ink/20 text-ink-soft hover:text-ink rounded-full border border-dashed px-4 py-2 text-sm font-semibold"
         >
-          + Agregar indicaciones
+          {t("+ Agregar indicaciones")}
         </button>
       )}
     </div>
@@ -601,12 +808,13 @@ function RuleList({
   error?: string;
   onChange: (items: string[]) => void;
 }) {
+  const { t } = usePanelI18n();
   return (
     <div className="space-y-2">
       {items.map((item, index) => (
         <div key={index} className="flex gap-2">
           <input
-            aria-label={`Regla ${index + 1}`}
+            aria-label={`${t("Regla")} ${index + 1}`}
             className="border-cream-dark w-full rounded-xl border bg-white px-3 py-2"
             value={item}
             onChange={(event) => {
@@ -615,15 +823,22 @@ function RuleList({
               onChange(next);
             }}
           />
-          <button type="button" className="text-sm text-red-700" onClick={() => onChange(items.filter((_, i) => i !== index))}>
-            Quitar
+          <button
+            type="button"
+            className="text-sm text-red-700"
+            onClick={() => onChange(items.filter((_, i) => i !== index))}
+          >
+            {t("Quitar")}
           </button>
         </div>
       ))}
-      <AddButton disabled={items.length >= 15} onClick={() => onChange([...items, ""])}>
-        Agregar regla
+      <AddButton
+        disabled={items.length >= 15}
+        onClick={() => onChange([...items, ""])}
+      >
+        {t("Agregar regla")}
       </AddButton>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
+      {error ? <p className="text-sm text-red-700">{t(error)}</p> : null}
     </div>
   );
 }

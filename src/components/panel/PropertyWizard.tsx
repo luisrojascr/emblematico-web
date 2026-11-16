@@ -20,7 +20,9 @@ import {
   type WizardForm,
   type WizardSection,
 } from "@/lib/panel/wizard";
+import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import { displayTime } from "@/lib/templates/time";
+import type { PanelTranslator } from "@/lib/panel/i18n";
 
 import { TimeField } from "./HospitalityFields";
 import {
@@ -94,16 +96,17 @@ function Field({
   optional?: boolean;
   children: ReactNode;
 }) {
+  const { t } = usePanelI18n();
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="text-sm font-semibold">
-        {label}
+        {t(label)}
         {optional ? (
-          <span className="text-ink-soft font-normal"> — opcional</span>
+          <span className="text-ink-soft font-normal"> {t("— opcional")}</span>
         ) : null}
       </label>
       {children}
-      {hint ? <p className="text-ink-soft text-xs">{hint}</p> : null}
+      {hint ? <p className="text-ink-soft text-xs">{t(hint)}</p> : null}
     </div>
   );
 }
@@ -123,6 +126,7 @@ function OptionCard({
   onToggle: () => void;
   children: ReactNode;
 }) {
+  const { t } = usePanelI18n();
   return (
     <div
       className={`rounded-2xl border-2 bg-white transition-colors ${
@@ -144,14 +148,23 @@ function OptionCard({
           }`}
         >
           {on ? (
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="m5 12.5 4.5 4.5L19 7.5" />
             </svg>
           ) : null}
         </span>
         <span className="min-w-0">
-          <span className="block font-semibold">{title}</span>
-          <span className="text-ink-soft block text-sm">{help}</span>
+          <span className="block font-semibold">{t(title)}</span>
+          <span className="text-ink-soft block text-sm">{t(help)}</span>
         </span>
       </button>
       {on ? (
@@ -180,6 +193,7 @@ function ListEditor({
   max: number;
   onChange: (items: string[]) => void;
 }) {
+  const { t } = usePanelI18n();
   const rows = items.length ? items : [""];
   return (
     <div className="space-y-2">
@@ -187,18 +201,20 @@ function ListEditor({
         <div key={index} className="flex gap-2">
           <input
             id={`${id}-${index}`}
-            aria-label={`${label} ${index + 1}`}
+            aria-label={`${t(label)} ${index + 1}`}
             className={panelInputClass}
             value={item}
-            placeholder={placeholder}
+            placeholder={t(placeholder)}
             onChange={(event) =>
-              onChange(rows.map((v, i) => (i === index ? event.target.value : v)))
+              onChange(
+                rows.map((v, i) => (i === index ? event.target.value : v)),
+              )
             }
           />
           {rows.length > 1 ? (
             <button
               type="button"
-              aria-label={`Quitar ${label.toLowerCase()} ${index + 1}`}
+              aria-label={`${t("Quitar")} ${t(label)} ${index + 1}`}
               className={panelSecondaryButtonClass}
               onClick={() => onChange(rows.filter((_, i) => i !== index))}
             >
@@ -213,7 +229,7 @@ function ListEditor({
           className="text-teal-deep text-sm font-semibold"
           onClick={() => onChange([...rows, ""])}
         >
-          + {addLabel}
+          + {t(addLabel)}
         </button>
       ) : null}
     </div>
@@ -230,28 +246,46 @@ function fileFromDataUrl(dataUrl: string, name: string): File | null {
   return new File([bytes], name, { type: match[1] });
 }
 
-function summaryOf(section: WizardSection, values: Values): string {
+function summaryOf(
+  section: WizardSection,
+  values: Values,
+  t: PanelTranslator,
+): string {
   switch (section) {
     case "welcome":
-      return values.welcome.trim() ? "Escrito" : "Vacío";
+      return t(values.welcome.trim() ? "Escrito" : "Vacío");
     case "wifi":
-      return values.wifiNetwork || "Sin nombre de red";
+      return values.wifiNetwork || t("Sin nombre de red");
     case "contact":
-      return values.whatsapp || "Sin número";
+      return values.whatsapp || t("Sin número");
     case "stay":
-      return [values.checkIn && `Llegada ${displayTime(values.checkIn)}`, values.checkOut && `Salida ${displayTime(values.checkOut)}`]
-        .filter(Boolean)
-        .join(" · ") || "Sin horarios";
+      return (
+        [
+          values.checkIn &&
+            t("Llegada {time}", { time: displayTime(values.checkIn) }),
+          values.checkOut &&
+            t("Salida {time}", { time: displayTime(values.checkOut) }),
+        ]
+          .filter(Boolean)
+          .join(" · ") || t("Sin horarios")
+      );
     case "rules":
-      return `${values.rules.filter((r) => r.trim()).length} reglas`;
+      return t("{count} reglas", {
+        count: values.rules.filter((r) => r.trim()).length,
+      });
     case "amenities":
-      return `${values.amenities.filter((a) => a.trim()).length} servicios`;
+      return t("{count} servicios", {
+        count: values.amenities.filter((a) => a.trim()).length,
+      });
     case "recommendations":
-      return `${values.recommendations.filter((r) => r.name.trim()).length} lugares`;
+      return t("{count} lugares", {
+        count: values.recommendations.filter((r) => r.name.trim()).length,
+      });
   }
 }
 
 export function PropertyWizard({ closeHref }: { closeHref: string }) {
+  const { t } = usePanelI18n();
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<Values>(() => ({
     ...EMPTY_WIZARD,
@@ -263,6 +297,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
   const [listingUrl, setListingUrl] = useState("");
   const [ownsContent, setOwnsContent] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [importFields, setImportFields] = useState<string[]>([]);
   const [importOk, setImportOk] = useState(false);
   const [importing, startImport] = useTransition();
 
@@ -316,7 +351,9 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
         welcome: current.welcome || data.description,
         checkIn: current.checkIn || data.checkIn,
         checkOut: current.checkOut || data.checkOut,
-        amenities: current.amenities.length ? current.amenities : data.amenities,
+        amenities: current.amenities.length
+          ? current.amenities
+          : data.amenities,
         rules: current.rules.length ? current.rules : data.rules,
         // Lo que llegó del anuncio queda marcado para que lo revise.
         sections: {
@@ -337,10 +374,11 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
         data.amenities.length > 0 && "servicios",
         (data.checkIn || data.checkOut) && "horarios",
         data.rules.length > 0 && "reglas",
-      ].filter(Boolean);
+      ].filter((field): field is string => Boolean(field));
       setImportOk(true);
+      setImportFields(found);
       setImportMessage(
-        `Listo, trajimos: ${found.join(", ")}. Revisa y corrige lo que quieras en el siguiente paso.`,
+        "Listo, trajimos: {fields}. Revisa y corrige lo que quieras en el siguiente paso.",
       );
     });
   }
@@ -386,13 +424,13 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
     <div
       role="dialog"
       aria-labelledby="wizard-title"
-      className="border-cream-dark mx-auto flex max-h-[calc(100dvh-4rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border bg-white shadow-xl shadow-ink/10"
+      className="border-cream-dark shadow-ink/10 mx-auto flex max-h-[calc(100dvh-4rem)] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border bg-white shadow-xl"
     >
       <div className="flex items-center gap-4 px-6 pt-6 sm:px-8">
         {step > 0 ? (
           <button
             type="button"
-            aria-label="Paso anterior"
+            aria-label={t("Paso anterior")}
             disabled={busy}
             onClick={() => go(step - 1)}
             className="border-cream-dark text-ink-soft hover:text-ink rounded-xl border px-3 py-2 text-sm"
@@ -402,7 +440,10 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
         ) : null}
         <div className="min-w-0 flex-1">
           <p className="text-teal-deep text-xs font-bold tracking-wider">
-            PASO {step + 1} DE {STEPS.length}
+            {t("Paso {step} de {total}", {
+              step: step + 1,
+              total: STEPS.length,
+            })}
           </p>
           <div className="mt-2 flex gap-2" aria-hidden="true">
             {STEPS.map((_, index) => (
@@ -415,7 +456,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
         </div>
         <Link
           href={closeHref}
-          aria-label="Cerrar sin guardar"
+          aria-label={t("Cerrar sin guardar")}
           className="border-cream-dark text-ink-soft hover:text-ink rounded-xl border px-3 py-2 text-sm"
         >
           ✕
@@ -424,9 +465,9 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
 
       <div className="px-6 pt-6 sm:px-8">
         <h2 id="wizard-title" className="text-2xl">
-          {STEPS[step]!.title}
+          {t(STEPS[step]!.title)}
         </h2>
-        <p className="text-ink-soft mt-1 text-sm">{STEPS[step]!.help}</p>
+        <p className="text-ink-soft mt-1 text-sm">{t(STEPS[step]!.help)}</p>
       </div>
 
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5 sm:px-8">
@@ -435,8 +476,10 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
             <div className="bg-cream space-y-3 rounded-2xl p-4">
               <Field
                 id="listing"
-                label="¿Ya tienes tu anuncio en Airbnb o Booking?"
-                hint="Pega el enlace y traemos nombre, foto, descripción, servicios y horarios. Tú revisas todo antes de crear."
+                label={t("¿Ya tienes tu anuncio en Airbnb o Booking?")}
+                hint={t(
+                  "Pega el enlace y traemos nombre, foto, descripción, servicios y horarios. Tú revisas todo antes de crear.",
+                )}
                 optional
               >
                 <div className="flex flex-col gap-2 sm:flex-row">
@@ -445,7 +488,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                     type="url"
                     inputMode="url"
                     className={panelInputClass}
-                    placeholder="https://www.airbnb.com/rooms/…"
+                    placeholder={"https://www.airbnb.com/rooms/…"}
                     value={listingUrl}
                     onChange={(event) => setListingUrl(event.target.value)}
                   />
@@ -455,7 +498,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                     disabled={busy || !listingUrl.trim() || !ownsContent}
                     onClick={runImport}
                   >
-                    {importing ? "Leyendo…" : "Traer datos"}
+                    {importing ? t("Leyendo…") : t("Traer datos")}
                   </button>
                 </div>
               </Field>
@@ -467,8 +510,9 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                   onChange={(event) => setOwnsContent(event.target.checked)}
                 />
                 <span>
-                  Confirmo que este anuncio y su contenido (textos y fotos) son
-                  míos o tengo permiso para usarlos.
+                  {t(
+                    "Confirmo que este anuncio y su contenido (textos y fotos) son míos o tengo permiso para usarlos.",
+                  )}
                 </span>
               </label>
               {importMessage ? (
@@ -476,26 +520,33 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                   role={importOk ? "status" : "alert"}
                   className={`text-sm ${importOk ? "text-teal-deep" : "text-red-700"}`}
                 >
-                  {importMessage}
+                  {t(importMessage, {
+                    fields: importFields.map((field) => t(field)).join(", "),
+                  })}
                 </p>
               ) : null}
             </div>
 
-            <Field id="name" label="¿Cómo le dicen tus huéspedes a este lugar?">
+            <Field
+              id="name"
+              label={t("¿Cómo le dicen tus huéspedes a este lugar?")}
+            >
               <input
                 id="name"
                 className={panelInputClass}
                 value={values.name}
                 maxLength={120}
-                placeholder="Casa Bahía"
+                placeholder={"Casa Bahía"}
                 onChange={(event) => set("name", event.target.value)}
               />
             </Field>
 
             <Field
               id="language"
-              label="Tu guía está escrita en"
-              hint="El idioma en que escribes la guía. Todavía no cuenta como traducción."
+              label={t("Tu guía está escrita en")}
+              hint={t(
+                "El idioma en que escribes la guía. Todavía no cuenta como traducción.",
+              )}
             >
               <select
                 id="language"
@@ -513,25 +564,27 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               </select>
             </Field>
 
-            <Field id="photo" label="Foto" optional>
+            <Field id="photo" label={t("Foto")} optional>
               <div className="border-cream-dark flex items-center gap-3 rounded-xl border p-3">
                 {preview ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={preview}
-                    alt="Foto del hospedaje"
+                    alt={t("Foto del hospedaje")}
                     className="size-14 rounded-lg object-cover"
                   />
                 ) : (
                   <span className="bg-cream-dark/60 text-ink-soft flex size-14 items-center justify-center rounded-lg text-xs">
-                    Sin foto
+                    {t("Sin foto")}
                   </span>
                 )}
                 <span className="min-w-0 flex-1 text-sm font-semibold">
-                  {cover ? "Imagen agregada" : "Subir imagen"}
+                  {cover ? t("Imagen agregada") : t("Subir imagen")}
                 </span>
-                <label className={`${panelSecondaryButtonClass} cursor-pointer`}>
-                  {cover ? "Cambiar" : "Elegir"}
+                <label
+                  className={`${panelSecondaryButtonClass} cursor-pointer`}
+                >
+                  {cover ? t("Cambiar") : t("Elegir")}
                   <input
                     id="photo"
                     type="file"
@@ -546,7 +599,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                   <button
                     type="button"
                     className={panelSecondaryButtonClass}
-                    aria-label="Quitar foto"
+                    aria-label={t("Quitar foto")}
                     onClick={() => choosePhoto(null)}
                   >
                     ✕
@@ -555,7 +608,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               </div>
               {photoError ? (
                 <p role="alert" className="text-sm text-red-700">
-                  {photoError}
+                  {t(photoError)}
                 </p>
               ) : null}
             </Field>
@@ -572,8 +625,8 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
             >
               <Field
                 id="whatsapp"
-                label="WhatsApp"
-                hint="Con código de país. Si son 8 dígitos le ponemos 506."
+                label={"WhatsApp"}
+                hint={t("Con código de país. Si son 8 dígitos le ponemos 506.")}
               >
                 <input
                   id="whatsapp"
@@ -593,7 +646,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               on={values.sections.welcome}
               onToggle={() => toggle("welcome")}
             >
-              <Field id="welcome-text" label="Mensaje">
+              <Field id="welcome-text" label={t("Mensaje")}>
                 <textarea
                   id="welcome-text"
                   rows={5}
@@ -611,20 +664,22 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               on={values.sections.wifi}
               onToggle={() => toggle("wifi")}
             >
-              <Field id="wifi-network" label="Nombre de la red">
+              <Field id="wifi-network" label={t("Nombre de la red")}>
                 <input
                   id="wifi-network"
                   className={panelInputClass}
                   value={values.wifiNetwork}
                   maxLength={60}
-                  placeholder="CasaBahia-Huespedes"
+                  placeholder={"CasaBahia-Huespedes"}
                   onChange={(event) => set("wifiNetwork", event.target.value)}
                 />
               </Field>
               <Field
                 id="wifi-password"
-                label="Contraseña"
-                hint="Se muestra a tus huéspedes en la guía. Déjala vacía si la red es abierta."
+                label={t("Contraseña")}
+                hint={t(
+                  "Se muestra a tus huéspedes en la guía. Déjala vacía si la red es abierta.",
+                )}
               >
                 <input
                   id="wifi-password"
@@ -645,25 +700,25 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               <div className="grid gap-3 sm:grid-cols-2">
                 <TimeField
                   id="check-in"
-                  label="Llegada desde"
+                  label={t("Llegada desde")}
                   value={values.checkIn}
                   onChange={(value) => set("checkIn", value)}
                 />
                 <TimeField
                   id="check-out"
-                  label="Salida antes de"
+                  label={t("Salida antes de")}
                   value={values.checkOut}
                   onChange={(value) => set("checkOut", value)}
                 />
               </div>
-              <Field id="stay-notes" label="Antes de irte" optional>
+              <Field id="stay-notes" label={t("Antes de irte")} optional>
                 <textarea
                   id="stay-notes"
                   rows={3}
                   className={panelInputClass}
                   value={values.stayNotes}
                   maxLength={400}
-                  placeholder="Deja las llaves en la caja y apaga el aire."
+                  placeholder={t("Deja las llaves en la caja y apaga el aire.")}
                   onChange={(event) => set("stayNotes", event.target.value)}
                 />
               </Field>
@@ -677,10 +732,10 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
             >
               <ListEditor
                 id="rule"
-                label="Regla"
+                label={t("Regla")}
                 items={values.rules}
-                placeholder="No se permite fumar"
-                addLabel="Agregar regla"
+                placeholder={t("No se permite fumar")}
+                addLabel={t("Agregar regla")}
                 max={15}
                 onChange={(items) => set("rules", items)}
               />
@@ -694,10 +749,10 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
             >
               <ListEditor
                 id="amenity"
-                label="Servicio"
+                label={t("Servicio")}
                 items={values.amenities}
-                placeholder="Piscina"
-                addLabel="Agregar servicio"
+                placeholder={t("Piscina")}
+                addLabel={t("Agregar servicio")}
                 max={20}
                 onChange={(items) => set("amenities", items)}
               />
@@ -719,16 +774,18 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                 >
                   <div className="flex gap-2">
                     <input
-                      aria-label={`Lugar ${index + 1}`}
+                      aria-label={`${t("Lugar")} ${index + 1}`}
                       className={panelInputClass}
                       value={place.name}
                       maxLength={80}
-                      placeholder="Soda La Bahía"
+                      placeholder={"Soda La Bahía"}
                       onChange={(event) =>
                         set(
                           "recommendations",
                           rows.map((r, i) =>
-                            i === index ? { ...r, name: event.target.value } : r,
+                            i === index
+                              ? { ...r, name: event.target.value }
+                              : r,
                           ),
                         )
                       }
@@ -736,7 +793,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                     {rows.length > 1 ? (
                       <button
                         type="button"
-                        aria-label={`Quitar lugar ${index + 1}`}
+                        aria-label={`${t("Quitar lugar")} ${index + 1}`}
                         className={panelSecondaryButtonClass}
                         onClick={() =>
                           set(
@@ -750,11 +807,11 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                     ) : null}
                   </div>
                   <input
-                    aria-label={`Por qué lo recomiendas ${index + 1}`}
+                    aria-label={`${t("Por qué lo recomiendas")} ${index + 1}`}
                     className={panelInputClass}
                     value={place.description}
                     maxLength={300}
-                    placeholder="Por qué lo recomiendas (opcional)"
+                    placeholder={t("Por qué lo recomiendas (opcional)")}
                     onChange={(event) =>
                       set(
                         "recommendations",
@@ -781,7 +838,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                     ])
                   }
                 >
-                  + Agregar lugar
+                  {t("+ Agregar lugar")}
                 </button>
               ) : null}
             </OptionCard>
@@ -802,8 +859,11 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               <div className="min-w-0">
                 <p className="text-lg font-semibold">{values.name}</p>
                 <p className="text-ink-soft text-sm">
-                  Guía en{" "}
-                  {WIZARD_LANGUAGES.find((l) => l.value === values.language)?.label}
+                  {t("Guía en")}{" "}
+                  {
+                    WIZARD_LANGUAGES.find((l) => l.value === values.language)
+                      ?.label
+                  }
                 </p>
               </div>
             </div>
@@ -815,17 +875,19 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
                     className="flex items-center justify-between gap-3 px-4 py-3 text-sm"
                   >
                     <span className="font-semibold">
-                      {SECTION_INFO[section].title}
+                      {t(SECTION_INFO[section].title)}
                     </span>
                     <span className="text-ink-soft truncate">
-                      {summaryOf(section, values)}
+                      {summaryOf(section, values, t)}
                     </span>
                   </li>
                 ))}
               </ul>
             ) : (
               <p className="text-ink-soft text-sm">
-                No marcaste secciones. Puedes agregarlas después en el editor.
+                {t(
+                  "No marcaste secciones. Puedes agregarlas después en el editor.",
+                )}
               </p>
             )}
             <button
@@ -833,14 +895,14 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               className="text-teal-deep text-sm font-semibold"
               onClick={() => go(1)}
             >
-              ‹ Cambiar secciones
+              {t("‹ Cambiar secciones")}
             </button>
           </div>
         ) : null}
 
         {error ? (
           <p role="alert" className="text-sm text-red-700">
-            {error}
+            {t(error)}
           </p>
         ) : null}
       </div>
@@ -854,7 +916,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               disabled={busy}
               onClick={() => go(2)}
             >
-              Saltar por ahora
+              {t("Saltar por ahora")}
             </button>
           ) : (
             <span />
@@ -866,7 +928,7 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               disabled={busy}
               onClick={create}
             >
-              {creating ? "Creando…" : "Crear guía"}
+              {creating ? t("Creando…") : t("Crear guía")}
             </button>
           ) : (
             <button
@@ -875,13 +937,13 @@ export function PropertyWizard({ closeHref }: { closeHref: string }) {
               disabled={busy || (step === 0 && !values.name.trim())}
               onClick={() => go(step + 1)}
             >
-              Continuar
+              {t("Continuar")}
             </button>
           )}
         </div>
         {last ? (
           <p className="text-ink-soft pt-3 text-center text-xs">
-            Tu código QR se crea junto con la guía y nunca cambia.
+            {t("Tu código QR se crea junto con la guía y nunca cambia.")}
           </p>
         ) : null}
       </div>

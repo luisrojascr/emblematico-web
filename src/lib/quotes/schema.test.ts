@@ -12,6 +12,7 @@ const valid = {
   message: "",
   productSlug: "",
   plan: "",
+  billing: "",
   pieces: "",
 };
 
@@ -68,6 +69,24 @@ describe("quoteRequestSchema", () => {
     expect(composeQuoteMessage(r)).toContain("Plan: Aún no lo sé");
     expect(
       quoteRequestSchema.safeParse({ ...valid, plan: "gold" }).success,
+    ).toBe(false);
+  });
+
+  it("records the billing period for paid plans only", () => {
+    const paid = quoteRequestSchema.parse({
+      ...valid,
+      plan: "essential",
+      billing: "monthly",
+    });
+    expect(composeQuoteMessage(paid)).toContain("Facturación: Mensual");
+    const free = quoteRequestSchema.parse({
+      ...valid,
+      plan: "free",
+      billing: "monthly",
+    });
+    expect(composeQuoteMessage(free)).not.toContain("Facturación");
+    expect(
+      quoteRequestSchema.safeParse({ ...valid, billing: "weekly" }).success,
     ).toBe(false);
   });
 
