@@ -14,10 +14,14 @@ const publicPageSchema = z.union([
     template_key: z.enum(["hospitality", "general"]),
     content: z.unknown(),
     indexable: z.boolean(),
-    /** Falta mientras no se aplique la migración 20261116000011: se muestra la marca. */
+    /** Missing until migration 20261116000011 is applied: the branding note is shown. */
     branding: z.boolean().optional(),
   }),
-  z.object({ redirect_to: z.string() }),
+  z.object({
+    redirect_to: z.string(),
+    /** Plan pause (migration 20261117000012): must not be cached as a permanent redirect. */
+    temporary: z.boolean().optional(),
+  }),
 ]);
 
 export type PublicPageResult =
@@ -29,10 +33,10 @@ export type PublicPageResult =
       templateKey: "hospitality" | "general";
       content: unknown;
       indexable: boolean;
-      /** "Página creada con emblemático" al pie (los planes de pago la quitan). */
+      /** "Página creada con emblemático" footer note (paid plans remove it). */
       branding: boolean;
     }
-  | { kind: "redirect"; slug: string }
+  | { kind: "redirect"; slug: string; temporary: boolean }
   | { kind: "missing" };
 
 /**
@@ -57,7 +61,11 @@ export async function getPublicPage(slug: string): Promise<PublicPageResult> {
     throw new Error("get_public_page returned unexpected shape");
 
   if ("redirect_to" in parsed.data) {
-    return { kind: "redirect", slug: parsed.data.redirect_to };
+    return {
+      kind: "redirect",
+      slug: parsed.data.redirect_to,
+      temporary: parsed.data.temporary ?? false,
+    };
   }
   cacheTag(pageTag(parsed.data.business_id));
   return {
