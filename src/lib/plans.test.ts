@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ESSENTIAL_MAX_PROPERTIES,
   MAX_SELF_SERVE_PROPERTIES,
+  SITE_PLAN_IDS,
   STANDARD_SERVICES,
   PLANS,
   annualSavings,
@@ -88,6 +89,16 @@ describe("PLANS", () => {
     expect(dropdown).toMatchObject({
       label: "Incluye los 15 servicios estándar",
     });
+  });
+
+  it("shows only the paid plans on the public site", () => {
+    expect(SITE_PLAN_IDS).toEqual(["essential", "plus", "managers"]);
+  });
+
+  it("offers the free trial only on Essential", () => {
+    expect(PLANS.filter((p) => p.trial).map((p) => p.id)).toEqual([
+      "essential",
+    ]);
   });
 
   it("parses billing periods", () => {
