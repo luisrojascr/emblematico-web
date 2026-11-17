@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(52);
+select plan(53);
 
 -- Fixtures -------------------------------------------------------------------
 -- d1: self-signup, verified, country given in lowercase (must be normalized)
@@ -119,6 +119,13 @@ reset role;
 
 select is((select draft_content ->> 'name' from public.pages where business_id = (select id from public.businesses where slug = 'sub-b')), 'Casa B', 'a paused guide cannot be edited by its owner');
 select is((select draft_content ->> 'name' from public.pages where business_id = (select id from public.businesses where slug = 'sub-a')), 'Edited A', 'the enabled guide can still be edited');
+
+-- If the enabled guide goes offline, a paused guide reports "paused" (short-lived cache in the app)
+update public.pages set status = 'unpublished' where business_id = (select id from public.businesses where slug = 'sub-a');
+select pg_temp.act_as_anon();
+select is((public.get_public_page('sub-b') ->> 'paused')::boolean, true, 'a paused guide with no live guide to go to reports paused');
+reset role;
+update public.pages set status = 'published' where business_id = (select id from public.businesses where slug = 'sub-a');
 
 -- Paying again reactivates everything -----------------------------------------------------
 update public.subscriptions

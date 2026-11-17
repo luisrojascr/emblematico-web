@@ -22,6 +22,8 @@ const publicPageSchema = z.union([
     /** Plan pause (migration 20261117000012): must not be cached as a permanent redirect. */
     temporary: z.boolean().optional(),
   }),
+  /** Paused by the owner's plan and no other guide of theirs is live to redirect to. */
+  z.object({ paused: z.literal(true) }),
 ]);
 
 export type PublicPageResult =
@@ -43,10 +45,14 @@ export type PublicPageResult =
  * Reads a public page through the anon-callable `get_public_page` RPC (the only
  * public read path). Cached until a publish/unpublish/suspend/slug change calls
  * `revalidatePublicPage`, with a safety-net expiry in case an invalidation is missed.
+ *
+ * Results that depend on ANOTHER guide or on the owner's plan (a plan-paused redirect, or
+ * "paused with nowhere to go") are cached for seconds only. Their inputs change without
+ * touching this slug's tags: the target guide is archived or unpublished, or the owner
+ * upgrades and the guide is no longer paused. Exactly one `cacheLife` call runs per call.
  */
 export async function getPublicPage(slug: string): Promise<PublicPageResult> {
   "use cache";
-  cacheLife("hours");
   // Tag by slug first so "missing" and "redirect" results can be invalidated too.
   cacheTag(slugTag(slug));
 
@@ -54,19 +60,30 @@ export async function getPublicPage(slug: string): Promise<PublicPageResult> {
     p_slug: slug,
   });
   if (error) throw new Error(`get_public_page failed: ${error.message}`);
-  if (data === null) return { kind: "missing" };
+  if (data === null) {
+    cacheLife("hours");
+    return { kind: "missing" };
+  }
 
   const parsed = publicPageSchema.safeParse(data);
   if (!parsed.success)
     throw new Error("get_public_page returned unexpected shape");
 
+  if ("paused" in parsed.data) {
+    cacheLife("seconds");
+    return { kind: "missing" };
+  }
   if ("redirect_to" in parsed.data) {
+    const temporary = parsed.data.temporary ?? false;
+    // A retired slug redirect only changes with this slug's tags; a pause redirect does not.
+    cacheLife(temporary ? "seconds" : "hours");
     return {
       kind: "redirect",
       slug: parsed.data.redirect_to,
-      temporary: parsed.data.temporary ?? false,
+      temporary,
     };
   }
+  cacheLife("hours");
   cacheTag(pageTag(parsed.data.business_id));
   return {
     kind: "page",
