@@ -76,7 +76,9 @@ export async function getPublicPage(slug: string): Promise<PublicPageResult> {
   if ("redirect_to" in parsed.data) {
     const temporary = parsed.data.temporary ?? false;
     // A retired slug redirect only changes with this slug's tags; a pause redirect does not.
-    cacheLife(temporary ? "seconds" : "hours");
+    // cacheLife() takes one literal profile per overload, so it cannot take a union.
+    if (temporary) cacheLife("seconds");
+    else cacheLife("hours");
     return {
       kind: "redirect",
       slug: parsed.data.redirect_to,
