@@ -19,8 +19,13 @@ export type PanelPage = {
   pageStatus: PageStatus;
   draft: unknown;
   updatedAt: string;
-  /** Si la guía lleva "Página creada con emblemático" (según el plan del negocio). */
+  /** Whether the guide shows "Página creada con emblemático" (per the business plan). */
   branding: boolean;
+  /**
+   * The guide is above the owner's plan limit. Clients cannot edit, publish or upload
+   * media to it (the database blocks it); the editor must say so instead of failing silently.
+   */
+  pausedByPlan: boolean;
 };
 
 export async function loadPanelPage(id: string): Promise<PanelPage | null> {
@@ -39,6 +44,16 @@ export async function loadPanelPage(id: string): Promise<PanelPage | null> {
       .maybeSingle(),
   ]);
   if (!business || !page) return null;
+
+  let pausedByPlan = false;
+  if (business.status === "active") {
+    // business_is_active() is false for a paused guide, and an active guide is not suspended.
+    const { data: usable } = await supabase.rpc("business_is_active", {
+      p_business_id: id,
+    });
+    pausedByPlan = usable === false;
+  }
+
   return {
     id: business.id,
     name: business.name,
@@ -49,5 +64,6 @@ export async function loadPanelPage(id: string): Promise<PanelPage | null> {
     draft: page.draft_content,
     updatedAt: page.updated_at,
     branding: showsBranding(business.service_plan),
+    pausedByPlan,
   };
 }

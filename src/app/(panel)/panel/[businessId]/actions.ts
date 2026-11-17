@@ -19,6 +19,11 @@ import { removeStoredImage, uploadBusinessImage } from "@/lib/panel/media";
 
 export type PanelFailure = { ok: false; message: string };
 
+const PAUSED_EDIT_MESSAGE =
+  "Esta guía está en pausa por tu plan. Actualiza tu plan para editarla.";
+const PAUSED_PUBLISH_MESSAGE =
+  "Esta guía está en pausa por tu plan. Actualiza tu plan para publicarla.";
+
 function fileOf(formData: FormData, key: string): FormDataEntryValue | null {
   const entry = formData.get(key);
   return entry instanceof File && entry.size > 0 ? entry : null;
@@ -68,6 +73,7 @@ export async function saveDraft(
       message: "Este negocio está suspendido o archivado. No se puede editar.",
     };
   }
+  if (current.pausedByPlan) return { ok: false, message: PAUSED_EDIT_MESSAGE };
 
   let raw: unknown;
   try {
@@ -111,12 +117,18 @@ export async function saveDraft(
     page = withImage(page, "cover_path", null);
   }
 
-  const { error } = await supabase
+  // RLS silently filters rows the user may not update (for example a guide paused by
+  // the plan), so a missing row is a failed save, not a success.
+  const { data: updated, error } = await supabase
     .from("pages")
     .update({ draft_content: page.content as Json })
-    .eq("business_id", businessId);
-  if (error) {
-    console.error("draft save failed", error.message);
+    .eq("business_id", businessId)
+    .select("id");
+  if (error || !updated || updated.length === 0) {
+    console.error(
+      "draft save failed",
+      error?.message ?? "no rows updated (blocked by RLS)",
+    );
     if (logo && "path" in logo) await removeStoredImage(supabase, logo.path);
     if (cover && "path" in cover) await removeStoredImage(supabase, cover.path);
     return { ok: false, message: "No pudimos guardar el borrador." };
@@ -197,6 +209,9 @@ export async function publishDraft(
       message:
         "Este negocio está suspendido o archivado. No se puede publicar.",
     };
+  }
+  if (current.pausedByPlan) {
+    return { ok: false, message: PAUSED_PUBLISH_MESSAGE };
   }
   const parsed = draftForBusiness(
     current.templateKey,

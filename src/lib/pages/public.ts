@@ -14,10 +14,16 @@ const publicPageSchema = z.union([
     template_key: z.enum(["hospitality", "general"]),
     content: z.unknown(),
     indexable: z.boolean(),
-    /** Falta mientras no se aplique la migración 20261116000011: se muestra la marca. */
+    /** Missing until migration 20261116000011 is applied: the branding note is shown. */
     branding: z.boolean().optional(),
   }),
-  z.object({ redirect_to: z.string() }),
+  z.object({
+    redirect_to: z.string(),
+    /** Plan pause (migration 20261117000012): must not be cached as a permanent redirect. */
+    temporary: z.boolean().optional(),
+  }),
+  /** Paused by the owner's plan and no other guide of theirs is live to redirect to. */
+  z.object({ paused: z.literal(true) }),
 ]);
 
 export type PublicPageResult =
@@ -29,20 +35,24 @@ export type PublicPageResult =
       templateKey: "hospitality" | "general";
       content: unknown;
       indexable: boolean;
-      /** "Página creada con emblemático" al pie (los planes de pago la quitan). */
+      /** "Página creada con emblemático" footer note (paid plans remove it). */
       branding: boolean;
     }
-  | { kind: "redirect"; slug: string }
+  | { kind: "redirect"; slug: string; temporary: boolean }
   | { kind: "missing" };
 
 /**
  * Reads a public page through the anon-callable `get_public_page` RPC (the only
  * public read path). Cached until a publish/unpublish/suspend/slug change calls
  * `revalidatePublicPage`, with a safety-net expiry in case an invalidation is missed.
+ *
+ * Results that depend on ANOTHER guide or on the owner's plan (a plan-paused redirect, or
+ * "paused with nowhere to go") are cached for seconds only. Their inputs change without
+ * touching this slug's tags: the target guide is archived or unpublished, or the owner
+ * upgrades and the guide is no longer paused. Exactly one `cacheLife` call runs per call.
  */
 export async function getPublicPage(slug: string): Promise<PublicPageResult> {
   "use cache";
-  cacheLife("hours");
   // Tag by slug first so "missing" and "redirect" results can be invalidated too.
   cacheTag(slugTag(slug));
 
@@ -50,15 +60,32 @@ export async function getPublicPage(slug: string): Promise<PublicPageResult> {
     p_slug: slug,
   });
   if (error) throw new Error(`get_public_page failed: ${error.message}`);
-  if (data === null) return { kind: "missing" };
+  if (data === null) {
+    cacheLife("hours");
+    return { kind: "missing" };
+  }
 
   const parsed = publicPageSchema.safeParse(data);
   if (!parsed.success)
     throw new Error("get_public_page returned unexpected shape");
 
-  if ("redirect_to" in parsed.data) {
-    return { kind: "redirect", slug: parsed.data.redirect_to };
+  if ("paused" in parsed.data) {
+    cacheLife("seconds");
+    return { kind: "missing" };
   }
+  if ("redirect_to" in parsed.data) {
+    const temporary = parsed.data.temporary ?? false;
+    // A retired slug redirect only changes with this slug's tags; a pause redirect does not.
+    // cacheLife() takes one literal profile per overload, so it cannot take a union.
+    if (temporary) cacheLife("seconds");
+    else cacheLife("hours");
+    return {
+      kind: "redirect",
+      slug: parsed.data.redirect_to,
+      temporary,
+    };
+  }
+  cacheLife("hours");
   cacheTag(pageTag(parsed.data.business_id));
   return {
     kind: "page",

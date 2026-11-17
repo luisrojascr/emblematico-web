@@ -258,6 +258,19 @@ export const PANEL_EDITOR_TEXT: Readonly<
       en: "This business is suspended or archived. You can view the content but cannot edit it.",
       fr: "Cet établissement est suspendu ou archivé. Vous pouvez consulter le contenu, mais pas le modifier.",
     },
+  "Esta guía está en pausa por tu plan. Puedes ver el contenido, no editarlo. Actualiza tu plan para reactivarla.":
+    {
+      en: "This guide is paused by your plan. You can view the content but cannot edit it. Upgrade your plan to reactivate it.",
+      fr: "Ce guide est en pause à cause de votre forfait. Vous pouvez consulter le contenu, mais pas le modifier. Changez de forfait pour le réactiver.",
+    },
+  "Esta guía está en pausa por tu plan. Actualiza tu plan para editarla.": {
+    en: "This guide is paused by your plan. Upgrade your plan to edit it.",
+    fr: "Ce guide est en pause à cause de votre forfait. Changez de forfait pour le modifier.",
+  },
+  "Esta guía está en pausa por tu plan. Actualiza tu plan para publicarla.": {
+    en: "This guide is paused by your plan. Upgrade your plan to publish it.",
+    fr: "Ce guide est en pause à cause de votre forfait. Changez de forfait pour le publier.",
+  },
   "Foto de portada": {
     en: "Cover photo",
     fr: "Photo de couverture",

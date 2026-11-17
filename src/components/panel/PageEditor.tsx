@@ -209,7 +209,7 @@ function EditorChrome({
   children: ReactNode;
 }) {
   const { t } = usePanelI18n();
-  const canEdit = page.status === "active";
+  const canEdit = page.status === "active" && !page.pausedByPlan;
   const dirty = formDirty || panel.logo.dirty || panel.cover.dirty;
   const savedNotice = notice ? NOTICES[notice] : undefined;
 
@@ -236,7 +236,9 @@ function EditorChrome({
         {!canEdit ? (
           <p role="status" className="text-sm text-red-700">
             {t(
-              "Este negocio está suspendido o archivado. Puedes ver el contenido, no editarlo.",
+              page.pausedByPlan
+                ? "Esta guía está en pausa por tu plan. Puedes ver el contenido, no editarlo. Actualiza tu plan para reactivarla."
+                : "Este negocio está suspendido o archivado. Puedes ver el contenido, no editarlo.",
             )}
           </p>
         ) : null}

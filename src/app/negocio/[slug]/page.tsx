@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 
 import { getPublicPage } from "@/lib/pages/public";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -63,7 +63,10 @@ export default async function NegocioPage({
     case "missing":
       notFound();
     case "redirect":
-      // Old (retired) slug: printed QR codes keep working.
+      // A guide paused by the owner's plan redirects temporarily (the pause can end
+      // when the plan changes). A retired slug redirects permanently: printed QR
+      // codes keep working.
+      if (result.temporary) redirect(`/negocio/${result.slug}`);
       permanentRedirect(`/negocio/${result.slug}`);
     case "page": {
       const page = parsePageContent(result.templateKey, result.content);
