@@ -32,7 +32,9 @@ export function LanguageSwitcher({ initial }: { initial: GuideLanguage }) {
           aria-pressed={current === lang}
           onClick={() => pick(lang)}
           className={`rounded-full px-2.5 py-1 text-xs font-semibold uppercase transition-colors ${
-            current === lang ? "bg-ink text-white" : "text-ink-soft hover:text-ink"
+            current === lang
+              ? "bg-ink text-white"
+              : "text-ink-soft hover:text-ink"
           }`}
         >
           {lang}

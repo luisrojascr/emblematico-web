@@ -14,6 +14,8 @@ const publicPageSchema = z.union([
     template_key: z.enum(["hospitality", "general"]),
     content: z.unknown(),
     indexable: z.boolean(),
+    /** Falta mientras no se aplique la migración 20261116000011: se muestra la marca. */
+    branding: z.boolean().optional(),
   }),
   z.object({ redirect_to: z.string() }),
 ]);
@@ -27,6 +29,8 @@ export type PublicPageResult =
       templateKey: "hospitality" | "general";
       content: unknown;
       indexable: boolean;
+      /** "Página creada con emblemático" al pie (los planes de pago la quitan). */
+      branding: boolean;
     }
   | { kind: "redirect"; slug: string }
   | { kind: "missing" };
@@ -64,5 +68,6 @@ export async function getPublicPage(slug: string): Promise<PublicPageResult> {
     templateKey: parsed.data.template_key,
     content: parsed.data.content,
     indexable: parsed.data.indexable,
+    branding: parsed.data.branding ?? true,
   };
 }

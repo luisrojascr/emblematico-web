@@ -144,6 +144,7 @@ function HospitalityEditor({
           name={page.name}
           control={form.control}
           fallback={content}
+          branding={page.branding}
         />
       }
     >

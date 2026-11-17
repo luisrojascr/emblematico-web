@@ -2,6 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 
+import { showsBranding } from "@/lib/panel/subscription";
 import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,6 +19,8 @@ export type PanelPage = {
   pageStatus: PageStatus;
   draft: unknown;
   updatedAt: string;
+  /** Si la guía lleva "Página creada con emblemático" (según el plan del negocio). */
+  branding: boolean;
 };
 
 export async function loadPanelPage(id: string): Promise<PanelPage | null> {
@@ -26,7 +29,7 @@ export async function loadPanelPage(id: string): Promise<PanelPage | null> {
   const [{ data: business }, { data: page }] = await Promise.all([
     supabase
       .from("businesses")
-      .select("id, name, slug, status")
+      .select("id, name, slug, status, service_plan")
       .eq("id", id)
       .maybeSingle(),
     supabase
@@ -45,5 +48,6 @@ export async function loadPanelPage(id: string): Promise<PanelPage | null> {
     pageStatus: page.status,
     draft: page.draft_content,
     updatedAt: page.updated_at,
+    branding: showsBranding(business.service_plan),
   };
 }

@@ -50,6 +50,8 @@ export type Plan = {
   extraPropertyMonthly?: number;
   /** Máximo de alojamientos en total sumando adicionales. Sin valor = sin límite. */
   maxProperties?: number;
+  /** La guía se publica sin "Página creada con emblemático". */
+  removesBranding?: boolean;
   summary: string;
   includes: readonly PlanFeature[];
   highlighted?: boolean;
@@ -110,6 +112,7 @@ export const PLANS: readonly Plan[] = [
   },
   {
     id: "essential",
+    removesBranding: true,
     name: "Hospitality Essential",
     price: 49,
     monthlyPrice: 6,
@@ -140,6 +143,7 @@ export const PLANS: readonly Plan[] = [
   },
   {
     id: "plus",
+    removesBranding: true,
     name: "Hospitality Plus",
     price: 99,
     monthlyPrice: 12,
@@ -156,6 +160,7 @@ export const PLANS: readonly Plan[] = [
   },
   {
     id: "managers",
+    removesBranding: true,
     name: "Plan para administradores",
     price: null,
     properties: null,

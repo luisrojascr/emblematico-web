@@ -69,7 +69,13 @@ export default async function NegocioPage({
       const page = parsePageContent(result.templateKey, result.content);
       // Stored content that no longer validates must never render half-broken.
       if (!page) notFound();
-      return <TemplateView name={result.name} page={page} />;
+      return (
+        <TemplateView
+          name={result.name}
+          page={page}
+          branding={result.branding}
+        />
+      );
     }
     default: {
       const unreachable: never = result;
