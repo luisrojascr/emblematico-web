@@ -10,6 +10,7 @@ import {
   BILLING_PERIODS,
   DEFAULT_BILLING,
   PLANS,
+  SITE_PLAN_IDS,
   type BillingPeriod,
   type PlanId,
   annualSavings,
@@ -54,7 +55,8 @@ export function PlanChangeList({ currentPlanId }: { currentPlanId: PlanId }) {
       </div>
 
       <ul className={`${panelCardClass} divide-cream-dark divide-y`}>
-        {PLANS.map((option) => {
+        {/* Free no se elige: es a lo que baja una cuenta que no paga. */}
+        {PLANS.filter((p) => SITE_PLAN_IDS.includes(p.id)).map((option) => {
           const current = option.id === currentPlanId;
           const monthly =
             billing === "monthly" && option.monthlyPrice !== undefined;

@@ -19,6 +19,9 @@ import {
   PIECE_TIERS,
   PLANS,
   SHOW_PRICES,
+  SITE_PLAN_IDS,
+  TRIAL_DAYS,
+  TRIAL_GUARANTEE,
   WELCOME_PIECE,
   type Plan,
   formatUsd,
@@ -261,52 +264,70 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
 
       <SquareLink
         href={href}
-        variant={plan.highlighted ? "primary" : "outline"}
+        variant={isFree ? "outline" : "primary"}
         className="mt-4"
       >
-        {isFree ? "Comenzar gratis" : "Solicitar propuesta"}
+        {isFree
+          ? "Comenzar gratis"
+          : plan.trial
+            ? `Empieza ${TRIAL_DAYS} días gratis`
+            : `Comprar ${plan.name.replace("Hospitality ", "")}`}
       </SquareLink>
+      {/* Misma altura en todas las tarjetas, tenga o no prueba. */}
+      <p className="text-ink-soft mt-2 min-h-5 text-center text-xs">
+        {plan.trial ? `Prueba gratis de ${TRIAL_DAYS} días · sin tarjeta` : ""}
+      </p>
     </article>
   );
 }
 
+/** Plan para administradores: misma tarjeta que los demás, con precio a la medida. */
 function ManagersCard({ plan }: { plan: Plan }) {
   return (
-    <article className="bg-ink text-cream grid gap-8 rounded-2xl p-6 sm:p-8 lg:grid-cols-[1.1fr_1.4fr_auto] lg:items-center lg:gap-12">
-      <div className="space-y-2">
-        <p className="text-sand text-[11px] font-semibold tracking-[0.18em] uppercase">
-          Cotización a la medida
-        </p>
-        <h3 className="text-3xl">{plan.name}</h3>
-        <p className="text-cream/75 text-sm">{plan.summary}</p>
-      </div>
-      <ul className="text-cream/85 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
+    <article className="border-cream-dark relative flex flex-col rounded-2xl border bg-white p-6 sm:p-8">
+      <h3 className="text-2xl">{plan.name}</h3>
+      <p className="text-ink-soft mt-2 text-sm lg:min-h-10">{plan.summary}</p>
+      <p className="mt-6 font-serif text-4xl">A la medida</p>
+      {/* Mismas dos líneas que las otras tarjetas para alinear las listas. */}
+      <p className="text-teal-deep mt-1 min-h-4 text-xs font-medium">
+        Cotización según tu cartera
+      </p>
+      <p className="mt-1 min-h-4 text-xs" />
+      <ul className="text-ink-soft mt-6 mb-6 flex-1 space-y-2 text-sm">
         {plan.includes.map((feature) => (
           <PlanFeatureItem key={featureLabel(feature)} feature={feature} />
         ))}
       </ul>
-      <SquareLink href={`/contacto?plan=${plan.id}`} variant="bronze">
+      <SquareLink
+        href={`/contacto?plan=${plan.id}`}
+        variant="outline"
+        className="mt-4"
+      >
         Solicitar cotización
       </SquareLink>
+      <p className="mt-2 min-h-5 text-xs" />
     </article>
   );
 }
 
 export function PlanCards() {
-  const selfServe = PLANS.filter((p) => p.price !== null);
-  const custom = PLANS.filter((p) => p.price === null);
+  const shown = PLANS.filter((p) => SITE_PLAN_IDS.includes(p.id));
   const [billing, setBilling] = useState<BillingPeriod>(DEFAULT_BILLING);
   return (
     <div className="space-y-6">
       {SHOW_PRICES && <BillingToggle value={billing} onChange={setBilling} />}
       <div className="grid gap-6 lg:grid-cols-3">
-        {selfServe.map((plan) => (
-          <PlanCard key={plan.id} plan={plan} billing={billing} />
-        ))}
+        {shown.map((plan) =>
+          plan.price === null ? (
+            <ManagersCard key={plan.id} plan={plan} />
+          ) : (
+            <PlanCard key={plan.id} plan={plan} billing={billing} />
+          ),
+        )}
       </div>
-      {custom.map((plan) => (
-        <ManagersCard key={plan.id} plan={plan} />
-      ))}
+      <p className="border-cream-dark text-teal-deep rounded-xl border bg-white px-5 py-4 text-center text-sm font-medium">
+        {TRIAL_GUARANTEE}
+      </p>
       {SHOW_PRICES && (
         <div className="text-ink-soft space-y-1 pt-2 text-sm">
           <p>

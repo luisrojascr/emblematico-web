@@ -84,7 +84,11 @@ export const FAQ = [
   },
   {
     q: "¿Cuánto cuesta y qué incluye la renovación?",
-    a: "Los planes son solo la parte digital y se pagan por año; el plan gratuito no tiene costo. La pieza de bienvenida 3D es un extra de pago único, con descuento por cantidad, que puedes agregar a cualquier plan. El envío se cobra aparte.",
+    a: "Los planes son solo la parte digital y se pagan por mes o por año (pagando por año ahorras). La pieza de bienvenida 3D es un extra de pago único, con descuento por cantidad, que puedes agregar a cualquier plan. El envío se cobra aparte.",
+  },
+  {
+    q: "¿Qué pasa al terminar la prueba de 30 días?",
+    a: "Durante 30 días usas Essential completo, sin costo. (Plus no tiene prueba porque incluye onboarding personalizado y soporte por WhatsApp desde el primer día.) Si decides continuar, eliges pago mensual o anual. Si no, tu cuenta pasa a ser una cuenta gratuita, pero limitada, y tu guía no se apaga: sigue activa en versión básica (1 alojamiento, 5 servicios, con la nota «Creado con emblemático»), así que tu QR y tu pieza de bienvenida siguen funcionando.",
   },
 ] as const;
 

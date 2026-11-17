@@ -50,6 +50,8 @@ export type Plan = {
   extraPropertyMonthly?: number;
   /** Máximo de alojamientos en total sumando adicionales. Sin valor = sin límite. */
   maxProperties?: number;
+  /** Se puede empezar con TRIAL_DAYS días gratis (Plus no: incluye onboarding y soporte por WhatsApp). */
+  trial?: boolean;
   /** La guía se publica sin "Página creada con emblemático". */
   removesBranding?: boolean;
   summary: string;
@@ -112,6 +114,7 @@ export const PLANS: readonly Plan[] = [
   },
   {
     id: "essential",
+    trial: true,
     removesBranding: true,
     name: "Hospitality Essential",
     price: 49,
@@ -173,6 +176,23 @@ export const PLANS: readonly Plan[] = [
     ],
   },
 ] as const;
+
+/** Días de prueba gratis (solo planes con `trial`, hoy Essential). */
+export const TRIAL_DAYS = 30;
+
+/** Qué pasa si no se paga al terminar la prueba: la guía baja a Free, nunca se apaga. */
+export const TRIAL_GUARANTEE =
+  "Si no continúas después de la prueba, tu guía sigue activa en versión básica (1 alojamiento, 5 servicios). Tu QR nunca deja de funcionar.";
+
+/**
+ * Planes que se muestran en el sitio público. Free no se ofrece como tarjeta:
+ * existe en el panel y es a lo que baja una cuenta que no paga.
+ */
+export const SITE_PLAN_IDS: readonly PlanId[] = [
+  "essential",
+  "plus",
+  "managers",
+];
 
 /** Precio por pieza según la cantidad. Más allá del último tramo se cotiza. */
 export const PIECE_TIERS = [
