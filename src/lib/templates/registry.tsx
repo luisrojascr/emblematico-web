@@ -55,15 +55,30 @@ export function defaultContent(templateKey: TemplateKey): PageContent {
 export function TemplateView({
   name,
   page,
+  branding = true,
 }: {
   name: string;
   page: PageContent;
+  /** "Página creada con emblemático" al pie (los planes de pago la quitan). */
+  branding?: boolean;
 }) {
   switch (page.templateKey) {
     case "hospitality":
-      return <HospitalityTemplate name={name} content={page.content} />;
+      return (
+        <HospitalityTemplate
+          name={name}
+          content={page.content}
+          branding={branding}
+        />
+      );
     case "general":
-      return <GeneralTemplate name={name} content={page.content} />;
+      return (
+        <GeneralTemplate
+          name={name}
+          content={page.content}
+          branding={branding}
+        />
+      );
     default:
       return assertNever(page);
   }

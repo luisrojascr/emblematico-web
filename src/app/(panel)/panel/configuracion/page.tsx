@@ -5,6 +5,8 @@ import { Suspense } from "react";
 import { getPanelI18n } from "@/lib/panel/i18n-server";
 import { PanelLoading } from "@/components/panel/PanelLanguageProvider";
 import { PanelPage } from "@/components/panel/PanelPage";
+import { PlanFeatureItem } from "@/components/marketing/PlanFeatureItem";
+import { featureLabel } from "@/lib/plans";
 import { PlanChangeList } from "@/components/panel/PlanChangeList";
 import { ProfileForm } from "@/components/panel/ProfileForm";
 import { panelCardClass } from "@/components/panel/ui";
@@ -119,13 +121,14 @@ async function Settings() {
           <div>
             <p className={SECTION_TITLE}>{t("LO QUE TIENES")}</p>
             <ul className="space-y-2">
-              {plan.includes.map((item) => (
-                <li key={t(item)} className="flex gap-2 text-sm">
-                  <span aria-hidden="true" className="text-teal">
-                    ✓
-                  </span>
-                  {t(item)}
-                </li>
+              {plan.includes.map((feature) => (
+                <PlanFeatureItem
+                  key={featureLabel(feature)}
+                  feature={feature}
+                  translate={t}
+                  className="text-sm"
+                  checkClassName="text-teal"
+                />
               ))}
             </ul>
           </div>

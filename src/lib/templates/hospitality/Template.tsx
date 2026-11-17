@@ -9,9 +9,11 @@ import type { HospitalityContent } from "./schema";
 export function HospitalityTemplate({
   name,
   content: c,
+  branding = true,
 }: {
   name: string;
   content: HospitalityContent;
+  branding?: boolean;
 }) {
   const wifiShown = c.wifi.enabled && (c.wifi.network || c.wifi.password);
   const stayShown =
@@ -25,16 +27,27 @@ export function HospitalityTemplate({
       theme={c.theme}
       language={c.language}
       switcher
+      branding={branding}
     >
       {whatsappShown ? (
         <ActionLink href={whatsappHref(c.whatsapp.phone, c.whatsapp.message)}>
-          {isDefaultWhatsapp(c.whatsapp.label) ? <T k="whatsapp" /> : c.whatsapp.label}
+          {isDefaultWhatsapp(c.whatsapp.label) ? (
+            <T k="whatsapp" />
+          ) : (
+            c.whatsapp.label
+          )}
         </ActionLink>
       ) : null}
 
       {c.welcome.enabled && c.welcome.message ? (
         <Card
-          title={isDefaultWelcome(c.welcome.title) ? <T k="welcome" /> : c.welcome.title}
+          title={
+            isDefaultWelcome(c.welcome.title) ? (
+              <T k="welcome" />
+            ) : (
+              c.welcome.title
+            )
+          }
           collapsible
           defaultOpen
         >

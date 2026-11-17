@@ -32,7 +32,11 @@ async function Preview({ id }: { id: string }) {
               <span className="bg-ink h-6 w-24 rounded-full" />
             </div>
             <div className="h-[720px] max-h-[75dvh] overflow-y-auto [&_.min-h-dvh]:min-h-full">
-              <TemplateView name={page.name} page={content} />
+              <TemplateView
+                name={page.name}
+                page={content}
+                branding={page.branding}
+              />
             </div>
           </div>
         </div>

@@ -16,7 +16,11 @@ export const GUIDE_TEXT = {
   stay: { es: "Tu estadía", en: "Your stay", fr: "Votre séjour" },
   checkIn: { es: "Llegada", en: "Check-in", fr: "Arrivée" },
   checkOut: { es: "Salida", en: "Check-out", fr: "Départ" },
-  rules: { es: "Reglas de la casa", en: "House rules", fr: "Règles de la maison" },
+  rules: {
+    es: "Reglas de la casa",
+    en: "House rules",
+    fr: "Règles de la maison",
+  },
   amenities: { es: "Servicios", en: "Amenities", fr: "Équipements" },
   recommendations: {
     es: "Recomendaciones",
@@ -28,7 +32,11 @@ export const GUIDE_TEXT = {
     en: "Message us on WhatsApp",
     fr: "Écrire sur WhatsApp",
   },
-  madeWith: { es: "Página creada con", en: "Page made with", fr: "Page créée avec" },
+  madeWith: {
+    es: "Página creada con",
+    en: "Page made with",
+    fr: "Page créée avec",
+  },
   language: { es: "Idioma", en: "Language", fr: "Langue" },
   copy: { es: "Copiar", en: "Copy", fr: "Copier" },
   copied: { es: "Copiada", en: "Copied", fr: "Copié" },

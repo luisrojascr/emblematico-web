@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 
+import { PlanFeatureItem } from "@/components/marketing/PlanFeatureItem";
 import { SquareLink } from "@/components/ui/SquareButton";
 import {
   BILLING_LABELS,
@@ -11,10 +12,10 @@ import {
   DEFAULT_BILLING,
   type BillingPeriod,
   annualSavings,
+  featureLabel,
   firstChargeTotal,
   maxAnnualSavingsPercent,
   MAX_PIECES_ONLINE,
-  MAX_SELF_SERVE_PROPERTIES,
   PIECE_TIERS,
   PLANS,
   SHOW_PRICES,
@@ -207,6 +208,10 @@ function billingNote(plan: Plan, billing: BillingPeriod): string {
     : `Pagando anual: ${formatUsd(plan.price)}/año, ahorras ${formatUsd(savings)}`;
 }
 
+function extraLimitText(plan: Plan): string {
+  return plan.maxProperties ? `(hasta ${plan.maxProperties})` : "(sin límite)";
+}
+
 function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
   const [pieces, setPieces] = useState(0);
   const isFree = plan.id === "free";
@@ -224,11 +229,6 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
           : "border-cream-dark"
       }`}
     >
-      {plan.highlighted && (
-        <span className="bg-sand text-ink absolute -top-3 left-6 rounded-[4px] px-3 py-1 text-[11px] font-semibold tracking-[0.08em] uppercase sm:left-8">
-          Más recomendado
-        </span>
-      )}
       <h3 className="text-2xl">{plan.name}</h3>
       <p className="text-ink-soft mt-2 text-sm lg:min-h-10">{plan.summary}</p>
       <p className="mt-6 font-serif text-4xl">
@@ -241,13 +241,13 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
       <p className="text-ink-soft mt-1 min-h-4 text-xs">
         {SHOW_PRICES && plan.extraProperty
           ? billing === "monthly" && plan.extraPropertyMonthly
-            ? `Alojamiento adicional: +$${plan.extraPropertyMonthly.toFixed(2)}/mes (hasta ${MAX_SELF_SERVE_PROPERTIES})`
-            : `Alojamiento adicional: +${formatUsd(plan.extraProperty)}/año (hasta ${MAX_SELF_SERVE_PROPERTIES})`
+            ? `Alojamiento adicional: +$${plan.extraPropertyMonthly.toFixed(2)}/mes ${extraLimitText(plan)}`
+            : `Alojamiento adicional: +${formatUsd(plan.extraProperty)}/año ${extraLimitText(plan)}`
           : ""}
       </p>
       <ul className="text-ink-soft mt-6 mb-6 flex-1 space-y-2 text-sm">
-        {plan.includes.map((item) => (
-          <li key={item}>✓ {item}</li>
+        {plan.includes.map((feature) => (
+          <PlanFeatureItem key={featureLabel(feature)} feature={feature} />
         ))}
       </ul>
 
@@ -281,8 +281,8 @@ function ManagersCard({ plan }: { plan: Plan }) {
         <p className="text-cream/75 text-sm">{plan.summary}</p>
       </div>
       <ul className="text-cream/85 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2">
-        {plan.includes.map((item) => (
-          <li key={item}>✓ {item}</li>
+        {plan.includes.map((feature) => (
+          <PlanFeatureItem key={featureLabel(feature)} feature={feature} />
         ))}
       </ul>
       <SquareLink href={`/contacto?plan=${plan.id}`} variant="bronze">

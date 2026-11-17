@@ -6,9 +6,11 @@ import type { GeneralContent } from "./schema";
 export function GeneralTemplate({
   name,
   content: c,
+  branding = true,
 }: {
   name: string;
   content: GeneralContent;
+  branding?: boolean;
 }) {
   const ctaShown = c.cta.enabled && c.cta.url && c.cta.label;
   const whatsappShown = c.whatsapp.enabled && c.whatsapp.phone;
@@ -19,7 +21,12 @@ export function GeneralTemplate({
   const reviewsShown = c.reviews.enabled && c.reviews.url;
 
   return (
-    <TemplateFrame name={name} tagline={c.tagline} theme={c.theme}>
+    <TemplateFrame
+      name={name}
+      tagline={c.tagline}
+      theme={c.theme}
+      branding={branding}
+    >
       {ctaShown ? (
         <ActionLink href={c.cta.url} external={!c.cta.url.startsWith("tel:")}>
           {c.cta.label}

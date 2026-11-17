@@ -18,8 +18,10 @@ export function PhonePreview({
   name,
   control,
   fallback,
+  branding = true,
 }: {
   name: string;
+  branding?: boolean;
   control: Control<HospitalityContent>;
   fallback: HospitalityContent;
 }) {
@@ -45,7 +47,11 @@ export function PhonePreview({
             <span className="bg-ink h-6 w-24 rounded-full" />
           </div>
           <div className="h-[600px] overflow-y-auto [&_.min-h-dvh]:min-h-full">
-            <HospitalityTemplate name={name} content={content} />
+            <HospitalityTemplate
+              name={name}
+              content={content}
+              branding={branding}
+            />
           </div>
         </div>
       </div>

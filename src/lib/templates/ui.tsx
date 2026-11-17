@@ -70,6 +70,7 @@ export function TemplateFrame({
   theme,
   language,
   switcher,
+  branding = true,
   children,
 }: {
   name: string;
@@ -79,6 +80,8 @@ export function TemplateFrame({
   language?: GuideLanguage;
   /** Muestra los botones ES/EN/FR (solo plantillas con textos traducidos). */
   switcher?: boolean;
+  /** "Página creada con emblemático" al pie. Los planes de pago la quitan. */
+  branding?: boolean;
   children: ReactNode;
 }) {
   const style = {
@@ -130,15 +133,19 @@ export function TemplateFrame({
         </div>
       </header>
       <main className="mx-auto max-w-xl space-y-4 px-4 py-8">{children}</main>
-      <footer className="text-ink-soft px-4 pb-10 text-center text-xs">
-        <a
-          href={SITE.url}
-          className="underline-offset-4 hover:underline"
-          rel="noopener"
-        >
-          <T k="madeWith" /> {SITE.name}
-        </a>
-      </footer>
+      {branding ? (
+        <footer className="text-ink-soft px-4 pb-10 text-center text-xs">
+          <a
+            href={SITE.url}
+            className="underline-offset-4 hover:underline"
+            rel="noopener"
+          >
+            <T k="madeWith" /> {SITE.name}
+          </a>
+        </footer>
+      ) : (
+        <div className="pb-6" />
+      )}
     </div>
   );
 }
