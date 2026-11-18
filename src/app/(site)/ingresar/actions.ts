@@ -12,6 +12,9 @@ import {
 import { SITE } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
+const ACCOUNT_BLOCKED_MESSAGE =
+  "Tu cuenta está suspendida. Si crees que es un error, escríbenos desde la página de contacto.";
+
 const emailSchema = z.object({ email: z.email().max(200) });
 const passwordLoginSchema = z.object({
   email: z.email().max(200),
@@ -53,6 +56,9 @@ export async function signInWithPassword(
   if (error || !data.user) {
     if (isCaptchaError(error)) {
       return { status: "error", message: CAPTCHA_MESSAGE };
+    }
+    if (error?.code === "user_banned") {
+      return { status: "error", message: ACCOUNT_BLOCKED_MESSAGE };
     }
     if (error?.status === 429) {
       return {

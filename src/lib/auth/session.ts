@@ -16,6 +16,10 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
+  // An account blocked by an admin (Supabase Auth ban) keeps a valid access token
+  // until it expires; treat it as signed out right away.
+  const bannedUntil = data.user.banned_until;
+  if (bannedUntil && new Date(bannedUntil).getTime() > Date.now()) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
