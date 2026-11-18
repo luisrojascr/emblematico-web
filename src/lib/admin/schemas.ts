@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { PLAN_IDS } from "@/lib/plans";
+
 import { slugError } from "./slug";
 
 export const templateKeySchema = z.enum(["hospitality", "general"], {
@@ -64,6 +66,8 @@ export const removeMemberSchema = z.object({
 export const inviteSchema = z.object({
   email: z.email("Ingresa un correo válido.").max(200),
   fullName: z.string().trim().max(120, "Máximo 120 caracteres"),
+  plan: z.enum(PLAN_IDS, "Elige un plan."),
+  period: z.enum(["monthly", "annual"], "Elige el periodo."),
 });
 
 export const quoteStatusSchema = z.object({

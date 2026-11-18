@@ -27,13 +27,24 @@ const NOTICES: Record<string, string> = {
   acceso: "Acceso actualizado.",
   invitada: "Enviamos la invitación.",
   orden: "Orden actualizado.",
+  plan: "Plan actualizado. Sus guías públicas ya muestran el cambio.",
+  prueba: "Prueba extendida.",
+  free: "La cuenta pasó a Free. Su guía más antigua sigue activa y las demás quedaron en pausa.",
+  suspendida:
+    "Cuenta suspendida: no puede ingresar y sus guías quedaron suspendidas.",
+  reactivada: "Cuenta reactivada.",
+  "con-plan":
+    "Esta cuenta tiene un plan de pago vigente. Para darle una prueba, primero bájala a Free.",
   error: "No pudimos completar esa acción.",
 };
 
 export function AdminNotice({ code }: { code?: string }) {
   if (!code || !NOTICES[code]) return null;
   const problem =
-    code === "error" || code === "inactivo" || code === "borrador";
+    code === "error" ||
+    code === "inactivo" ||
+    code === "borrador" ||
+    code === "con-plan";
   return (
     <p
       role="status"

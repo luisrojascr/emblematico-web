@@ -11,6 +11,12 @@ import {
   zodFieldErrors,
   type ActionState,
 } from "@/lib/admin/schemas";
+import {
+  dateInputValue,
+  defaultPeriodEnd,
+  manualSubscription,
+} from "@/lib/admin/accounts";
+import { recordPlanEvent } from "@/lib/admin/accounts-data";
 import { SITE } from "@/lib/site";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -25,8 +31,11 @@ function fail(
   return { status: "error", message, fieldErrors };
 }
 
+const ACCOUNT_PATH = /^\/admin\/usuarios\/[0-9a-f-]{36}$/;
+
 function adminReturnPath(value: string, businessId: string | null): string {
   if (value === "/admin/usuarios") return value;
+  if (ACCOUNT_PATH.test(value)) return value;
   if (businessId && value === `/admin/negocios/${businessId}`) return value;
   return "/admin/usuarios";
 }
@@ -35,15 +44,17 @@ export async function inviteClient(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await assertAdmin();
+  const { user: adminUser } = await assertAdmin();
   const parsed = inviteSchema.safeParse({
     email: text(formData, "email").trim().toLowerCase(),
     fullName: text(formData, "fullName"),
+    plan: text(formData, "plan") || "free",
+    period: text(formData, "period") || "annual",
   });
   if (!parsed.success) {
     return fail(
       "Revisa los campos marcados.",
-      zodFieldErrors(parsed.error, ["email", "fullName"]),
+      zodFieldErrors(parsed.error, ["email", "fullName", "plan", "period"]),
     );
   }
 
@@ -76,8 +87,35 @@ export async function inviteClient(
       .eq("id", data.user.id);
   }
 
+  // Invited accounts start on Free (handle_new_user); a plan paid by hand is set here.
+  if (parsed.data.plan !== "free") {
+    const after = manualSubscription({
+      userId: data.user.id,
+      plan: parsed.data.plan,
+      period: parsed.data.period,
+      periodEnd: dateInputValue(defaultPeriodEnd(parsed.data.period)),
+      extraProperties: 0,
+      limitOverride: null,
+      note: "",
+    });
+    const { error: planError } = await admin
+      .from("subscriptions")
+      .upsert({ user_id: data.user.id, ...after }, { onConflict: "user_id" });
+    if (planError) {
+      console.error("invite plan failed", planError.code, planError.message);
+    } else {
+      await recordPlanEvent({
+        userId: data.user.id,
+        adminEmail: adminUser.email,
+        type: "admin.invited_with_plan",
+        before: null,
+        after,
+      });
+    }
+  }
+
   revalidatePath("/admin/usuarios");
-  redirect("/admin/usuarios?aviso=invitada");
+  redirect(`/admin/usuarios/${data.user.id}?aviso=invitada`);
 }
 
 export async function assignMember(
