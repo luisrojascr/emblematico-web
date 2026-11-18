@@ -16,6 +16,7 @@ export async function PropertyCard({ property }: { property: PanelProperty }) {
   const { t } = await getPanelI18n();
   const published = property.pageStatus === "published";
   const inactive = property.status !== "active";
+  const paused = !inactive && property.paused;
   return (
     <Link
       href={`/panel/${property.id}`}
@@ -53,16 +54,18 @@ export async function PropertyCard({ property }: { property: PanelProperty }) {
         <p className="flex items-center gap-2 text-sm">
           <span
             aria-hidden="true"
-            className={`size-2 rounded-full ${published && !inactive ? "bg-teal" : "bg-sand"}`}
+            className={`size-2 rounded-full ${published && !inactive && !paused ? "bg-teal" : "bg-sand"}`}
           />
           <span className="text-ink-soft">
             {inactive
               ? property.status === "suspended"
                 ? t("Suspendido")
                 : t("Archivado")
-              : property.pageStatus
-                ? t(STATE[property.pageStatus]!)
-                : t("Sin borrador")}
+              : paused
+                ? t("En pausa por el plan")
+                : property.pageStatus
+                  ? t(STATE[property.pageStatus]!)
+                  : t("Sin borrador")}
           </span>
         </p>
       </div>

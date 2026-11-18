@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export type WizardFailure = { ok: false; message: string };
 
-// Límite sencillo por proceso para no usar el servidor como lector de páginas.
+// Simple per-process limit so the server cannot be used as a page fetcher.
 const recentImports = new Map<string, number[]>();
 const IMPORT_WINDOW_MS = 10 * 60_000;
 const IMPORT_MAX = 8;
@@ -90,7 +90,8 @@ export async function createProperty(
 
   const supabase = await createClient();
   let id: string | null = null;
-  let limitReached = false;
+  let failure =
+    "No pudimos crear el hospedaje. Intenta de nuevo en un momento.";
   for (const slug of slugCandidates(values.name)) {
     const { data, error } = await supabase.rpc("create_my_business", {
       p_name: values.name,
@@ -102,23 +103,29 @@ export async function createProperty(
       break;
     }
     console.error("create_my_business failed", error?.code, error?.message);
-    if (error?.message.toLowerCase().includes("property limit")) {
-      limitReached = true;
+    const reason = error?.message.toLowerCase() ?? "";
+    if (reason.includes("property limit")) {
+      failure =
+        "Ya usaste todos los alojamientos de tu plan. Escríbenos para ampliarlo.";
       break;
     }
-    // Slug repetido o reservado: se prueba con otro. Cualquier otro error termina.
+    if (reason.includes("email not verified")) {
+      failure = "Confirma tu correo antes de crear un hospedaje.";
+      break;
+    }
+    if (reason.includes("rate limit")) {
+      failure =
+        "Creaste varios hospedajes seguidos. Espera un rato e intenta de nuevo.";
+      break;
+    }
+    // Taken or reserved slug: try the next one. Any other error stops here.
     if (error?.code !== "23505" && error?.code !== "23514") break;
   }
   if (!id) {
-    return {
-      ok: false,
-      message: limitReached
-        ? "Ya usaste todos los alojamientos de tu plan. Escríbenos para ampliarlo."
-        : "No pudimos crear el hospedaje. Intenta de nuevo en un momento.",
-    };
+    return { ok: false, message: failure };
   }
 
-  // La foto es opcional: si falla, el hospedaje ya existe y se puede subir en el editor.
+  // The photo is optional: if it fails, the property exists and it can be uploaded in the editor.
   const photo = await uploadBusinessImage(
     supabase,
     id,
