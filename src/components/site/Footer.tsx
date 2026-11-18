@@ -16,6 +16,8 @@ const MORE = [
   { href: "/como-funciona", label: "Cómo funciona" },
   { href: "/contacto", label: "Contacto" },
   { href: "/ingresar", label: "Ingresar" },
+  { href: "/terminos", label: "Términos de uso" },
+  { href: "/privacidad", label: "Privacidad" },
 ] as const;
 
 const linkClass = "text-cream/75 hover:text-cream transition-colors";

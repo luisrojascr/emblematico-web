@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from "react";
 
+import { TurnstileWidget } from "@/components/auth/TurnstileWidget";
+
 import {
   type LoginState,
   sendMagicLink,
@@ -78,6 +80,7 @@ function PasswordLogin({ onMode }: { onMode: (mode: Mode) => void }) {
           className={inputClass}
         />
       </div>
+      <TurnstileWidget resetOn={state} />
       <button type="submit" disabled={pending} className={primaryClass}>
         {pending ? "Ingresando..." : "Ingresar"}
       </button>
@@ -111,6 +114,7 @@ function EmailOnly({
           : "Te enviamos un enlace seguro para entrar sin contraseña."}
       </p>
       <EmailField autoFocus />
+      <TurnstileWidget resetOn={state} />
       <button type="submit" disabled={pending} className={primaryClass}>
         {pending
           ? "Enviando..."

@@ -120,6 +120,17 @@ describe("securityHeaders", () => {
     expect(directive(policy, "img-src")).toBe("'self' data: blob:");
   });
 
+  it("allows Cloudflare Turnstile only when enabled", () => {
+    const on = csp(securityHeaders({ turnstile: true }));
+    const off = csp(securityHeaders({}));
+    for (const name of ["script-src", "frame-src", "connect-src"]) {
+      expect(directive(on, name)).toContain(
+        "https://challenges.cloudflare.com",
+      );
+      expect(directive(off, name)).not.toContain("challenges.cloudflare.com");
+    }
+  });
+
   it("allows eval only in development", () => {
     const dev = csp(securityHeaders({ development: true }));
     const prod = csp(securityHeaders({ development: false }));

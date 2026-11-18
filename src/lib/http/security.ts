@@ -6,6 +6,7 @@ type RemotePattern = NonNullable<
 >[number];
 
 const STORAGE_PATH = "/storage/v1/object/public/**";
+const TURNSTILE_ORIGIN = "https://challenges.cloudflare.com";
 
 function supabaseUrl(raw: string | undefined): URL | null {
   if (!raw) return null;
@@ -68,11 +69,14 @@ export function securityHeaders(env: {
   frameAncestors?: readonly string[];
   /** Extra origins this page may show in an iframe (the demo on /demo). */
   frameSources?: readonly string[];
+  /** Cloudflare Turnstile (captcha on signup and login): allows its script, frame and API. */
+  turnstile?: boolean;
 }): Header[] {
   const ancestors = env.frameAncestors?.length
     ? env.frameAncestors.join(" ")
     : null;
   const frames = ["'self'", ...(env.frameSources ?? [])];
+  if (env.turnstile) frames.push(TURNSTILE_ORIGIN);
   const supabase = supabaseUrl(env.supabaseUrl);
   const connect = ["'self'"];
   const images = ["'self'", "data:", "blob:"];
@@ -83,6 +87,10 @@ export function securityHeaders(env: {
   // React rebuilds call stacks with eval() in development only.
   const scripts = ["'self'", "'unsafe-inline'"];
   if (env.development) scripts.push("'unsafe-eval'");
+  if (env.turnstile) {
+    scripts.push(TURNSTILE_ORIGIN);
+    connect.push(TURNSTILE_ORIGIN);
+  }
 
   const headers: Header[] = [
     { key: "X-Content-Type-Options", value: "nosniff" },

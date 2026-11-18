@@ -3,6 +3,12 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import {
+  CAPTCHA_MESSAGE,
+  captchaMissing,
+  captchaTokenOf,
+  isCaptchaError,
+} from "@/lib/auth/captcha";
 import { SITE } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,9 +41,19 @@ export async function signInWithPassword(
     return { status: "error", message: "Ingresa tu correo y tu contraseña." };
   }
 
+  if (captchaMissing(formData)) {
+    return { status: "error", message: CAPTCHA_MESSAGE };
+  }
+
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword({
+    ...parsed.data,
+    options: { captchaToken: captchaTokenOf(formData) },
+  });
   if (error || !data.user) {
+    if (isCaptchaError(error)) {
+      return { status: "error", message: CAPTCHA_MESSAGE };
+    }
     if (error?.status === 429) {
       return {
         status: "error",
@@ -50,7 +66,7 @@ export async function signInWithPassword(
         message: "No pudimos iniciar sesión. Intenta de nuevo.",
       };
     }
-    // Mismo mensaje exista o no la cuenta (no revela qué correos existen).
+    // Same message whether or not the account exists (no user enumeration).
     return { status: "error", message: "Correo o contraseña incorrectos." };
   }
 
@@ -70,16 +86,23 @@ export async function sendMagicLink(
   if (!parsed.success) {
     return { status: "error", message: "Ingresa un correo válido." };
   }
+  if (captchaMissing(formData)) {
+    return { status: "error", message: CAPTCHA_MESSAGE };
+  }
 
   const supabase = await createClient();
-  // shouldCreateUser:false -> only invited accounts can sign in.
+  // shouldCreateUser:false -> the magic link never creates an account; signup has its own form.
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
       shouldCreateUser: false,
       emailRedirectTo: `${SITE.url}/auth/callback`,
+      captchaToken: captchaTokenOf(formData),
     },
   });
+  if (isCaptchaError(error)) {
+    return { status: "error", message: CAPTCHA_MESSAGE };
+  }
 
   if (error && error.status && error.status >= 500) {
     return {
@@ -104,12 +127,21 @@ export async function sendPasswordReset(
   if (!parsed.success) {
     return { status: "error", message: "Ingresa un correo válido." };
   }
+  if (captchaMissing(formData)) {
+    return { status: "error", message: CAPTCHA_MESSAGE };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(
     parsed.data.email,
-    { redirectTo: `${SITE.url}/auth/callback?next=/panel/contrasena` },
+    {
+      redirectTo: `${SITE.url}/auth/callback?next=/panel/contrasena`,
+      captchaToken: captchaTokenOf(formData),
+    },
   );
+  if (isCaptchaError(error)) {
+    return { status: "error", message: CAPTCHA_MESSAGE };
+  }
   if (error?.status === 429) {
     return {
       status: "error",
