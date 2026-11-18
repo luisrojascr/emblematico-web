@@ -222,7 +222,10 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
   if (plan.price)
     params.set("periodo", billing === "monthly" ? "mensual" : "anual");
   if (pieces > 0) params.set("piezas", String(pieces));
-  const href = `/contacto?${params.toString()}`;
+  // Plans with a free trial start with self-service signup; the rest still go through the quote form.
+  const href = plan.trial
+    ? `/registro?periodo=${billing === "monthly" ? "mensual" : "anual"}`
+    : `/contacto?${params.toString()}`;
 
   return (
     <article

@@ -45,6 +45,7 @@ const nextConfig: NextConfig = {
       supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
       development: process.env.NODE_ENV !== "production",
+      turnstile: Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY),
     };
     return [
       // Todo menos la guía demo: nadie puede mostrarlo en un iframe. /demo sí

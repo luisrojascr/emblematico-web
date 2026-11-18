@@ -10,7 +10,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/panel", "/admin", "/auth", "/ingresar"],
+      disallow: ["/panel", "/admin", "/auth", "/ingresar", "/registro"],
     },
     sitemap: new URL("/sitemap.xml", SITE.url).toString(),
   };
