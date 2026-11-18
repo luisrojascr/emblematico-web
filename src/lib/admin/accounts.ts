@@ -153,9 +153,18 @@ export function defaultPeriodEnd(
   return end;
 }
 
-/** yyyy-mm-dd for <input type="date">, in UTC. */
+/**
+ * yyyy-mm-dd for <input type="date">, as a Costa Rica calendar day. Expiries are
+ * stored as the end of that day in Costa Rica (see manualSubscription), which is
+ * already the next day in UTC, so a UTC slice would move the date forward.
+ */
 export function dateInputValue(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Costa_Rica",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 /**

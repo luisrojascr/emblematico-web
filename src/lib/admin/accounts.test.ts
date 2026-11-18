@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   accountFilter,
   accountState,
+  dateInputValue,
   defaultPeriodEnd,
   extendedTrialEnd,
   manualSubscription,
@@ -137,6 +138,23 @@ describe("manual plan changes", () => {
       current_period_end: null,
       extra_properties: 0,
     });
+  });
+
+  it("round-trips a stored expiry as the same Costa Rica day", () => {
+    const stored = manualSubscription(
+      setPlanSchema.parse({
+        userId: "6f1f7d1e-2a3b-4c5d-8e9f-0a1b2c3d4e5f",
+        plan: "plus",
+        period: "annual",
+        periodEnd: "2027-11-18",
+        extraProperties: 0,
+        limitOverride: null,
+        note: "",
+      }),
+    ).current_period_end!;
+    expect(dateInputValue(new Date(stored))).toBe("2027-11-18");
+    // 8 PM in Costa Rica is already the next day in UTC.
+    expect(dateInputValue(new Date("2026-11-19T02:00:00Z"))).toBe("2026-11-18");
   });
 
   it("extends a running trial from its end and restarts a lapsed one", () => {

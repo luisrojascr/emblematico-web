@@ -36,7 +36,7 @@ export function AccountPlanForm({
   const [period, setPeriod] = useState<Period>(initial.period ?? "annual");
   const [periodEnd, setPeriodEnd] = useState(
     initial.periodEnd
-      ? initial.periodEnd.slice(0, 10)
+      ? dateInputValue(new Date(initial.periodEnd))
       : dateInputValue(defaultPeriodEnd("annual")),
   );
   const paid = plan !== "free";
