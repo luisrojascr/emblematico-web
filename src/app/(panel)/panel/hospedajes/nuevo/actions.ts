@@ -139,7 +139,7 @@ export async function createProperty(
     };
     const { error } = await supabase
       .from("pages")
-      .update({ draft_content: withCover as Json })
+      .update({ draft_content: withCover as NonNullable<Json> })
       .eq("business_id", id);
     if (error) console.error("cover save failed", error.message);
   }

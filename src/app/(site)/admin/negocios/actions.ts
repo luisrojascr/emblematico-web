@@ -187,7 +187,7 @@ export async function updateBusiness(
       .from("pages")
       .update({
         template_key: input.template,
-        draft_content: draft as Json,
+        draft_content: draft as NonNullable<Json>,
         published_content: null,
         status: "draft",
         published_at: null,
