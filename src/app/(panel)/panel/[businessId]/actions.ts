@@ -121,7 +121,7 @@ export async function saveDraft(
   // the plan), so a missing row is a failed save, not a success.
   const { data: updated, error } = await supabase
     .from("pages")
-    .update({ draft_content: page.content as Json })
+    .update({ draft_content: page.content as NonNullable<Json> })
     .eq("business_id", businessId)
     .select("id");
   if (error || !updated || updated.length === 0) {

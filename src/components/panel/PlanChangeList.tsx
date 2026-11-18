@@ -18,8 +18,17 @@ import {
   maxAnnualSavingsPercent,
 } from "@/lib/plans";
 
-/** Lista de "Cambiar de plan" con selector Anual/Mensual (anual por defecto). */
-export function PlanChangeList({ currentPlanId }: { currentPlanId: PlanId }) {
+/**
+ * "Change plan" list with an annual/monthly toggle (annual by default). During a
+ * trial the current plan stays clickable, since continuing with it means paying.
+ */
+export function PlanChangeList({
+  currentPlanId,
+  trialing = false,
+}: {
+  currentPlanId: PlanId;
+  trialing?: boolean;
+}) {
   const { t } = usePanelI18n();
   const [billing, setBilling] = useState<BillingPeriod>(DEFAULT_BILLING);
 
@@ -55,17 +64,18 @@ export function PlanChangeList({ currentPlanId }: { currentPlanId: PlanId }) {
       </div>
 
       <ul className={`${panelCardClass} divide-cream-dark divide-y`}>
-        {/* Free no se elige: es a lo que baja una cuenta que no paga. */}
+        {/* Free is never picked: it is what an unpaid account drops to. */}
         {PLANS.filter((p) => SITE_PLAN_IDS.includes(p.id)).map((option) => {
           const current = option.id === currentPlanId;
           const monthly =
             billing === "monthly" && option.monthlyPrice !== undefined;
           const savings = annualSavings(option);
-          const href = current
-            ? "#suscripcion"
-            : option.price
-              ? `/contacto?plan=${option.id}&periodo=${billing === "monthly" ? "mensual" : "anual"}`
-              : `/contacto?plan=${option.id}`;
+          const href =
+            current && !trialing
+              ? "#suscripcion"
+              : option.price
+                ? `/contacto?plan=${option.id}&periodo=${billing === "monthly" ? "mensual" : "anual"}`
+                : `/contacto?plan=${option.id}`;
           return (
             <li key={option.id}>
               <Link
@@ -78,7 +88,7 @@ export function PlanChangeList({ currentPlanId }: { currentPlanId: PlanId }) {
                     {t(option.name)}
                     {current ? (
                       <span className="text-teal-deep text-xs font-bold">
-                        {t("Tu plan")}
+                        {t(trialing ? "En prueba" : "Tu plan")}
                       </span>
                     ) : null}
                   </span>

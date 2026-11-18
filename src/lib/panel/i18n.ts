@@ -1,4 +1,5 @@
 import { PANEL_EDITOR_TEXT } from "./editor-messages";
+import { PANEL_PLAN_TEXT } from "./plan-messages";
 
 export const PANEL_LANGUAGES = [
   { value: "en", label: "English" },
@@ -27,6 +28,7 @@ export function panelLanguage(value: unknown): PanelLanguage {
 export const PANEL_TEXT: Readonly<Record<string, { en: string; fr: string }>> =
   {
     ...PANEL_EDITOR_TEXT,
+    ...PANEL_PLAN_TEXT,
     "Idioma del panel": {
       en: "Dashboard language",
       fr: "Langue du tableau de bord",
@@ -80,10 +82,6 @@ export const PANEL_TEXT: Readonly<Record<string, { en: string; fr: string }>> =
     "1 hospedaje. {live} publicados.": {
       en: "1 property. {live} published.",
       fr: "1 hébergement. {live} publié.",
-    },
-    "Tu plan incluye {limit} hospedajes propios (tienes {owned}).": {
-      en: "Your plan includes {limit} owned properties (you have {owned}).",
-      fr: "Votre forfait comprend {limit} hébergements dont vous êtes propriétaire (vous en avez {owned}).",
     },
     "+ Agregar hospedaje": {
       en: "+ Add property",
