@@ -6,6 +6,7 @@ import { imageMime, sniffImage } from "@/lib/admin/images";
 import type { Database } from "@/lib/supabase/database.types";
 
 import { businessImagePath } from "./draft";
+import { MEDIA_LIMIT_MESSAGE, MEDIA_LIMIT_PER_BUSINESS } from "./media-limit";
 
 type Client = SupabaseClient<Database>;
 type MediaType = Database["public"]["Enums"]["media_type"];
@@ -23,6 +24,13 @@ export async function uploadBusinessImage(
   const kind = sniffImage(bytes);
   if (!kind) {
     return { error: "La imagen debe ser JPG, PNG o WebP, de hasta 5 MB." };
+  }
+  // The storage policy enforces the limit; checking first gives a clear message.
+  const { data: existing, error: listError } = await supabase.storage
+    .from(BUCKET)
+    .list(businessId, { limit: MEDIA_LIMIT_PER_BUSINESS });
+  if (!listError && (existing?.length ?? 0) >= MEDIA_LIMIT_PER_BUSINESS) {
+    return { error: MEDIA_LIMIT_MESSAGE };
   }
   const path = businessImagePath(businessId, kind);
   const { error: uploadError } = await supabase.storage

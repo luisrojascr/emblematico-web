@@ -71,17 +71,20 @@ export function TemplateFrame({
   language,
   switcher,
   branding = true,
+  reportHref,
   children,
 }: {
   name: string;
   tagline: string;
   theme: Theme;
-  /** Idioma inicial de la guía (el del anfitrión). */
+  /** Initial guide language (the host's). */
   language?: GuideLanguage;
-  /** Muestra los botones ES/EN/FR (solo plantillas con textos traducidos). */
+  /** Shows the ES/EN/FR buttons (only templates with translated texts). */
   switcher?: boolean;
-  /** "Página creada con emblemático" al pie. Los planes de pago la quitan. */
+  /** "Página creada con emblemático" footer note. Paid plans remove it. */
   branding?: boolean;
+  /** "Reportar esta guía" link, on every plan. Left out in the panel preview. */
+  reportHref?: string;
   children: ReactNode;
 }) {
   const style = {
@@ -133,15 +136,30 @@ export function TemplateFrame({
         </div>
       </header>
       <main className="mx-auto max-w-xl space-y-4 px-4 py-8">{children}</main>
-      {branding ? (
-        <footer className="text-ink-soft px-4 pb-10 text-center text-xs">
-          <a
-            href={SITE.url}
-            className="underline-offset-4 hover:underline"
-            rel="noopener"
-          >
-            <T k="madeWith" /> {SITE.name}
-          </a>
+      {branding || reportHref ? (
+        <footer className="text-ink-soft space-y-2 px-4 pb-10 text-center text-xs">
+          {branding ? (
+            <p>
+              <a
+                href={SITE.url}
+                className="underline-offset-4 hover:underline"
+                rel="noopener"
+              >
+                <T k="madeWith" /> {SITE.name}
+              </a>
+            </p>
+          ) : null}
+          {reportHref ? (
+            <p>
+              <a
+                href={reportHref}
+                className="underline-offset-4 hover:underline"
+                rel="nofollow"
+              >
+                <T k="reportGuide" />
+              </a>
+            </p>
+          ) : null}
         </footer>
       ) : (
         <div className="pb-6" />
@@ -158,7 +176,7 @@ export function Card({
 }: {
   title?: ReactNode;
   children: ReactNode;
-  /** Acordeón: el título abre y cierra la sección (sin JavaScript). */
+  /** Accordion: the title opens and closes the section (no JavaScript). */
   collapsible?: boolean;
   defaultOpen?: boolean;
 }) {

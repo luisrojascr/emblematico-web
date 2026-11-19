@@ -21,7 +21,11 @@ function linkFrom(body: string): string | null {
   return match[0].replace(/&amp;/g, "&").replace(/[).,]+$/, "");
 }
 
-async function magicLink(email: string, sentAt: number): Promise<string> {
+/** First link in the newest email to `email` sent after `sentAt`. Needs local Mailpit. */
+export async function emailLink(
+  email: string,
+  sentAt: number,
+): Promise<string> {
   const deadline = Date.now() + 20_000;
   while (Date.now() < deadline) {
     const list = (await fetch(`${MAILPIT}/api/v1/messages`).then((response) =>
@@ -43,7 +47,7 @@ async function magicLink(email: string, sentAt: number): Promise<string> {
     await new Promise((resolve) => setTimeout(resolve, 400));
   }
   throw new Error(
-    `No magic link for ${email}. Is Mailpit running at ${MAILPIT}?`,
+    `No email link for ${email}. Is Mailpit running at ${MAILPIT}?`,
   );
 }
 
@@ -59,5 +63,5 @@ export async function signIn(page: Page, email: string): Promise<void> {
   await expect(page.getByRole("status")).toContainText(
     "Si tu correo tiene una cuenta",
   );
-  await page.goto(await magicLink(email, sentAt));
+  await page.goto(await emailLink(email, sentAt));
 }

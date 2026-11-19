@@ -1,8 +1,8 @@
 /**
- * Textos fijos de la guía en ES/EN/FR. Se imprimen los tres idiomas y el CSS
- * (ver `[data-guide-lang]` en globals.css) muestra solo el elegido, así el
- * cambio de idioma no necesita volver a pedir la página ni rompe su caché.
- * El texto que escribe el anfitrión no se traduce todavía.
+ * Fixed guide texts in ES/EN/FR. All three languages are rendered and CSS (see
+ * `[data-guide-lang]` in globals.css) shows only the chosen one, so switching
+ * language needs no new request and keeps the page cache intact.
+ * The text the host writes is not translated yet.
  */
 
 export const GUIDE_LANGUAGES = ["es", "en", "fr"] as const;
@@ -37,6 +37,11 @@ export const GUIDE_TEXT = {
     en: "Page made with",
     fr: "Page créée avec",
   },
+  reportGuide: {
+    es: "Reportar esta guía",
+    en: "Report this guide",
+    fr: "Signaler ce guide",
+  },
   language: { es: "Idioma", en: "Language", fr: "Langue" },
   copy: { es: "Copiar", en: "Copy", fr: "Copier" },
   copied: { es: "Copiada", en: "Copied", fr: "Copié" },
@@ -44,7 +49,7 @@ export const GUIDE_TEXT = {
 
 export type GuideTextKey = keyof typeof GUIDE_TEXT;
 
-/** Un texto fijo en los tres idiomas; el CSS muestra el activo. */
+/** A fixed text in all three languages; CSS shows the active one. */
 export function T({ k }: { k: GuideTextKey }) {
   const text = GUIDE_TEXT[k];
   return (
@@ -58,7 +63,7 @@ export function T({ k }: { k: GuideTextKey }) {
   );
 }
 
-/** Valores por defecto en español que se reemplazan por el texto traducido. */
+/** Spanish default values that are replaced by the translated text. */
 const DEFAULT_WELCOME = new Set(["bienvenido", "bienvenida", "bienvenidos"]);
 const DEFAULT_WHATSAPP = new Set(["escribir por whatsapp"]);
 

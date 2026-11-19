@@ -7,10 +7,12 @@ export function GeneralTemplate({
   name,
   content: c,
   branding = true,
+  reportHref,
 }: {
   name: string;
   content: GeneralContent;
   branding?: boolean;
+  reportHref?: string;
 }) {
   const ctaShown = c.cta.enabled && c.cta.url && c.cta.label;
   const whatsappShown = c.whatsapp.enabled && c.whatsapp.phone;
@@ -26,6 +28,7 @@ export function GeneralTemplate({
       tagline={c.tagline}
       theme={c.theme}
       branding={branding}
+      reportHref={reportHref}
     >
       {ctaShown ? (
         <ActionLink href={c.cta.url} external={!c.cta.url.startsWith("tel:")}>

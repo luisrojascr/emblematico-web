@@ -14,22 +14,28 @@ function countBy<T extends string>(
 
 async function Overview() {
   const supabase = await createClient();
-  const [businesses, pages, quoteStatuses, recentQuotes] = await Promise.all([
-    supabase.from("businesses").select("status"),
-    supabase.from("pages").select("status"),
-    supabase.from("quote_requests").select("status"),
-    supabase
-      .from("quote_requests")
-      .select("id, name, status, created_at, business_type")
-      .order("created_at", { ascending: false })
-      .limit(8),
-  ]);
+  const [businesses, pages, quoteStatuses, recentQuotes, openReports] =
+    await Promise.all([
+      supabase.from("businesses").select("status"),
+      supabase.from("pages").select("status"),
+      supabase.from("quote_requests").select("status"),
+      supabase
+        .from("quote_requests")
+        .select("id, name, status, created_at, business_type")
+        .order("created_at", { ascending: false })
+        .limit(8),
+      supabase
+        .from("guide_reports")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "open"),
+    ]);
 
   if (
     businesses.error ||
     pages.error ||
     quoteStatuses.error ||
-    recentQuotes.error
+    recentQuotes.error ||
+    openReports.error
   ) {
     return (
       <p className="text-sm text-red-700">No pudimos cargar el resumen.</p>
@@ -42,11 +48,12 @@ async function Overview() {
     ["Archivados", countBy(businesses.data, "archived")],
     ["Páginas publicadas", countBy(pages.data, "published")],
     ["Cotizaciones nuevas", countBy(quoteStatuses.data, "new")],
+    ["Reportes por revisar", openReports.count ?? 0],
   ] as const;
 
   return (
     <>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
         {cards.map(([label, value]) => (
           <li
             key={label}
