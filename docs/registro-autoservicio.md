@@ -147,6 +147,12 @@ Una vez al día, a las 6:00 de Costa Rica (12:00 UTC), `pg_cron` en Supabase lla
 El plan efectivo ya se calcula al vuelo, así que si un día el job no corre nadie se
 queda con un plan que no pagó; solo se atrasan los correos.
 
+Cada cuenta que baja a Free queda anotada en la tabla `subscription_expirations`
+(migración 15) en el mismo paso. La ruta la procesa por lotes de 100 y marca cada fila
+como procesada, con un límite de unos 40 segundos y un correo cada 0,6 segundos (unos
+60 correos por corrida). Lo que no alcance a procesar queda pendiente para la corrida
+siguiente; nunca se pierde una cuenta.
+
 ### Configuración (una vez)
 
 1. **Clave secreta.** Genera una en tu terminal: `openssl rand -hex 32`.
@@ -161,8 +167,9 @@ queda con un plan que no pagó; solo se atrasan los correos.
    select vault.create_secret('<la misma clave de CRON_SECRET>', 'cron_secret');
    ```
 
-4. **Migración 14** (`20261118000014_subscription_jobs.sql`): activa `pg_cron` y
-   `pg_net` y programa el job.
+4. **Migraciones 14 y 15** (`20261118000014_subscription_jobs.sql` activa `pg_cron` y
+   `pg_net` y programa el job; `20261119000015_subscription_expiry_queue.sql` crea la
+   cola de expiraciones).
 
    ```bash
    supabase db reset          # local
@@ -184,7 +191,9 @@ queda con un plan que no pagó; solo se atrasan los correos.
   ```
 
   Responde un resumen, por ejemplo
-  `{"expired":0,"guidesRefreshed":0,"emails":{"sent":0,"skipped":0,"failed":0},"emailConfigured":true}`.
+  `{"expired":0,"processed":0,"pending":0,"guidesRefreshed":0,"emails":{"sent":0,"skipped":0,"failed":0},"emailConfigured":true}`.
+  `expired` son las cuentas que bajaron a Free en esta corrida, `processed` las que
+  recibieron su correo y refresco de guías, y `pending` las que quedan para mañana.
   Sin la clave correcta responde 401.
 - Para ver un correo de prueba: con una cuenta tuya en prueba, cambia su
   `trial_ends_at` a dentro de 2 días (Supabase > Table Editor > `subscriptions`) y

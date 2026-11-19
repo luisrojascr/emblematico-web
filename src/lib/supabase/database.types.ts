@@ -245,6 +245,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"subscription_expirations": {
+                  Row: {
+                    "attempts": number,"expired_at": string,"id": number,"period_end": string | null,"previous_plan": Database["public"]['Enums']["plan_tier"],"previous_status": Database["public"]['Enums']["subscription_status"],"processed_at": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts"?: number,"expired_at"?: string,"id"?: never,"period_end"?: string | null,"previous_plan": Database["public"]['Enums']["plan_tier"],"previous_status": Database["public"]['Enums']["subscription_status"],"processed_at"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "attempts"?: number,"expired_at"?: string,"id"?: never,"period_end"?: string | null,"previous_plan"?: Database["public"]['Enums']["plan_tier"],"previous_status"?: Database["public"]['Enums']["subscription_status"],"processed_at"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"subscription_notices": {
                   Row: {
                     "kind": string,"period_end": string,"sent_at": string,"user_id": string
