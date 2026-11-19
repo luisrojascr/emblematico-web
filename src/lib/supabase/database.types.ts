@@ -245,6 +245,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"subscription_notices": {
+                  Row: {
+                    "kind": string,"period_end": string,"sent_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "kind": string,"period_end": string,"sent_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "kind"?: string,"period_end"?: string,"sent_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"subscriptions": {
                   Row: {
                     "billing_period": Database["public"]['Enums']["billing_period"] | null,"created_at": string,"current_period_end": string | null,"extra_properties": number,"plan": Database["public"]['Enums']["plan_tier"],"property_limit_override": number | null,"provider": string | null,"provider_customer_id": string | null,"provider_subscription_id": string | null,"status": Database["public"]['Enums']["subscription_status"],"trial_ends_at": string | null,"updated_at": string,"user_id": string
@@ -297,6 +311,9 @@ isOneToOne: false
                            },
 "my_entitlements":
 { Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"run_subscription_expiry":
+{ Args: Record<PropertyKey, never>; Returns: { "period_end": string,"previous_plan": Database["public"]['Enums']["plan_tier"],"previous_status": Database["public"]['Enums']["subscription_status"],"user_id": string }[]
                            },
 "normalize_email":
 { Args: { "p_email": string }; Returns: string

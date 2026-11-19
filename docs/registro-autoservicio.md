@@ -131,4 +131,76 @@ pnpm dev
 - La pieza de bienvenida 3D elegida en las tarjetas de planes y el periodo
   (mensual/anual) no se guardan al registrarse; el periodo solo viaja como
   parámetro en `/registro`.
-- Fase 3: banner de prueba, "En pausa por el plan" en las tarjetas, onboarding.
+- Fases 3 y 4 (panel y admin) ya están en `main`.
+
+## 11. Job diario y correos (fase 5)
+
+Una vez al día, a las 6:00 de Costa Rica (12:00 UTC), `pg_cron` en Supabase llama a
+`POST /api/cron/subscriptions` con una clave secreta. Esa ruta:
+
+1. Baja a Free las pruebas y los planes pagados que vencieron (los pagados tienen 7
+   días de gracia), refresca sus guías públicas en caché y les envía un correo.
+2. Envía los recordatorios: 7 y 3 días antes de que termine la prueba (días 23 y 27),
+   7 días antes de que venza un plan pagado y el día que vence. Cada correo se envía
+   una sola vez por periodo (tabla `subscription_notices`).
+
+El plan efectivo ya se calcula al vuelo, así que si un día el job no corre nadie se
+queda con un plan que no pagó; solo se atrasan los correos.
+
+### Configuración (una vez)
+
+1. **Clave secreta.** Genera una en tu terminal: `openssl rand -hex 32`.
+2. **Vercel** (Production): agrega `CRON_SECRET` con esa clave y `RESEND_API_KEY` con
+   una API key de Resend (Resend > API Keys > permiso "Sending access", dominio
+   `mail.emblematicocr.com`). Opcional: `EMAIL_FROM` (por defecto
+   `emblemático <no-reply@mail.emblematicocr.com>`). **Redespliega.**
+3. **Supabase > SQL Editor** (proyecto de producción), guarda la URL y la clave en Vault:
+
+   ```sql
+   select vault.create_secret('https://www.emblematicocr.com', 'cron_site_url');
+   select vault.create_secret('<la misma clave de CRON_SECRET>', 'cron_secret');
+   ```
+
+4. **Migración 14** (`20261118000014_subscription_jobs.sql`): activa `pg_cron` y
+   `pg_net` y programa el job.
+
+   ```bash
+   supabase db reset          # local
+   supabase test db           # local, debe pasar todo
+   supabase migration list --linked
+   supabase db push --linked  # producción
+   ```
+
+   Si `db push` falla al crear las extensiones, actívalas en Supabase > Database >
+   Extensions (`pg_cron` y `pg_net`) y vuelve a correrlo.
+
+### Probarlo
+
+- A mano, con la clave:
+
+  ```bash
+  curl -X POST -H "Authorization: Bearer <CRON_SECRET>" \
+    https://www.emblematicocr.com/api/cron/subscriptions
+  ```
+
+  Responde un resumen, por ejemplo
+  `{"expired":0,"guidesRefreshed":0,"emails":{"sent":0,"skipped":0,"failed":0},"emailConfigured":true}`.
+  Sin la clave correcta responde 401.
+- Para ver un correo de prueba: con una cuenta tuya en prueba, cambia su
+  `trial_ends_at` a dentro de 2 días (Supabase > Table Editor > `subscriptions`) y
+  llama la ruta. Te llega "Te quedan 2 días de prueba".
+- Historial del job en Supabase (SQL Editor):
+
+  ```sql
+  select status, return_message, start_time
+  from cron.job_run_details order by start_time desc limit 5;
+
+  select status_code, content, created
+  from net._http_response order by created desc limit 5;
+  ```
+
+### Más adelante
+
+- Si pasas a Vercel Pro puedes dejar el job en Supabase (no cambia nada) o moverlo a
+  Vercel Cron: la ruta también acepta `GET` con `Authorization: Bearer <CRON_SECRET>`,
+  que es lo que envía Vercel Cron.
