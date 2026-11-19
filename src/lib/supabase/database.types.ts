@@ -367,6 +367,9 @@ isOneToOne: false
 "storage_can_insert":
 { Args: { "p_name": string }; Returns: boolean
                            },
+"storage_can_update":
+{ Args: { "p_id": string,"p_name": string }; Returns: boolean
+                           },
 "storage_can_write":
 { Args: { "p_name": string }; Returns: boolean
                            },
