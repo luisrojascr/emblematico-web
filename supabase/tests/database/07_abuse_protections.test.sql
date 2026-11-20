@@ -95,7 +95,8 @@ select pg_temp.act_as('00000000-0000-0000-0000-0000000000a7');
 select is((select count(*)::int from public.guide_reports), 0, 'members cannot read reports, not even about their guide');
 update public.guide_reports set status = 'reviewed';
 reset role;
-select is((select count(*)::int from public.guide_reports where status = 'reviewed'), 0, 'members cannot update reports');
+-- Only this test's rows: the local database can hold reports from the e2e run.
+select is((select count(*)::int from public.guide_reports where status = 'reviewed' and ip_hash in (repeat('a', 64), repeat('c', 64))), 0, 'members cannot update reports');
 
 select pg_temp.act_as('00000000-0000-0000-0000-0000000000a8');
 select is((select count(*)::int from public.guide_reports where ip_hash in (repeat('a', 64), repeat('c', 64))), 7, 'admins read every report');
