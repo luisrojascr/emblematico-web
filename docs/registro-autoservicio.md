@@ -213,3 +213,48 @@ siguiente; nunca se pierde una cuenta.
 - Si pasas a Vercel Pro puedes dejar el job en Supabase (no cambia nada) o moverlo a
   Vercel Cron: la ruta también acepta `GET` con `Authorization: Bearer <CRON_SECRET>`,
   que es lo que envía Vercel Cron.
+
+## 12. Protecciones del registro abierto (fase 6)
+
+### Qué hace
+
+- **Tope de imágenes:** cada guía admite hasta 20 imágenes en Storage. Lo aplica la
+  política de subida de Storage (migración 16), así que vale aunque alguien suba sin
+  pasar por el panel. Los admins no tienen tope. El número está en
+  `business_media_limit()` y en `src/lib/panel/media-limit.ts` (una prueba de Vitest
+  falla si no coinciden).
+- **Reportar esta guía:** el pie de cada guía pública tiene un enlace a
+  `/reportar?guia=<slug>`. El formulario pide motivo, detalle y correo opcionales,
+  con captcha y honeypot. Cada IP puede enviar hasta 5 reportes por hora, y un mismo
+  visitante no duplica el reporte de la misma guía en 24 horas. El reporte se guarda
+  en `guide_reports`, aparece en **/admin/reportes** y llega por correo. Un reporte
+  nunca oculta la guía: tú decides si la suspendes desde su ficha en Negocios.
+
+### Configuración
+
+1. **Migración 16** (`20261120000016_abuse_protections.sql`):
+
+   ```bash
+   supabase migration up        # local
+   supabase test db             # local, debe pasar todo
+   supabase db push --linked    # producción
+   ```
+
+2. **Vercel** (Production):
+   - `TURNSTILE_SECRET_KEY`: la misma **Secret key** de Turnstile que pegaste en
+     Supabase. El formulario de reportes la usa para validar el captcha. Sin ella el
+     captcha no se valida, aunque el honeypot y los límites por IP siguen activos.
+   - Opcional: `REPORTS_EMAIL`, uno o varios correos separados por coma. Si no lo
+     defines, los reportes llegan al correo de cada cuenta admin.
+   - **Redespliega.**
+
+3. **Supabase > Authentication** (producción). Valores recomendados:
+   - **Rate Limits**:
+     - Sign-ups and sign-ins: 30 cada 5 minutos por IP (el valor por defecto).
+     - Token verifications: 30 cada 5 minutos por IP.
+     - Emails sent: 30 por hora. Súbelo si alguna vez ves registros reales
+       bloqueados por este límite.
+   - **Sign In / Providers > Email**: Secure email change activado (pide confirmar
+     en el correo viejo y en el nuevo).
+   - **Attack Protection**: CAPTCHA activado (ya lo está). Si pasas a Supabase Pro,
+     activa también "Prevent use of leaked passwords".

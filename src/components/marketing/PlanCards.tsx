@@ -147,7 +147,12 @@ function BillingToggle({
             >
               {BILLING_LABELS[b]}
               {b === "annual" && (
-                <span className="text-teal-deep ml-2 text-[11px] font-bold">
+                <span
+                  className={`ml-2 text-[11px] font-bold ${
+                    // Teal on the gold pill fails contrast (2.7:1); ink passes.
+                    active ? "text-ink" : "text-teal-deep"
+                  }`}
+                >
                   Ahorra hasta {maxAnnualSavingsPercent()}%
                 </span>
               )}

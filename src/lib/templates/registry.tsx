@@ -56,11 +56,14 @@ export function TemplateView({
   name,
   page,
   branding = true,
+  reportHref,
 }: {
   name: string;
   page: PageContent;
-  /** "Página creada con emblemático" al pie (los planes de pago la quitan). */
+  /** "Página creada con emblemático" footer note (paid plans remove it). */
   branding?: boolean;
+  /** "Reportar esta guía" link; only on the public page. */
+  reportHref?: string;
 }) {
   switch (page.templateKey) {
     case "hospitality":
@@ -69,6 +72,7 @@ export function TemplateView({
           name={name}
           content={page.content}
           branding={branding}
+          reportHref={reportHref}
         />
       );
     case "general":
@@ -77,6 +81,7 @@ export function TemplateView({
           name={name}
           content={page.content}
           branding={branding}
+          reportHref={reportHref}
         />
       );
     default:

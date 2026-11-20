@@ -97,6 +97,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"guide_reports": {
+                  Row: {
+                    "business_id": string,"contact_email": string | null,"created_at": string,"details": string | null,"id": string,"ip_hash": string,"reason": string,"reviewed_at": string | null,"reviewed_by": string | null,"slug": string,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "business_id": string,"contact_email"?: string | null,"created_at"?: string,"details"?: string | null,"id"?: string,"ip_hash": string,"reason": string,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"slug": string,"status"?: string
+                  }
+                  Update: {
+                    "business_id"?: string,"contact_email"?: string | null,"created_at"?: string,"details"?: string | null,"id"?: string,"ip_hash"?: string,"reason"?: string,"reviewed_at"?: string | null,"reviewed_by"?: string | null,"slug"?: string,"status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "guide_reports_business_id_fkey"
+      columns: ["business_id"]
+isOneToOne: false
+      referencedRelation: "businesses"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"media": {
                   Row: {
                     "business_id": string,"created_at": string,"id": string,"media_type": Database["public"]['Enums']["media_type"],"mime": string,"size_bytes": number,"storage_path": string
@@ -337,6 +357,18 @@ isOneToOne: false
                            },
 "publish_page":
 { Args: { "p_business_id": string,"p_expected_updated_at": string }; Returns: Json
+                           },
+"business_media_limit":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
+"submit_guide_report":
+{ Args: { "p_contact_email": string,"p_details": string,"p_ip_hash": string,"p_reason": string,"p_slug": string }; Returns: { "business_id": string,"business_name": string,"duplicate": boolean,"report_id": string }[]
+                           },
+"storage_can_insert":
+{ Args: { "p_name": string }; Returns: boolean
+                           },
+"storage_can_update":
+{ Args: { "p_id": string,"p_name": string }; Returns: boolean
                            },
 "storage_can_write":
 { Args: { "p_name": string }; Returns: boolean

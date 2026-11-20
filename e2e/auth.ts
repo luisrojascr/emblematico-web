@@ -2,6 +2,9 @@ import { expect, type Page } from "@playwright/test";
 
 const MAILPIT = process.env.MAILPIT_URL ?? "http://127.0.0.1:54324";
 
+/** Password of the seeded dev accounts (scripts/seed-dev-users.mjs). Local only. */
+export const DEV_PASSWORD = process.env.E2E_PASSWORD ?? "emblematico-dev-1";
+
 type MailpitList = {
   messages?: {
     ID: string;
@@ -21,7 +24,11 @@ function linkFrom(body: string): string | null {
   return match[0].replace(/&amp;/g, "&").replace(/[).,]+$/, "");
 }
 
-async function magicLink(email: string, sentAt: number): Promise<string> {
+/** First link in the newest email to `email` sent after `sentAt`. Needs local Mailpit. */
+export async function emailLink(
+  email: string,
+  sentAt: number,
+): Promise<string> {
   const deadline = Date.now() + 20_000;
   while (Date.now() < deadline) {
     const list = (await fetch(`${MAILPIT}/api/v1/messages`).then((response) =>
@@ -43,12 +50,32 @@ async function magicLink(email: string, sentAt: number): Promise<string> {
     await new Promise((resolve) => setTimeout(resolve, 400));
   }
   throw new Error(
-    `No magic link for ${email}. Is Mailpit running at ${MAILPIT}?`,
+    `No email link for ${email}. Is Mailpit running at ${MAILPIT}?`,
   );
 }
 
-/** Requests a magic link and opens it in this page. Needs local Mailpit. */
+/**
+ * Signs a seeded account in with its password. Tests in different files and workers
+ * share these accounts, and a password, unlike a one-use magic link, can be used by
+ * several of them at the same time.
+ */
 export async function signIn(page: Page, email: string): Promise<void> {
+  await page.goto("/ingresar");
+  await page.getByLabel("Correo electrónico").fill(email);
+  await page.getByLabel("Contraseña", { exact: true }).fill(DEV_PASSWORD);
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/ingresar"));
+}
+
+/**
+ * Requests a magic link and opens it in this page. Needs local Mailpit. Only for a
+ * test about magic links: two tests doing this for the same account at once can
+ * open the same one-use link.
+ */
+export async function signInWithEmailLink(
+  page: Page,
+  email: string,
+): Promise<void> {
   const sentAt = Date.now();
   await page.goto("/ingresar");
   await page
@@ -59,5 +86,5 @@ export async function signIn(page: Page, email: string): Promise<void> {
   await expect(page.getByRole("status")).toContainText(
     "Si tu correo tiene una cuenta",
   );
-  await page.goto(await magicLink(email, sentAt));
+  await page.goto(await emailLink(email, sentAt));
 }

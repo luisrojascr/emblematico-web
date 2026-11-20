@@ -10,10 +10,12 @@ export function HospitalityTemplate({
   name,
   content: c,
   branding = true,
+  reportHref,
 }: {
   name: string;
   content: HospitalityContent;
   branding?: boolean;
+  reportHref?: string;
 }) {
   const wifiShown = c.wifi.enabled && (c.wifi.network || c.wifi.password);
   const stayShown =
@@ -28,6 +30,7 @@ export function HospitalityTemplate({
       language={c.language}
       switcher
       branding={branding}
+      reportHref={reportHref}
     >
       {whatsappShown ? (
         <ActionLink href={whatsappHref(c.whatsapp.phone, c.whatsapp.message)}>

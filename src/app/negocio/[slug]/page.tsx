@@ -77,6 +77,7 @@ export default async function NegocioPage({
           name={result.name}
           page={page}
           branding={result.branding}
+          reportHref={`/reportar?guia=${result.slug}`}
         />
       );
     }

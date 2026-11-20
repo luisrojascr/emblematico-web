@@ -10,9 +10,17 @@ test("home renders hospitality headline in Spanish", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("home lists the Hospitality Free plan", async ({ page }) => {
+test("home lists the Essential and Plus plans, with Free only as the guarantee", async ({
+  page,
+}) => {
   await page.goto("/");
-  await expect(page.getByText("Hospitality Free").first()).toBeVisible();
+  await expect(page.getByText("Hospitality Essential").first()).toBeVisible();
+  await expect(page.getByText("Hospitality Plus").first()).toBeVisible();
+  // Since the reverse trial (Nov 2026) Free has no card; it shows as a guarantee.
+  await expect(page.getByText("Hospitality Free")).toHaveCount(0);
+  await expect(
+    page.getByText(/Tu QR nunca deja de funcionar/).first(),
+  ).toBeVisible();
 });
 
 test("demo page shows the live guide on desktop and a direct link on mobile", async ({
@@ -92,6 +100,8 @@ test("public business page renders its template without site chrome", async ({
   await expect(
     page.getByRole("heading", { level: 1, name: "Casa Brisa" }),
   ).toBeVisible();
+  // Wi-Fi is an accordion section, closed until the guest opens it.
+  await page.locator("summary", { hasText: "Wi‑Fi" }).click();
   await expect(page.getByText("CasaBrisa_Guest")).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Escribir al anfitrión" }),
