@@ -8,11 +8,6 @@ import { emailLink, signIn } from "./auth";
  * (no NEXT_PUBLIC_TURNSTILE_SITE_KEY), so no captcha is shown.
  */
 
-// Both tests sign the seeded admin in with a magic link. Run in parallel, they can
-// open the same email: the link works once, so one of them stays signed out. Running
-// this file's tests one after the other avoids that race.
-test.describe.configure({ mode: "default" });
-
 test("a visitor signs up, confirms the email and starts the trial; a suspended account cannot sign in", async ({
   browser,
 }, testInfo) => {

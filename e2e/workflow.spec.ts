@@ -40,12 +40,17 @@ test("admin creates a business, the client publishes, the old slug redirects, an
   await client.getByRole("link", { name: new RegExp(name) }).click();
   await client.getByLabel("Lema").fill(tagline);
   await client.getByRole("button", { name: "Guardar borrador" }).click();
-  await expect(client.getByRole("status")).toHaveText("Borrador guardado.");
+  // The panel also shows the trial banner as a status, so match by text.
+  await expect(
+    client.getByRole("status").filter({ hasText: "Borrador guardado." }),
+  ).toBeVisible();
   client.once("dialog", (dialog) => dialog.accept());
   await client.getByRole("button", { name: "Publicar" }).click();
-  await expect(client.getByRole("status")).toHaveText(
-    "La página pública ya muestra este borrador.",
-  );
+  await expect(
+    client
+      .getByRole("status")
+      .filter({ hasText: "La página pública ya muestra este borrador." }),
+  ).toBeVisible();
 
   const guestContext = await browser.newContext();
   const guest = await guestContext.newPage();
@@ -54,7 +59,9 @@ test("admin creates a business, the client publishes, the old slug redirects, an
   await expect(guest.getByText(tagline)).toBeVisible();
 
   await admin.goto(admin.url().split("?")[0]);
-  await admin.getByRole("textbox", { name: "Slug", exact: true }).fill(nextSlug);
+  await admin
+    .getByRole("textbox", { name: "Slug", exact: true })
+    .fill(nextSlug);
   await admin
     .getByRole("checkbox", { name: /Confirmo el cambio de slug/ })
     .check();

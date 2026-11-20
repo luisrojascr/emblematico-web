@@ -2,6 +2,9 @@ import { expect, type Page } from "@playwright/test";
 
 const MAILPIT = process.env.MAILPIT_URL ?? "http://127.0.0.1:54324";
 
+/** Password of the seeded dev accounts (scripts/seed-dev-users.mjs). Local only. */
+export const DEV_PASSWORD = process.env.E2E_PASSWORD ?? "emblematico-dev-1";
+
 type MailpitList = {
   messages?: {
     ID: string;
@@ -51,8 +54,28 @@ export async function emailLink(
   );
 }
 
-/** Requests a magic link and opens it in this page. Needs local Mailpit. */
+/**
+ * Signs a seeded account in with its password. Tests in different files and workers
+ * share these accounts, and a password, unlike a one-use magic link, can be used by
+ * several of them at the same time.
+ */
 export async function signIn(page: Page, email: string): Promise<void> {
+  await page.goto("/ingresar");
+  await page.getByLabel("Correo electrónico").fill(email);
+  await page.getByLabel("Contraseña", { exact: true }).fill(DEV_PASSWORD);
+  await page.getByRole("button", { name: "Ingresar", exact: true }).click();
+  await page.waitForURL((url) => !url.pathname.startsWith("/ingresar"));
+}
+
+/**
+ * Requests a magic link and opens it in this page. Needs local Mailpit. Only for a
+ * test about magic links: two tests doing this for the same account at once can
+ * open the same one-use link.
+ */
+export async function signInWithEmailLink(
+  page: Page,
+  email: string,
+): Promise<void> {
   const sentAt = Date.now();
   await page.goto("/ingresar");
   await page

@@ -30,7 +30,9 @@ export async function uploadBusinessImage(
     .from(BUCKET)
     .list(businessId, { limit: MEDIA_LIMIT_PER_BUSINESS });
   if (!listError && (existing?.length ?? 0) >= MEDIA_LIMIT_PER_BUSINESS) {
-    return { error: MEDIA_LIMIT_MESSAGE };
+    // Admins have no limit (storage_can_insert); only ask when the folder is full.
+    const { data: isAdmin } = await supabase.rpc("is_admin");
+    if (isAdmin !== true) return { error: MEDIA_LIMIT_MESSAGE };
   }
   const path = businessImagePath(businessId, kind);
   const { error: uploadError } = await supabase.storage
