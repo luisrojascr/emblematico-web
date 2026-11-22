@@ -8,6 +8,7 @@ import type { z } from "zod";
 
 import type { themeSchema } from "./common";
 import { T, type GuideLanguage } from "./i18n";
+import { GuideIcon, type GuideIconName } from "./icons";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 
 type Theme = z.infer<typeof themeSchema>;
@@ -34,6 +35,7 @@ export function contrastRatio(a: string, b: string): number {
 
 /** Pick whichever of ink or white has the higher contrast ratio on the accent color. */
 export function readableOn(hex: string): typeof INK | typeof WHITE {
+  if (contrastRatio(hex, WHITE) >= 4.5) return WHITE;
   return contrastRatio(hex, INK) >= contrastRatio(hex, WHITE) ? INK : WHITE;
 }
 
@@ -75,7 +77,7 @@ export function TemplateFrame({
   children,
 }: {
   name: string;
-  tagline: string;
+  tagline: ReactNode;
   theme: Theme;
   /** Initial guide language (the host's). */
   language?: GuideLanguage;
@@ -173,21 +175,38 @@ export function Card({
   children,
   collapsible,
   defaultOpen,
+  icon,
 }: {
   title?: ReactNode;
   children: ReactNode;
   /** Accordion: the title opens and closes the section (no JavaScript). */
   collapsible?: boolean;
   defaultOpen?: boolean;
+  /** Icon shown on the tile of a collapsible section. */
+  icon?: GuideIconName;
 }) {
   if (collapsible && title) {
+    // Closed: a square-ish tile in the 2-column grid. Open: full width.
     return (
       <details
         open={defaultOpen}
-        className="group rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
+        className="group open:col-span-2 min-w-0 rounded-2xl bg-white shadow-sm ring-1 ring-black/5"
       >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5 [&::-webkit-details-marker]:hidden">
-          <h2 className="text-xl">{title}</h2>
+        <summary className="flex min-h-24 cursor-pointer list-none flex-col items-start justify-between gap-3 p-3.5 group-open:min-h-0 group-open:flex-row group-open:items-center group-open:justify-start group-open:p-5 [&::-webkit-details-marker]:hidden">
+          {icon ? (
+            <span
+              className="flex size-10 shrink-0 items-center justify-center rounded-xl text-ink"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent) 18%, white)",
+              }}
+            >
+              <GuideIcon name={icon} />
+            </span>
+          ) : null}
+          <h2 className="min-w-0 text-sm leading-snug font-semibold [overflow-wrap:anywhere] hyphens-auto group-open:text-base sm:text-base">
+            {title}
+          </h2>
           <svg
             viewBox="0 0 24 24"
             width="20"
@@ -198,7 +217,7 @@ export function Card({
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
-            className="text-ink-soft shrink-0 transition-transform group-open:rotate-180"
+            className="text-ink-soft ml-auto hidden shrink-0 rotate-180 group-open:block"
           >
             <path d="m6 9 6 6 6-6" />
           </svg>
@@ -216,7 +235,7 @@ export function Card({
 }
 
 /** Multi-line plain text. Newlines become line breaks; never interpreted as HTML. */
-export function PlainText({ children }: { children: string }) {
+export function PlainText({ children }: { children: ReactNode }) {
   return <p className="whitespace-pre-line">{children}</p>;
 }
 
@@ -232,7 +251,7 @@ export function ActionLink({
   variant?: "accent" | "outline";
 }) {
   const base =
-    "flex w-full items-center justify-center rounded-full px-6 py-3.5 text-center text-sm font-medium transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2";
+    "flex w-full items-center justify-center rounded-full px-6 py-4 text-center text-base font-semibold shadow-md ring-1 ring-black/10 transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2";
   const style: CSSProperties =
     variant === "accent"
       ? { backgroundColor: "var(--accent)", color: "var(--on-accent)" }

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 const HIGHLIGHTS = [
   "Wi-Fi, check-in y check-out siempre a mano",
-  "Normas de la casa claras desde el primer día",
+  "Reglas de la casa claras desde el primer día",
   "Recomendaciones de la zona elegidas por ti",
   "Contacto directo por WhatsApp",
   "Sin descargar ninguna aplicación",

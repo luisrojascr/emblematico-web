@@ -11,6 +11,13 @@ import {
   type PanelTranslator,
 } from "@/lib/panel/i18n";
 
+import {
+  PanelCardsSkeleton,
+  PanelEditorSkeleton,
+  PanelProductsSkeleton,
+  PanelSettingsSkeleton,
+} from "./skeletons";
+
 interface PanelI18n {
   language: PanelLanguage;
   locale: string;
@@ -61,11 +68,24 @@ export function usePanelI18n(): PanelI18n {
 }
 
 /** Used by streamed loading fallbacks, which cannot read request cookies. */
-export function PanelLoading() {
+export function PanelLoading({
+  variant = "cards",
+}: {
+  variant?: "cards" | "editor" | "settings" | "products";
+}) {
   const { t } = usePanelI18n();
   return (
-    <p className="text-ink-soft p-8" role="status">
-      {t("Cargando...")}
-    </p>
+    <div role="status" aria-busy="true">
+      <span className="sr-only">{t("Cargando...")}</span>
+      {variant === "editor" ? (
+        <PanelEditorSkeleton />
+      ) : variant === "settings" ? (
+        <PanelSettingsSkeleton />
+      ) : variant === "products" ? (
+        <PanelProductsSkeleton />
+      ) : (
+        <PanelCardsSkeleton />
+      )}
+    </div>
   );
 }

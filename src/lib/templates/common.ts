@@ -108,6 +108,11 @@ export const whatsappSection = section({
   label: text(40).default("Escribir por WhatsApp"),
 });
 
+/** tel: link from a phone as the host typed it ("2222 3333", "+1 800 555 0100"). */
+export function telHref(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
+}
+
 export function whatsappHref(phone: string, message: string): string {
   const base = `https://wa.me/${phone}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;

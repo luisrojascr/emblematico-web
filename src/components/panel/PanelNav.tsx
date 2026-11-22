@@ -31,6 +31,8 @@ export function PanelNav({ businessId }: { businessId: string }) {
             href={link.href}
             aria-current={current ? "page" : undefined}
             className={`shrink-0 border-b-2 pb-3 font-semibold transition-colors ${
+              !current && link.href.endsWith("/vista-previa") ? "xl:hidden " : ""
+            }${
               current
                 ? "border-sand text-ink"
                 : "text-ink-soft hover:text-ink border-transparent"

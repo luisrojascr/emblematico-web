@@ -46,7 +46,7 @@ export function PhonePreview({
           >
             <span className="bg-ink h-6 w-24 rounded-full" />
           </div>
-          <div className="h-[600px] overflow-y-auto [&_.min-h-dvh]:min-h-full">
+          <div className="h-[min(600px,calc(100dvh-14rem))] overflow-y-auto [&_.min-h-dvh]:min-h-full">
             <HospitalityTemplate
               name={name}
               content={content}
