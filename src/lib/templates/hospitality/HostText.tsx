@@ -1,6 +1,6 @@
 import { GUIDE_LANGUAGES, type GuideLanguage } from "../i18n";
 
-import type { TranslationBlock } from "@/lib/translations/hospitality";
+import { pick, type TranslationBlock } from "@/lib/translations/hospitality";
 
 export type GuideTranslations = Partial<
   Record<GuideLanguage, TranslationBlock | undefined>
@@ -25,10 +25,7 @@ export function HostText({
 }) {
   const texts = GUIDE_LANGUAGES.map((lang) => ({
     lang,
-    text:
-      lang === language
-        ? original
-        : translations[lang]?.[path]?.text || original,
+    text: lang === language ? original : pick(translations[lang], path, original),
   }));
   if (texts.every((entry) => entry.text === original)) return <>{original}</>;
   return (

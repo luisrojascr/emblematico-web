@@ -260,6 +260,8 @@ export function TranslationsSection({
                       <textarea
                         id={`tr-${tab}-${field.path}`}
                         rows={rows}
+                        // Locked during a request: the response replaces the whole block.
+                        disabled={pending}
                         className={panelInputClass}
                         value={entry?.text ?? ""}
                         onChange={(event) =>

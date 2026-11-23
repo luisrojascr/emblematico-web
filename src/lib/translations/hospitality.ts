@@ -175,14 +175,17 @@ export function pruneBlock(
 }
 
 /**
- * Text a guest sees for a field in a language: the translation when there is
- * one, otherwise the host's original (guests never see an empty field).
+ * Text a guest sees for a field in a language: the translation when it was made
+ * from the current original, otherwise the host's original. An outdated entry
+ * (original edited, or list items shifted after a deletion so the path now points
+ * at another item) is never shown, so guests cannot see a mismatched text.
  */
 export function pick(
   block: TranslationBlock | undefined,
   path: FieldPath,
   original: string,
 ): string {
-  const text = block?.[path]?.text;
-  return text ? text : original;
+  const entry = block?.[path];
+  if (!entry?.text || entry.src !== hashText(original.trim())) return original;
+  return entry.text;
 }

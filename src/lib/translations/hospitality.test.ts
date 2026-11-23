@@ -69,6 +69,19 @@ describe("pick and prune", () => {
     expect(pick(block, "tagline", "hola")).toBe("hi");
   });
 
+  it("ignores a translation made from a different original", () => {
+    const block = {
+      "recommendations.items.0.name": {
+        text: "Deleted place",
+        src: hashText("Lugar borrado"),
+        edited: true,
+      },
+    };
+    expect(pick(block, "recommendations.items.0.name", "Otro lugar")).toBe(
+      "Otro lugar",
+    );
+  });
+
   it("prunes entries of removed fields", () => {
     const block = {
       "rules.items.5": { text: "x", src: "1", edited: false },

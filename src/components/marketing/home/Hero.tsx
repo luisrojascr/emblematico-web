@@ -1,8 +1,7 @@
-import Image from "next/image";
-
 import { SquareLink } from "@/components/ui/SquareButton";
 import { SITE } from "@/lib/site";
 
+import { HeroVideo } from "./HeroVideo";
 import { ArrowIcon, EditIcon, GlobeIcon, QrIcon } from "./icons";
 
 const BENEFITS = [
@@ -14,8 +13,8 @@ const BENEFITS = [
 export function Hero() {
   return (
     <section className="bg-cream border-cream-dark border-b">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-12 lg:py-24">
-        <div className="space-y-6 lg:col-span-7">
+      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-6 sm:px-6 sm:py-10 lg:grid-cols-12 lg:gap-10 lg:px-12 lg:py-24">
+        <div className="space-y-6 lg:col-span-5">
           <p className="text-sand-dark border-sand/60 inline-flex items-center gap-2 rounded-full border bg-white/70 px-3 py-1.5 text-[11px] font-semibold tracking-[0.18em] uppercase">
             <span
               aria-hidden="true"
@@ -23,7 +22,7 @@ export function Hero() {
             />
             Hospitality · Costa Rica
           </p>
-          <h1 className="text-4xl leading-tight font-semibold sm:text-5xl lg:text-[3.4rem] lg:leading-[1.15]">
+          <h1 className="text-4xl leading-tight font-semibold sm:text-5xl lg:text-[2.7rem] lg:leading-[1.15] xl:text-[3rem]">
             Una mejor bienvenida. <span className="text-sand-dark">Menos trabajo</span>{" "}
             para tu propiedad.
           </h1>
@@ -40,7 +39,7 @@ export function Hero() {
               Solicitar propuesta
             </SquareLink>
           </div>
-          <ul className="border-cream-dark grid gap-5 border-t pt-8 sm:grid-cols-3">
+          <ul className="border-cream-dark grid gap-5 border-t pt-8 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {BENEFITS.map((b) => (
               <li key={b.label} className="flex items-start gap-3">
                 <span className="text-sand-dark shrink-0">{b.icon}</span>
@@ -49,18 +48,11 @@ export function Hero() {
             ))}
           </ul>
         </div>
-        <div className="lg:col-span-5">
+        {/* On mobile the video comes first, above the headline. */}
+        <div className="order-first lg:order-none lg:col-span-7">
           <div className="border-cream-dark bg-cream-dark rounded-2xl border p-4 shadow-xl sm:p-5">
-            <div className="relative aspect-[3/2] overflow-hidden rounded-xl bg-white">
-              <Image
-                src="/images/overview.webp"
-                alt="Welcome Station, placas de servicios y kit de hospedaje personalizados con código QR"
-                fill
-                fetchPriority="high"
-                loading="eager"
-                sizes="(min-width: 1024px) 40vw, 100vw"
-                className="object-cover"
-              />
+            <div className="relative aspect-video overflow-hidden rounded-xl bg-cream">
+              <HeroVideo />
             </div>
           </div>
         </div>
