@@ -1,6 +1,33 @@
 export const PANEL_EDITOR_TEXT: Readonly<
   Record<string, { en: string; fr: string }>
 > = {
+  "Traducciones": { en: "Translations", fr: "Traductions" },
+  "Tus huéspedes verán tu texto en el idioma que elijan. Traduce con un clic y corrige lo que quieras antes de guardar.":
+    {
+      en: "Your guests will see your text in the language they choose. Translate in one click and fix anything you like before saving.",
+      fr: "Vos invités verront votre texte dans la langue choisie. Traduisez en un clic et corrigez ce que vous voulez avant d’enregistrer.",
+    },
+  "Las traducciones están disponibles en Essential y Plus.": {
+    en: "Translations are available on Essential and Plus.",
+    fr: "Les traductions sont disponibles avec Essential et Plus.",
+  },
+  "Traducir": { en: "Translate", fr: "Traduire" },
+  "Traduciendo...": { en: "Translating...", fr: "Traduction..." },
+  "Volver a traducir todo": {
+    en: "Translate everything again",
+    fr: "Tout retraduire",
+  },
+  "Traducción lista. Revísala y guarda el borrador.": {
+    en: "Translation ready. Review it and save the draft.",
+    fr: "Traduction prête. Relisez-la et enregistrez le brouillon.",
+  },
+  "Todo está al día.": { en: "Everything is up to date.", fr: "Tout est à jour." },
+  "sin traducir": { en: "untranslated", fr: "non traduits" },
+  "desactualizadas": { en: "outdated", fr: "obsolètes" },
+  "Sin traducir": { en: "Untranslated", fr: "Non traduit" },
+  "Al día": { en: "Up to date", fr: "À jour" },
+  "Desactualizada": { en: "Outdated", fr: "Obsolète" },
+  "Editada": { en: "Edited", fr: "Modifié" },
   "El código abre la página publicada. Un borrador sin publicar no se ve al escanearlo.":
     {
       en: "The code opens the published page. Unpublished drafts are not visible when scanned.",
@@ -219,10 +246,10 @@ export const PANEL_EDITOR_TEXT: Readonly<
     en: "Language you write the guide in",
     fr: "Langue de rédaction du guide",
   },
-  "La guía abre en este idioma. Tus huéspedes pueden cambiar a ES/EN/FR: por ahora se traducen los títulos y botones, no tu texto.":
+  "La guía abre en este idioma. Tus huéspedes pueden cambiar a ES/EN/FR; tu texto se muestra en otros idiomas si lo traduces abajo.":
     {
-      en: "The guide opens in this language. Guests can switch to ES/EN/FR: currently only headings and buttons are translated, not your text.",
-      fr: "Le guide s’ouvre dans cette langue. Les voyageurs peuvent choisir ES/EN/FR : seuls les titres et boutons sont traduits pour le moment, pas vos textes.",
+      en: "The guide opens in this language. Guests can switch to ES/EN/FR; your text shows in other languages once you translate it below.",
+      fr: "Le guide s’ouvre dans cette langue. Les voyageurs peuvent choisir ES/EN/FR ; vos textes s’affichent dans les autres langues une fois traduits ci-dessous.",
     },
   "Una frase corta bajo el nombre.": {
     en: "A short phrase below the name.",

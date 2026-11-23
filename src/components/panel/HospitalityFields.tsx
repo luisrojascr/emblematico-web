@@ -1,14 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { useFieldArray, useWatch, type UseFormReturn } from "react-hook-form";
 
 import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
 import type { HospitalityContent } from "@/lib/templates/hospitality/schema";
 import type { PanelTranslator } from "@/lib/panel/i18n";
+import { GuideIcon } from "@/lib/templates/icons";
 import { displayTime, toTime24 } from "@/lib/templates/time";
 
 import { AddButton, AccentField, TextField } from "./fields";
+import { ListEditor, type ListRow, type ListSectionKey } from "./ListEditor";
 
 type Form = UseFormReturn<HospitalityContent>;
 type SectionKey =
@@ -18,7 +21,12 @@ type SectionKey =
   | "stay"
   | "rules"
   | "amenities"
-  | "recommendations";
+  | "recommendations"
+  | ExtraKey;
+
+type ExtraKey =
+  | ListSectionKey
+  | "cleaning";
 
 const icon = (path: ReactNode) => (
   <svg
@@ -36,10 +44,156 @@ const icon = (path: ReactNode) => (
   </svg>
 );
 
+/** Optional services the host can add to the guide ("Agregar a tu guía"). */
+const EXTRA_SECTIONS: Record<
+  ExtraKey,
+  { title: string; help: string; icon: ReactNode }
+> = {
+  tours: {
+    title: "Tours recomendados",
+    help: "Excursiones y actividades que recomiendas.",
+    icon: <GuideIcon name="tours" />,
+  },
+  wellness: {
+    title: "Bienestar y gimnasio",
+    help: "Spa, bienestar y gimnasios cercanos.",
+    icon: <GuideIcon name="wellness" />,
+  },
+  shopping: {
+    title: "Compras y servicios",
+    help: "Supermercados, farmacias y licorerías cercanas.",
+    icon: <GuideIcon name="shopping" />,
+  },
+  emergency: {
+    title: "Emergencias",
+    help: "Números de emergencia y hospitales más cercanos.",
+    icon: <GuideIcon name="emergency" />,
+  },
+  cleaning: {
+    title: "Limpieza",
+    help: "Información sobre la limpieza para los huéspedes.",
+    icon: <GuideIcon name="cleaning" />,
+  },
+  minibar: {
+    title: "Minibar y precios",
+    help: "Qué hay en el minibar y cuánto cuesta.",
+    icon: <GuideIcon name="minibar" />,
+  },
+  taxi: {
+    title: "Taxi",
+    help: "Compañías de taxi con teléfonos y enlaces.",
+    icon: <GuideIcon name="taxi" />,
+  },
+  parking: {
+    title: "Parqueos cercanos",
+    help: "Dónde estacionar cerca de la casa.",
+    icon: <GuideIcon name="parking" />,
+  },
+  faq: {
+    title: "Preguntas frecuentes",
+    help: "Respuestas a lo que más te preguntan.",
+    icon: <GuideIcon name="faq" />,
+  },
+};
+
+const PLACE_ROWS: readonly ListRow[] = [
+  { field: "name", label: "Nombre" },
+  { field: "category", label: "Tipo" },
+  { field: "description", label: "Descripción", multiline: true },
+  { field: "url", label: "Enlace", hint: "https://" },
+];
+const CONTACT_ROWS: readonly ListRow[] = [
+  { field: "name", label: "Nombre" },
+  { field: "phone", label: "Teléfono", hint: "Ejemplo: 2222 3333" },
+  { field: "detail", label: "Detalle" },
+  { field: "url", label: "Enlace", hint: "https://" },
+];
+
+/** How each list section is edited. `primary` is the field that must be filled. */
+const LIST_CONFIG: Record<
+  ListSectionKey,
+  {
+    rows: readonly ListRow[];
+    blank: Record<string, string>;
+    max: number;
+    addLabel: string;
+    primary: string;
+  }
+> = {
+  tours: {
+    rows: PLACE_ROWS,
+    blank: { name: "", category: "", description: "", url: "" },
+    max: 12,
+    addLabel: "Agregar tour",
+    primary: "name",
+  },
+  wellness: {
+    rows: PLACE_ROWS,
+    blank: { name: "", category: "", description: "", url: "" },
+    max: 12,
+    addLabel: "Agregar lugar",
+    primary: "name",
+  },
+  shopping: {
+    rows: PLACE_ROWS,
+    blank: { name: "", category: "", description: "", url: "" },
+    max: 12,
+    addLabel: "Agregar lugar",
+    primary: "name",
+  },
+  parking: {
+    rows: PLACE_ROWS,
+    blank: { name: "", category: "", description: "", url: "" },
+    max: 12,
+    addLabel: "Agregar parqueo",
+    primary: "name",
+  },
+  emergency: {
+    rows: CONTACT_ROWS,
+    blank: { name: "", phone: "", detail: "", url: "" },
+    max: 12,
+    addLabel: "Agregar contacto",
+    primary: "name",
+  },
+  taxi: {
+    rows: CONTACT_ROWS,
+    blank: { name: "", phone: "", detail: "", url: "" },
+    max: 12,
+    addLabel: "Agregar compañía",
+    primary: "name",
+  },
+  minibar: {
+    rows: [
+      { field: "name", label: "Producto" },
+      { field: "price", label: "Precio", hint: "Ejemplo: $3 o ₡1.500" },
+      { field: "detail", label: "Detalle" },
+    ],
+    blank: { name: "", price: "", detail: "" },
+    max: 30,
+    addLabel: "Agregar producto",
+    primary: "name",
+  },
+  faq: {
+    rows: [
+      { field: "question", label: "Pregunta" },
+      { field: "answer", label: "Respuesta", multiline: true },
+    ],
+    blank: { question: "", answer: "" },
+    max: 20,
+    addLabel: "Agregar pregunta",
+    primary: "question",
+  },
+};
+
+function isListSection(key: SectionKey): key is ListSectionKey {
+  return key in LIST_CONFIG;
+}
+
 const SECTIONS: Record<
   SectionKey,
   { title: string; help: string; icon: ReactNode }
 > = {
+  ...EXTRA_SECTIONS,
   welcome: {
     title: "Bienvenida",
     help: "Lo primero que leen al abrir la guía.",
@@ -115,6 +269,15 @@ const ORDER: readonly SectionKey[] = [
   "rules",
   "amenities",
   "recommendations",
+  "tours",
+  "wellness",
+  "shopping",
+  "emergency",
+  "cleaning",
+  "minibar",
+  "taxi",
+  "parking",
+  "faq",
 ];
 
 function truncate(value: string, max = 70): string {
@@ -176,10 +339,23 @@ function status(
         ready: items.length > 0,
         summary: items.length
           ? truncate(
-              `${t("{count} lugares", { count: items.length })} · ${items.map((r) => r.name).join(", ")}`,
+              `${t(items.length === 1 ? "1 lugar" : "{count} lugares", { count: items.length })} · ${items.map((r) => r.name).join(", ")}`,
             )
           : "",
       };
+    }
+    case "cleaning":
+      return {
+        ready: Boolean(c.cleaning.message.trim()),
+        summary: truncate(c.cleaning.message),
+      };
+    default: {
+      // List sections: ready with one filled item; the summary names them.
+      const config = LIST_CONFIG[key];
+      const items = (c[key].items as Record<string, string>[])
+        .map((item) => item[config.primary]?.trim() ?? "")
+        .filter(Boolean);
+      return { ready: items.length > 0, summary: truncate(items.join(" · ")) };
     }
   }
 }
@@ -241,11 +417,11 @@ function SectionCard({
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-x-2 font-semibold">
             {t(info.title)}
-            <span
-              className={`text-xs font-bold ${ready ? "text-teal-deep" : "text-ink-soft"}`}
-            >
-              {ready ? t("Lista") : t("Falta completar")}
-            </span>
+            {ready ? null : (
+              <span className="text-ink-soft text-xs font-bold">
+                {t("Falta completar")}
+              </span>
+            )}
           </p>
           <p className="text-ink-soft truncate text-sm">
             {summary || t(info.help)}
@@ -294,7 +470,26 @@ function SectionCard({
   );
 }
 
-export function HospitalityFields({ form }: { form: Form }) {
+/**
+ * Services every plan includes. The rest (recommendations and the optional
+ * services) need Essential or Plus.
+ */
+const BASIC_SECTIONS: ReadonlySet<SectionKey> = new Set([
+  "welcome",
+  "wifi",
+  "whatsapp",
+  "stay",
+  "rules",
+]);
+
+export function HospitalityFields({
+  form,
+  fullServices = false,
+}: {
+  form: Form;
+  /** The owner's plan includes every service (Essential and Plus). */
+  fullServices?: boolean;
+}) {
   const { t } = usePanelI18n();
   const {
     register,
@@ -357,6 +552,17 @@ export function HospitalityFields({ form }: { form: Form }) {
         .flatMap((r, i) => (r.name.trim() ? [] : [i]));
       if (blank.length) recommendations.remove(blank);
     }
+    if (isListSection(key)) {
+      const primary = LIST_CONFIG[key].primary;
+      const items = form.getValues(`${key}.items`) as unknown as Record<
+        string,
+        string
+      >[];
+      const kept = items.filter((item) => item[primary]?.trim());
+      if (kept.length !== items.length) {
+        form.setValue(`${key}.items`, kept as never, { shouldDirty: true });
+      }
+    }
     // Lo que sigue inválido (p. ej. un enlace mal escrito) se queda abierto.
     if (!(await form.trigger(key))) return;
     setEnabled(key, false);
@@ -365,8 +571,9 @@ export function HospitalityFields({ form }: { form: Form }) {
 
   // Una sección oculta con errores se sigue mostrando, para poder corregirla.
   const shown = ORDER.filter((key) => content[key]?.enabled || errors[key]);
+  // "Servicios del lugar" is no longer offered; guides that already use it keep it.
   const available = ORDER.filter(
-    (key) => !content[key]?.enabled && !errors[key],
+    (key) => key !== "amenities" && !content[key]?.enabled && !errors[key],
   );
   const readyCount = shown.filter(
     (key) => status(key, content, t).ready,
@@ -510,6 +717,30 @@ export function HospitalityFields({ form }: { form: Form }) {
         </AddButton>
       </div>
     ),
+    ...(Object.fromEntries(
+      (Object.keys(LIST_CONFIG) as ListSectionKey[]).map((key) => [
+        key,
+        <ListEditor
+          key={key}
+          form={form}
+          name={key}
+          rows={LIST_CONFIG[key].rows}
+          blank={LIST_CONFIG[key].blank}
+          max={LIST_CONFIG[key].max}
+          addLabel={t(LIST_CONFIG[key].addLabel)}
+        />,
+      ]),
+    ) as Record<ListSectionKey, ReactNode>),
+    cleaning: (
+      <TextField
+        id="cleaning-message"
+        label={t("Información de limpieza")}
+        hint={t("Horarios, cambio de sábanas, qué deben dejar listo…")}
+        multiline
+        registration={register("cleaning.message")}
+        error={errors.cleaning?.message?.message}
+      />
+    ),
     recommendations: (
       <div className="space-y-3">
         {recommendations.fields.map((field, index) => (
@@ -627,49 +858,72 @@ export function HospitalityFields({ form }: { form: Form }) {
               {t("Tu guía aún no tiene secciones. Agrega una abajo.")}
             </p>
           )}
+          {available.length ? (
+            <div className="border-ink/15 mt-4 rounded-2xl border-2 border-dashed p-3">
+              <p className="text-ink-soft mb-3 text-xs font-bold tracking-wider">
+                {t("AGREGAR A TU GUÍA")}
+              </p>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {available.map((key) =>
+                  !fullServices && !BASIC_SECTIONS.has(key) ? (
+                    <li key={key}>
+                      <Link
+                        href="/panel/configuracion#planes"
+                        className="border-cream-dark hover:border-teal/50 flex h-full w-full items-start gap-3 rounded-2xl border border-dashed bg-white/60 p-4 text-left transition-colors"
+                      >
+                        <span className="bg-cream text-ink-soft flex size-10 shrink-0 items-center justify-center rounded-xl">
+                          {SECTIONS[key].icon}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-semibold">
+                            {t(SECTIONS[key].title)}
+                          </span>
+                          <span className="text-ink-soft block text-sm">
+                            {t("Disponible en Essential y Plus.")}
+                          </span>
+                        </span>
+                        <span className="bg-sand/30 text-ink rounded-full px-2 py-0.5 text-xs font-bold">
+                          {t("Ver planes")}
+                        </span>
+                      </Link>
+                    </li>
+                  ) : (
+                  <li key={key}>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (open && !(await form.trigger(open))) return;
+                        setEnabled(key, true);
+                        openSection(key);
+                      }}
+                      className="border-cream-dark hover:border-teal/50 flex h-full w-full items-start gap-3 rounded-2xl border bg-white p-4 text-left transition-colors"
+                    >
+                      <span className="bg-cream text-teal-deep flex size-10 shrink-0 items-center justify-center rounded-xl">
+                        {SECTIONS[key].icon}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold">
+                          {t(SECTIONS[key].title)}
+                        </span>
+                        <span className="text-ink-soft block text-sm">
+                          {t(SECTIONS[key].help)}
+                        </span>
+                      </span>
+                      <span
+                        aria-hidden="true"
+                        className="text-teal-deep text-xl leading-none"
+                      >
+                        +
+                      </span>
+                    </button>
+                  </li>
+                  ),
+                )}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </section>
-
-      {available.length ? (
-        <section className="border-ink/15 rounded-3xl border-2 border-dashed p-4">
-          <p className="text-ink-soft mb-3 text-xs font-bold tracking-wider">
-            {t("AGREGAR A TU GUÍA")}
-          </p>
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {available.map((key) => (
-              <li key={key}>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    if (open && !(await form.trigger(open))) return;
-                    setEnabled(key, true);
-                    openSection(key);
-                  }}
-                  className="border-cream-dark hover:border-teal/50 flex h-full w-full items-start gap-3 rounded-2xl border bg-white p-4 text-left transition-colors"
-                >
-                  <span className="bg-cream text-teal-deep flex size-10 shrink-0 items-center justify-center rounded-xl">
-                    {SECTIONS[key].icon}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">
-                      {t(SECTIONS[key].title)}
-                    </span>
-                    <span className="text-ink-soft block text-sm">
-                      {t(SECTIONS[key].help)}
-                    </span>
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className="text-teal-deep text-xl leading-none"
-                  >
-                    +
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       <section className="space-y-4">
         <h2 className="text-xl">{t("Apariencia e idioma")}</h2>
@@ -688,7 +942,7 @@ export function HospitalityFields({ form }: { form: Form }) {
           </select>
           <p className="text-ink-soft text-xs">
             {t(
-              "La guía abre en este idioma. Tus huéspedes pueden cambiar a ES/EN/FR: por ahora se traducen los títulos y botones, no tu texto.",
+              "La guía abre en este idioma. Tus huéspedes pueden cambiar a ES/EN/FR; tu texto se muestra en otros idiomas si lo traduces abajo.",
             )}
           </p>
         </div>
@@ -701,7 +955,6 @@ export function HospitalityFields({ form }: { form: Form }) {
         />
         <AccentField
           value={content.theme?.accent ?? ""}
-          registration={register("theme.accent")}
           error={errors.theme?.accent?.message}
           onPick={(value) =>
             form.setValue("theme.accent", value, {

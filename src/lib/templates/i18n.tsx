@@ -27,6 +27,41 @@ export const GUIDE_TEXT = {
     en: "Recommendations",
     fr: "Recommandations",
   },
+  tours: {
+    es: "Tours recomendados",
+    en: "Recommended tours",
+    fr: "Excursions recommandées",
+  },
+  wellness: {
+    es: "Bienestar y gimnasio",
+    en: "Wellness and gym",
+    fr: "Bien-être et salle de sport",
+  },
+  shopping: {
+    es: "Compras y servicios",
+    en: "Shopping and services",
+    fr: "Courses et services",
+  },
+  emergency: { es: "Emergencias", en: "Emergencies", fr: "Urgences" },
+  cleaning: { es: "Limpieza", en: "Cleaning", fr: "Ménage" },
+  minibar: {
+    es: "Minibar y precios",
+    en: "Minibar and prices",
+    fr: "Minibar et tarifs",
+  },
+  taxi: { es: "Taxi", en: "Taxi", fr: "Taxi" },
+  parking: {
+    es: "Parqueos cercanos",
+    en: "Nearby parking",
+    fr: "Parkings à proximité",
+  },
+  faq: {
+    es: "Preguntas frecuentes",
+    en: "Frequently asked questions",
+    fr: "Questions fréquentes",
+  },
+  call: { es: "Llamar", en: "Call", fr: "Appeler" },
+  openLink: { es: "Abrir enlace", en: "Open link", fr: "Ouvrir le lien" },
   whatsapp: {
     es: "Escribir por WhatsApp",
     en: "Message us on WhatsApp",

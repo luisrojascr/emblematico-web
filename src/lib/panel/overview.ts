@@ -8,6 +8,7 @@ import { pausedGuideIds } from "./entitlements-shared";
 export type PanelProperty = {
   id: string;
   name: string;
+  slug: string;
   status: "active" | "suspended" | "archived";
   pageStatus: "draft" | "published" | "unpublished" | null;
   coverPath: string | null;
@@ -51,7 +52,7 @@ export async function loadOverview(
   ] = await Promise.all([
     supabase
       .from("businesses")
-      .select("id, name, status, created_at")
+      .select("id, name, slug, status, created_at")
       .order("name"),
     supabase.from("pages").select("business_id, status, draft_content"),
     isAdmin ? Promise.resolve(null) : loadEntitlements(),
@@ -101,6 +102,7 @@ export async function loadOverview(
     return {
       id: business.id,
       name: business.name,
+      slug: business.slug,
       status: business.status,
       pageStatus: page?.status ?? null,
       coverPath: coverOf(page?.draft_content),

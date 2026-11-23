@@ -211,7 +211,7 @@ async function Settings() {
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<PanelLoading />}>
+    <Suspense fallback={<PanelLoading variant="settings" />}>
       <Settings />
     </Suspense>
   );

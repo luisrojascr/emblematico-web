@@ -10,6 +10,8 @@ import { PanelLanguageSwitcher } from "./PanelLanguageSwitcher";
 type Item = {
   href: string;
   label: string;
+  /** Short label for the mobile tab bar. */
+  short: string;
   icon: ReactNode;
   match: (p: string) => boolean;
 };
@@ -34,6 +36,7 @@ const ITEMS: readonly Item[] = [
   {
     href: "/panel",
     label: "Inicio",
+    short: "Inicio",
     icon: icon(
       <>
         <rect x="3" y="3" width="7" height="7" rx="1.5" />
@@ -47,6 +50,7 @@ const ITEMS: readonly Item[] = [
   {
     href: "/panel/hospedajes",
     label: "Mis hospedajes",
+    short: "Hospedajes",
     icon: icon(
       <>
         <path d="M3 11.5 12 4l9 7.5" />
@@ -63,6 +67,7 @@ const ITEMS: readonly Item[] = [
   {
     href: "/panel/productos",
     label: "Productos",
+    short: "Productos",
     icon: icon(
       <>
         <path d="M21 8 12 3 3 8v8l9 5 9-5z" />
@@ -74,6 +79,7 @@ const ITEMS: readonly Item[] = [
   {
     href: "/panel/configuracion",
     label: "Configuración",
+    short: "Cuenta",
     icon: icon(
       <>
         <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" />
@@ -107,14 +113,15 @@ export function PanelSidebar({
             key={item.href}
             href={item.href}
             aria-current={current ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+            className={`flex min-h-14 flex-col items-center justify-center gap-0.5 px-1 py-2 text-[11px] font-semibold transition-colors lg:min-h-0 lg:flex-row lg:justify-start lg:gap-3 lg:rounded-xl lg:px-3 lg:py-2.5 lg:text-sm ${
               current
-                ? "bg-cream/10 text-sand"
-                : "text-cream/80 hover:bg-cream/5 hover:text-cream"
+                ? "text-teal-deep lg:bg-cream/10 lg:text-sand"
+                : "text-ink-soft lg:text-cream/80 lg:hover:bg-cream/5 lg:hover:text-cream"
             }`}
           >
             {item.icon}
-            {t(item.label)}
+            <span className="lg:hidden">{t(item.short)}</span>
+            <span className="hidden lg:inline">{t(item.label)}</span>
           </Link>
         );
       })}
@@ -135,6 +142,7 @@ export function PanelSidebar({
           />
         </Link>
         <div className="flex items-center gap-3 lg:hidden">
+          <PanelLanguageSwitcher />
           <form action="/auth/signout" method="post">
             <button type="submit" className="text-cream/70 text-xs underline">
               {t("Salir")}
@@ -145,12 +153,12 @@ export function PanelSidebar({
 
       <nav
         aria-label={t("Panel")}
-        className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:pb-0"
+        className="border-ink/10 fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-white pb-[env(safe-area-inset-bottom)] lg:static lg:flex lg:flex-1 lg:flex-col lg:gap-1 lg:border-0 lg:bg-transparent lg:px-3 lg:pb-0"
       >
         {links}
       </nav>
 
-      <div className="border-cream/10 border-t px-4 py-3">
+      <div className="border-cream/10 hidden border-t px-4 py-3 lg:block">
         <PanelLanguageSwitcher />
       </div>
 

@@ -13,7 +13,7 @@ import {
   saveDraft,
 } from "@/app/(panel)/panel/[businessId]/actions";
 import { usePanelI18n } from "@/components/panel/PanelLanguageProvider";
-import { businessStatusLabel, pageStatusLabel } from "@/lib/admin/labels";
+import { businessStatusLabel } from "@/lib/admin/labels";
 import type { PanelPage } from "@/lib/panel/load";
 import type { GeneralContent } from "@/lib/templates/general/schema";
 import { generalContentSchema } from "@/lib/templates/general/schema";
@@ -24,6 +24,7 @@ import { TEMPLATE_LABELS, type PageContent } from "@/lib/templates/registry";
 import { GeneralFields } from "./GeneralFields";
 import { HospitalityFields } from "./HospitalityFields";
 import { PhonePreview } from "./PhonePreview";
+import { TranslationsSection } from "./TranslationsSection";
 import { ImageField, useImageSlot } from "./fields";
 
 const NOTICES: Record<string, string> = {
@@ -38,11 +39,14 @@ export function PageEditor({
   content,
   invalidDraft,
   notice,
+  canTranslate = false,
 }: {
   page: PanelPage;
   content: PageContent;
   invalidDraft: boolean;
   notice?: string;
+  /** The owner's plan includes translations (Essential and Plus). */
+  canTranslate?: boolean;
 }) {
   switch (content.templateKey) {
     case "hospitality":
@@ -52,6 +56,7 @@ export function PageEditor({
           content={content.content}
           invalidDraft={invalidDraft}
           notice={notice}
+          canTranslate={canTranslate}
         />
       );
     case "general":
@@ -116,11 +121,13 @@ function HospitalityEditor({
   content,
   invalidDraft,
   notice,
+  canTranslate,
 }: {
   page: PanelPage;
   content: HospitalityContent;
   invalidDraft: boolean;
   notice?: string;
+  canTranslate: boolean;
 }) {
   const form = useForm<HospitalityContent>({
     resolver: zodResolver(
@@ -148,7 +155,12 @@ function HospitalityEditor({
         />
       }
     >
-      <HospitalityFields form={form} />
+      <HospitalityFields form={form} fullServices={canTranslate} />
+      <TranslationsSection
+        form={form}
+        businessId={page.id}
+        enabled={canTranslate}
+      />
     </EditorChrome>
   );
 }
@@ -212,14 +224,16 @@ function EditorChrome({
   const canEdit = page.status === "active" && !page.pausedByPlan;
   const dirty = formDirty || panel.logo.dirty || panel.cover.dirty;
   const savedNotice = notice ? NOTICES[notice] : undefined;
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const editor = (
     <form className="space-y-6" onSubmit={onSubmit} noValidate>
       <header className="space-y-1">
         <p className="text-ink-soft text-sm">
-          {t(TEMPLATE_LABELS[page.templateKey])} ·{" "}
-          {t(pageStatusLabel(page.pageStatus))} ·{" "}
-          {t(businessStatusLabel(page.status))}
+          {t(TEMPLATE_LABELS[page.templateKey])}
+          {page.status === "active"
+            ? null
+            : ` · ${t(businessStatusLabel(page.status))}`}
         </p>
         {savedNotice ? (
           <p role="status" className="text-ink-soft text-sm">
@@ -267,7 +281,30 @@ function EditorChrome({
         {children}
       </fieldset>
 
-      <div className="border-cream-dark bg-cream/95 sticky bottom-0 z-10 -mx-4 flex flex-wrap gap-3 border-t px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border">
+      <div className="border-cream-dark bg-cream/95 sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom))] z-10 -mx-4 flex flex-wrap items-center gap-3 border-t px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border lg:bottom-0">
+        {preview ? (
+          <button
+            type="button"
+            onClick={() => setPreviewOpen(true)}
+            aria-label={t("Vista previa")}
+            className={`${secondaryButtonClass} size-11 !p-0 xl:hidden`}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="20"
+              height="20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        ) : null}
         <button
           type="submit"
           disabled={!canEdit || panel.pending}
@@ -298,6 +335,26 @@ function EditorChrome({
       <aside className="hidden xl:block">
         <div className="sticky top-8">{preview}</div>
       </aside>
+      {previewOpen ? (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("Vista previa")}
+          className="bg-cream fixed inset-0 z-50 flex flex-col overflow-y-auto xl:hidden"
+        >
+          <div className="flex items-center justify-between gap-3 px-4 py-3">
+            <p className="font-semibold">{t("Vista previa")}</p>
+            <button
+              type="button"
+              onClick={() => setPreviewOpen(false)}
+              className={secondaryButtonClass}
+            >
+              {t("Cerrar")}
+            </button>
+          </div>
+          <div className="px-4 pb-8">{preview}</div>
+        </div>
+      ) : null}
     </div>
   );
 }

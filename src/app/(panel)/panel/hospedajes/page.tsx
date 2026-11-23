@@ -99,7 +99,7 @@ async function List({
           </Link>
         </p>
       ) : null}
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid grid-cols-[minmax(0,20rem)] justify-center gap-4 sm:grid-cols-[repeat(auto-fill,minmax(0,20rem))] sm:justify-start">
         {properties.map((property) => (
           <li key={property.id}>
             <PropertyCard property={property} />

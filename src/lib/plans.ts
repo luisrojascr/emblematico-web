@@ -76,15 +76,15 @@ export const EXTRA_PROPERTY_MONTHLY = 1.5;
 export const BASIC_SERVICES = [
   "Wi-Fi",
   "Contacto",
-  "Información de la casa",
-  "Check-out",
-  "Normas de la casa",
+  "Bienvenida",
+  "Llegada y salida",
+  "Reglas de la casa",
 ] as const;
 
 /** Los 15 servicios estándar de Essential y Plus (incluye los 5 básicos). */
 export const STANDARD_SERVICES = [
   ...BASIC_SERVICES,
-  "Restaurantes recomendados",
+  "Recomendaciones",
   "Tours recomendados",
   "Bienestar y gimnasio: spa, bienestar y gimnasios cercanos",
   "Compras y servicios: supermercados, farmacias y licorerías cercanas",

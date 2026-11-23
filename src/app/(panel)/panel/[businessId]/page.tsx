@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { PanelLoading } from "@/components/panel/PanelLanguageProvider";
 import { PageEditor } from "@/components/panel/PageEditor";
 import { PanelHeading } from "@/components/panel/PanelHeading";
+import { loadEntitlements } from "@/lib/panel/entitlements";
 import { loadPanelPage } from "@/lib/panel/load";
 import { defaultContent, parsePageContent } from "@/lib/templates/registry";
 
@@ -23,6 +24,7 @@ async function Editor({
   const parsed = parsePageContent(page.templateKey, page.draft);
   const content = parsed ?? defaultContent(page.templateKey);
   const query = await searchParams;
+  const entitlements = await loadEntitlements();
 
   return (
     <PanelHeading page={page} wide>
@@ -32,6 +34,7 @@ async function Editor({
         content={content}
         invalidDraft={!parsed}
         notice={noticeOf(query.aviso)}
+        canTranslate={entitlements !== null && entitlements.plan !== "free"}
       />
     </PanelHeading>
   );
@@ -42,7 +45,7 @@ export default function PanelBusinessPage({
   searchParams,
 }: PageProps<"/panel/[businessId]">) {
   return (
-    <Suspense fallback={<PanelLoading />}>
+    <Suspense fallback={<PanelLoading variant="editor" />}>
       <EditorLoader params={params} searchParams={searchParams} />
     </Suspense>
   );

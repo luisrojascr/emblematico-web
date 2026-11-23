@@ -26,7 +26,6 @@ export function GeneralFields({
     <div className="space-y-4">
       <AccentField
         value={form.watch("theme.accent")}
-        registration={register("theme.accent")}
         error={errors.theme?.accent?.message}
         onPick={(value) =>
           form.setValue("theme.accent", value, {

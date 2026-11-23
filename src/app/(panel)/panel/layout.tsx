@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getPanelI18n } from "@/lib/panel/i18n-server";
 import { PanelSidebar } from "@/components/panel/PanelSidebar";
 import { PanelLanguageProvider } from "@/components/panel/PanelLanguageProvider";
+import { PanelShellSkeleton } from "@/components/panel/skeletons";
 import { TrialBanner } from "@/components/panel/TrialBanner";
 import { requireUser } from "@/lib/auth/session";
 
@@ -25,7 +26,7 @@ async function PanelGate({ children }: { children: React.ReactNode }) {
           email={user.email}
           isAdmin={user.role === "admin"}
         />
-        <main id="contenido" className="min-w-0 flex-1">
+        <main id="contenido" className="min-w-0 flex-1 pb-20 lg:pb-0">
           {user.role === "admin" ? null : <TrialBanner />}
           {children}
         </main>
@@ -36,11 +37,7 @@ async function PanelGate({ children }: { children: React.ReactNode }) {
 
 export default function PanelLayout({ children }: LayoutProps<"/panel">) {
   return (
-    <Suspense
-      fallback={
-        <p className="marketing-fonts text-ink-soft p-8">Cargando...</p>
-      }
-    >
+    <Suspense fallback={<PanelShellSkeleton />}>
       <PanelGate>{children}</PanelGate>
     </Suspense>
   );

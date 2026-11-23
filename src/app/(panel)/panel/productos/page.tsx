@@ -193,7 +193,7 @@ async function Products() {
 
 export default function PanelProductsPage() {
   return (
-    <Suspense fallback={<PanelLoading />}>
+    <Suspense fallback={<PanelLoading variant="products" />}>
       <Products />
     </Suspense>
   );
