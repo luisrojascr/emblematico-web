@@ -23,8 +23,6 @@ import { verifyWhopSignature } from "@/lib/whop/signature";
  * events, through the Whop membership/customer ids saved on the first one.
  * Whop expects a 2xx within 5 seconds; a 5xx makes it retry with backoff.
  */
-export const dynamic = "force-dynamic";
-
 const PROVIDER = "whop";
 
 type Admin = ReturnType<typeof createAdminClient>;
