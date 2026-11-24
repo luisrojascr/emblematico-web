@@ -23,6 +23,8 @@ export type WhopMembership = {
   billing_period_days: number | null;
   current_period_end: string | null;
   cancel_at_period_end?: boolean;
+  canceled_at?: string | null;
+  expires_at?: string | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -47,13 +49,16 @@ export function planForProduct(
   productId: string,
   products: ProductMap,
 ): PlanTier | null {
-  if (products.essential && productId === products.essential) return "essential";
+  if (products.essential && productId === products.essential)
+    return "essential";
   if (products.plus && productId === products.plus) return "plus";
   return null;
 }
 
 /** Whop bills monthly plans every ~30 days and annual ones every 365. */
-export function billingPeriodFromDays(days: number | null): BillingPeriod | null {
+export function billingPeriodFromDays(
+  days: number | null,
+): BillingPeriod | null {
   if (days == null) return null;
   if (days >= 300) return "annual";
   if (days >= 25 && days <= 35) return "monthly";
@@ -63,9 +68,14 @@ export function billingPeriodFromDays(days: number | null): BillingPeriod | null
 /**
  * Whop statuses: trialing, active, past_due, completed, canceled, expired, unresolved.
  * Our own 30-day trial runs without Whop, so a Whop trial is stored as `active` until
- * its period end (our `trialing` rows require trial_ends_at). `unresolved` is a payment problem being worked out, treated like past_due (our
- * effective_plan keeps the plan for 7 days after the period end). `completed` means
- * nothing more will be charged, so it ends like `expired`.
+ * its period end (our `trialing` rows require trial_ends_at). `unresolved` is a
+ * payment problem being worked out, treated like past_due (our effective_plan keeps
+ * the plan for 7 days after the period end). `completed` is a finished one-time
+ * purchase that keeps its access (until expires_at, if any): see subscriptionTiming.
+ *
+ * Whop `canceled` means access is already gone; a cancellation scheduled for the end
+ * of the period stays `active` with cancel_at_period_end. `decide` maps both onto our
+ * `canceled`, whose access lasts until current_period_end (see subscriptionTiming).
  */
 export function mapStatus(status: string): SubscriptionStatus | null {
   switch (status) {
@@ -79,10 +89,54 @@ export function mapStatus(status: string): SubscriptionStatus | null {
     case "unresolved":
       return "past_due";
     case "completed":
-      return "expired";
+      return "active";
     default:
       return null;
   }
+}
+
+/**
+ * Status and access end for our row. Our `canceled` keeps the plan until
+ * current_period_end (effective_plan), so:
+ *   - scheduled cancellation (live + cancel_at_period_end): `canceled` until the
+ *     period end, with no grace week;
+ *   - immediate cancellation (Whop `canceled`): `canceled` ending at canceled_at, or
+ *     now, whichever is earlier, so access stops right away. The daily job then
+ *     moves the row to Free and emails the owner;
+ *   - completed one-time purchase: keeps access. With expires_at it is stored as
+ *     `canceled` ending then (no renewal, no grace week); without it, `active` with
+ *     no end (lifetime access).
+ */
+export function subscriptionTiming(
+  membership: WhopMembership,
+  status: SubscriptionStatus,
+  now: Date,
+): { status: SubscriptionStatus; current_period_end: string | null } {
+  if (membership.status === "canceled") {
+    const canceledAt = membership.canceled_at
+      ? new Date(membership.canceled_at)
+      : null;
+    const end =
+      canceledAt && !Number.isNaN(canceledAt.getTime()) && canceledAt < now
+        ? canceledAt
+        : now;
+    return { status: "canceled", current_period_end: end.toISOString() };
+  }
+  if (membership.status === "completed") {
+    return membership.expires_at
+      ? { status: "canceled", current_period_end: membership.expires_at }
+      : { status: "active", current_period_end: null };
+  }
+  if (
+    (status === "active" || status === "past_due") &&
+    membership.cancel_at_period_end
+  ) {
+    return {
+      status: "canceled",
+      current_period_end: membership.current_period_end,
+    };
+  }
+  return { status, current_period_end: membership.current_period_end };
 }
 
 /** Statuses that grant (or are about to keep granting) the paid plan. */
@@ -132,12 +186,14 @@ export function decide(
   membership: WhopMembership,
   current: CurrentRow,
   products: ProductMap,
+  now: Date = new Date(),
 ): Decision {
   const plan = planForProduct(membership.product_id, products);
   if (!plan) return { action: "skip", reason: "unknown_product" };
 
   const status = mapStatus(membership.status);
-  if (!status) return { action: "skip", reason: `unknown_status:${membership.status}` };
+  if (!status)
+    return { action: "skip", reason: `unknown_status:${membership.status}` };
 
   if (current?.plan === "managers") {
     return { action: "skip", reason: "managers_plan" };
@@ -147,7 +203,8 @@ export function decide(
     current?.provider === "whop" &&
     current.provider_subscription_id != null &&
     current.provider_subscription_id !== membership.id;
-  if (pointsElsewhere && !LIVE_STATUSES.has(status)) {
+  const timing = subscriptionTiming(membership, status, now);
+  if (pointsElsewhere && !LIVE_STATUSES.has(timing.status)) {
     return { action: "skip", reason: "other_membership_is_current" };
   }
   if (
@@ -162,9 +219,8 @@ export function decide(
     action: "apply",
     patch: {
       plan,
-      status,
+      ...timing,
       billing_period: billingPeriodFromDays(membership.billing_period_days),
-      current_period_end: membership.current_period_end,
       provider: "whop",
       provider_customer_id: membership.user_id,
       provider_subscription_id: membership.id,

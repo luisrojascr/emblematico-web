@@ -1,6 +1,6 @@
 import { revalidateBusiness } from "@/lib/admin/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { fetchMembership } from "@/lib/whop/api";
+import { fetchMembership, MEMBERSHIP_ID_RE } from "@/lib/whop/api";
 import { whopConfig } from "@/lib/whop/config";
 import {
   decide,
@@ -15,7 +15,9 @@ import { verifyWhopSignature } from "@/lib/whop/signature";
  *   1. Verifies the signature over the raw body (WHOP_WEBHOOK_SECRET).
  *   2. Stores every event in billing_events. The unique (provider, provider_event_id)
  *      key makes redeliveries no-ops; an event whose processing failed is retried.
- *   3. membership.* events update the user's row in `subscriptions`. Payment events
+ *   3. membership.* events re-read the membership from the Whop API (WHOP_API_KEY) and
+ *      update the user's row in `subscriptions` from that current state, so late or
+ *      out-of-order deliveries cannot apply an old snapshot. Payment events
  *      are only recorded: Whop reflects their effect (activation, past_due) in a
  *      membership event too.
  *
@@ -131,8 +133,10 @@ async function handleMembership(
   payload: WhopMembership | undefined,
 ): Promise<string> {
   if (!payload?.id) return "error:no_membership";
+  if (!MEMBERSHIP_ID_RE.test(payload.id)) return "error:bad_membership_id";
 
-  const membership = (await fetchMembership(config, payload.id)) ?? payload;
+  // Always the current state from the API; a failed read throws and Whop retries.
+  const membership = await fetchMembership(config, payload.id);
   const userId = await resolveUser(supabase, membership, payload);
   if (!userId) return "error:unmatched_user";
 
@@ -155,7 +159,11 @@ async function handleMembership(
   return `applied:${decision.patch.plan}:${decision.patch.status}`;
 }
 
-/** Checkout metadata first, then the Whop ids saved by an earlier event. */
+/**
+ * Checkout metadata first, then the Whop ids saved by an earlier event. Query errors
+ * are thrown (the event stays unprocessed and Whop retries it); null means the
+ * lookups succeeded and no account matches.
+ */
 async function resolveUser(
   supabase: Admin,
   membership: WhopMembership,
@@ -170,6 +178,9 @@ async function resolveUser(
     .eq("provider", PROVIDER)
     .eq("provider_subscription_id", membership.id)
     .maybeSingle();
+  if (byMembership.error) {
+    throw new Error(`lookup by membership: ${byMembership.error.message}`);
+  }
   if (byMembership.data) return byMembership.data.user_id;
 
   if (!membership.user_id) return null;
@@ -180,6 +191,9 @@ async function resolveUser(
     .eq("provider_customer_id", membership.user_id)
     .limit(1)
     .maybeSingle();
+  if (byCustomer.error) {
+    throw new Error(`lookup by customer: ${byCustomer.error.message}`);
+  }
   return byCustomer.data?.user_id ?? null;
 }
 

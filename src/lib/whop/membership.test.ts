@@ -44,14 +44,16 @@ describe("helpers", () => {
     expect(mapStatus("active")).toBe("active");
     expect(mapStatus("trialing")).toBe("active");
     expect(mapStatus("unresolved")).toBe("past_due");
-    expect(mapStatus("completed")).toBe("expired");
+    expect(mapStatus("completed")).toBe("active");
     expect(mapStatus("canceled")).toBe("canceled");
     expect(mapStatus("weird")).toBeNull();
   });
 
   it("reads only a uuid from metadata", () => {
     expect(metadataUserId(membership())).toBe(USER);
-    expect(metadataUserId(membership({ metadata: { supabase_user_id: "x" } }))).toBeNull();
+    expect(
+      metadataUserId(membership({ metadata: { supabase_user_id: "x" } })),
+    ).toBeNull();
     expect(metadataUserId(membership({ metadata: null }))).toBeNull();
   });
 });
@@ -85,11 +87,20 @@ describe("decide", () => {
     }
   });
 
-  it("keeps cancellations at period end as canceled with the end date", () => {
+  const now = new Date("2026-11-24T12:00:00Z");
+  const own = () =>
+    row({
+      status: "active",
+      provider: "whop",
+      provider_subscription_id: "mem_A",
+    });
+
+  it("keeps a scheduled cancellation until the period end", () => {
     const result = decide(
-      membership({ status: "canceled" }),
-      row({ status: "active", provider: "whop", provider_subscription_id: "mem_A" }),
+      membership({ status: "active", cancel_at_period_end: true }),
+      own(),
       products,
+      now,
     );
     expect(result).toMatchObject({
       action: "apply",
@@ -97,8 +108,85 @@ describe("decide", () => {
     });
   });
 
+  it("ends access right away on an immediate cancellation", () => {
+    const result = decide(
+      membership({ status: "canceled", canceled_at: "2026-11-24T10:00:00Z" }),
+      own(),
+      products,
+      now,
+    );
+    expect(result).toMatchObject({
+      action: "apply",
+      patch: {
+        status: "canceled",
+        current_period_end: "2026-11-24T10:00:00.000Z",
+      },
+    });
+  });
+
+  it("never dates an immediate cancellation in the future", () => {
+    const result = decide(
+      membership({ status: "canceled", canceled_at: null }),
+      own(),
+      products,
+      now,
+    );
+    expect(result).toMatchObject({
+      patch: { status: "canceled", current_period_end: now.toISOString() },
+    });
+  });
+
+  it("keeps access for a completed one-time purchase", () => {
+    const lifetime = decide(
+      membership({
+        status: "completed",
+        billing_period_days: null,
+        current_period_end: null,
+      }),
+      own(),
+      products,
+      now,
+    );
+    expect(lifetime).toMatchObject({
+      action: "apply",
+      patch: {
+        status: "active",
+        current_period_end: null,
+        billing_period: null,
+      },
+    });
+    const limited = decide(
+      membership({ status: "completed", expires_at: "2027-11-24T00:00:00Z" }),
+      own(),
+      products,
+      now,
+    );
+    expect(limited).toMatchObject({
+      patch: { status: "canceled", current_period_end: "2027-11-24T00:00:00Z" },
+    });
+  });
+
+  it("does not let another membership's scheduled cancellation take over", () => {
+    const current = row({
+      plan: "plus",
+      status: "active",
+      provider: "whop",
+      provider_subscription_id: "mem_PLUS",
+    });
+    expect(
+      decide(
+        membership({ cancel_at_period_end: true }),
+        current,
+        products,
+        now,
+      ),
+    ).toEqual({ action: "skip", reason: "other_membership_is_current" });
+  });
+
   it("ignores unknown products and the managers plan", () => {
-    expect(decide(membership({ product_id: "prod_other" }), row(), products)).toEqual({
+    expect(
+      decide(membership({ product_id: "prod_other" }), row(), products),
+    ).toEqual({
       action: "skip",
       reason: "unknown_product",
     });
@@ -115,7 +203,9 @@ describe("decide", () => {
       provider: "whop",
       provider_subscription_id: "mem_PLUS",
     });
-    expect(decide(membership({ status: "canceled" }), current, products)).toEqual({
+    expect(
+      decide(membership({ status: "canceled" }), current, products),
+    ).toEqual({
       action: "skip",
       reason: "other_membership_is_current",
     });
@@ -142,7 +232,11 @@ describe("decide", () => {
       provider_subscription_id: "mem_A",
     });
     const result = decide(
-      membership({ id: "mem_PLUS", product_id: "prod_plus", billing_period_days: 365 }),
+      membership({
+        id: "mem_PLUS",
+        product_id: "prod_plus",
+        billing_period_days: 365,
+      }),
       current,
       products,
     );
