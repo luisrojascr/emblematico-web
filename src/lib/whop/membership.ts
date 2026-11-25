@@ -28,10 +28,16 @@ export type WhopMembership = {
   metadata?: Record<string, unknown> | null;
 };
 
-/** Whop product ids for each paid plan (they differ between sandbox and production). */
+/**
+ * Whop product ids for each paid plan, plus the exact prices (variants, `plan_...`)
+ * we sell. They differ between sandbox and production. The price allowlist matters:
+ * a product can hold other pricing options (a free or discounted one, a test price),
+ * and a membership bought through one of those must not unlock the plan.
+ */
 export type ProductMap = {
   essential: string | null;
   plus: string | null;
+  variants: ReadonlySet<string>;
 };
 
 /** Key we put in checkout metadata to link the payment to a Supabase user. */
@@ -139,11 +145,34 @@ export function subscriptionTiming(
   return { status, current_period_end: membership.current_period_end };
 }
 
-/** Statuses that grant (or are about to keep granting) the paid plan. */
-const LIVE_STATUSES: ReadonlySet<SubscriptionStatus> = new Set([
-  "active",
-  "past_due",
-]);
+/** Grace after a missed payment or an unrenewed period, as in effective_plan(). */
+const GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Whether a row with this status and period end grants its plan right now. Mirrors
+ * effective_plan() (migration 12) for paid rows: active keeps the plan until 7 days
+ * after the period end (none = no end), past_due until 7 days after it, canceled until
+ * the period end itself, expired never. Our own trial is not a Whop row and never
+ * reaches this comparison.
+ */
+export function grantsAccess(
+  status: SubscriptionStatus,
+  periodEnd: string | null,
+  now: Date,
+): boolean {
+  const end = periodEnd ? new Date(periodEnd).getTime() : null;
+  if (end != null && Number.isNaN(end)) return false;
+  switch (status) {
+    case "active":
+      return end == null || end + GRACE_MS > now.getTime();
+    case "past_due":
+      return end != null && end + GRACE_MS > now.getTime();
+    case "canceled":
+      return end != null && end > now.getTime();
+    default:
+      return false;
+  }
+}
 
 const PLAN_RANK: Record<PlanTier, number> = {
   free: 0,
@@ -157,6 +186,7 @@ export type CurrentRow = {
   status: SubscriptionStatus;
   provider: string | null;
   provider_subscription_id: string | null;
+  current_period_end: string | null;
 } | null;
 
 export type SubscriptionPatch = {
@@ -169,6 +199,41 @@ export type SubscriptionPatch = {
   provider_subscription_id: string;
 };
 
+/**
+ * Among several memberships of one user, the one that should back the row: the
+ * highest plan that grants access right now, then the latest end. Null when none
+ * grants access. Used when the row's own membership stops granting access, so a
+ * second membership that was skipped earlier (for example an Essential bought while
+ * a Plus was still running) takes over instead of leaving a paying user on Free.
+ */
+export function bestGrantingPatch(
+  memberships: readonly WhopMembership[],
+  products: ProductMap,
+  now: Date = new Date(),
+): SubscriptionPatch | null {
+  let best: SubscriptionPatch | null = null;
+  for (const membership of memberships) {
+    const decision = decide(membership, null, products, now);
+    if (decision.action !== "apply") continue;
+    const patch = decision.patch;
+    if (!grantsAccess(patch.status, patch.current_period_end, now)) continue;
+    if (
+      !best ||
+      PLAN_RANK[patch.plan] > PLAN_RANK[best.plan] ||
+      (PLAN_RANK[patch.plan] === PLAN_RANK[best.plan] &&
+        endTime(patch.current_period_end) > endTime(best.current_period_end))
+    ) {
+      best = patch;
+    }
+  }
+  return best;
+}
+
+/** No end date sorts last (lifetime access). */
+function endTime(value: string | null): number {
+  return value ? new Date(value).getTime() : Number.POSITIVE_INFINITY;
+}
+
 export type Decision =
   | { action: "apply"; patch: SubscriptionPatch }
   | { action: "skip"; reason: string };
@@ -177,10 +242,11 @@ export type Decision =
  * Decides what a membership means for the user's single subscription row.
  *
  * One row per user, so when a buyer ends up with two memberships (for example
- * Essential and then Plus) the row follows the best live one: an ending membership
- * never overwrites a row that points at a different Whop membership, a live one only
- * replaces another live one with an equal or higher plan, and an admin-managed
- * `managers` plan is never touched.
+ * Essential and then Plus) the row follows the best one that still grants access,
+ * judged by status and end date (grantsAccess), not by status alone: a membership
+ * without access never replaces a row pointing at another Whop membership, one with
+ * access replaces it unless that row still grants a higher plan, and an
+ * admin-managed `managers` plan is never touched.
  */
 export function decide(
   membership: WhopMembership,
@@ -190,6 +256,9 @@ export function decide(
 ): Decision {
   const plan = planForProduct(membership.product_id, products);
   if (!plan) return { action: "skip", reason: "unknown_product" };
+  if (!membership.variant_id || !products.variants.has(membership.variant_id)) {
+    return { action: "skip", reason: "unknown_variant" };
+  }
 
   const status = mapStatus(membership.status);
   if (!status)
@@ -204,15 +273,27 @@ export function decide(
     current.provider_subscription_id != null &&
     current.provider_subscription_id !== membership.id;
   const timing = subscriptionTiming(membership, status, now);
-  if (pointsElsewhere && !LIVE_STATUSES.has(timing.status)) {
-    return { action: "skip", reason: "other_membership_is_current" };
-  }
-  if (
-    pointsElsewhere &&
-    LIVE_STATUSES.has(current.status) &&
-    PLAN_RANK[current.plan] > PLAN_RANK[plan]
-  ) {
-    return { action: "skip", reason: "other_membership_has_higher_plan" };
+  if (pointsElsewhere) {
+    // Compare what each membership is worth right now, by status and end date.
+    const incomingGrants = grantsAccess(
+      timing.status,
+      timing.current_period_end,
+      now,
+    );
+    const currentGrants = grantsAccess(
+      current.status,
+      current.current_period_end,
+      now,
+    );
+    if (!incomingGrants && currentGrants) {
+      return { action: "skip", reason: "other_membership_is_current" };
+    }
+    if (!incomingGrants && !currentGrants) {
+      return { action: "skip", reason: "no_membership_grants_access" };
+    }
+    if (currentGrants && PLAN_RANK[current.plan] > PLAN_RANK[plan]) {
+      return { action: "skip", reason: "other_membership_has_higher_plan" };
+    }
   }
 
   return {

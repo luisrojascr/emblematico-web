@@ -1,15 +1,21 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bestGrantingPatch,
   billingPeriodFromDays,
   decide,
+  grantsAccess,
   mapStatus,
   metadataUserId,
   type CurrentRow,
   type WhopMembership,
 } from "./membership";
 
-const products = { essential: "prod_ess", plus: "prod_plus" };
+const products = {
+  essential: "prod_ess",
+  plus: "prod_plus",
+  variants: new Set(["plan_ess_m", "plan_ess_y", "plan_plus_m", "plan_plus_y"]),
+};
 const USER = "5b2c3d4e-1111-4222-8333-944455556666";
 
 const membership = (over: Partial<WhopMembership> = {}): WhopMembership => ({
@@ -17,6 +23,7 @@ const membership = (over: Partial<WhopMembership> = {}): WhopMembership => ({
   status: "active",
   user_id: "user_X",
   product_id: "prod_ess",
+  variant_id: "plan_ess_m",
   billing_period_days: 30,
   current_period_end: "2026-12-23T23:43:00Z",
   metadata: { supabase_user_id: USER },
@@ -28,6 +35,7 @@ const row = (over: Partial<NonNullable<CurrentRow>> = {}): CurrentRow => ({
   status: "trialing",
   provider: null,
   provider_subscription_id: null,
+  current_period_end: null,
   ...over,
 });
 
@@ -76,7 +84,11 @@ describe("decide", () => {
 
   it("creates the row when none exists", () => {
     const result = decide(
-      membership({ product_id: "prod_plus", billing_period_days: 365 }),
+      membership({
+        product_id: "prod_plus",
+        variant_id: "plan_plus_y",
+        billing_period_days: 365,
+      }),
       null,
       products,
     );
@@ -180,9 +192,71 @@ describe("decide", () => {
         products,
         now,
       ),
-    ).toEqual({ action: "skip", reason: "other_membership_is_current" });
+    ).toEqual({ action: "skip", reason: "other_membership_has_higher_plan" });
   });
 
+  it("keeps a Plus whose cancellation is scheduled but still running", () => {
+    const current = row({
+      plan: "plus",
+      status: "canceled",
+      provider: "whop",
+      provider_subscription_id: "mem_PLUS",
+      current_period_end: "2027-01-10T00:00:00Z",
+    });
+    expect(decide(membership(), current, products, now)).toEqual({
+      action: "skip",
+      reason: "other_membership_has_higher_plan",
+    });
+  });
+
+  it("replaces a Plus row whose access already ended", () => {
+    const current = row({
+      plan: "plus",
+      status: "canceled",
+      provider: "whop",
+      provider_subscription_id: "mem_PLUS",
+      current_period_end: "2026-11-01T00:00:00Z",
+    });
+    expect(decide(membership(), current, products, now)).toMatchObject({
+      action: "apply",
+      patch: { plan: "essential", provider_subscription_id: "mem_A" },
+    });
+  });
+
+  it("applies a fixed-term purchase over an old expired membership", () => {
+    const current = row({
+      plan: "free",
+      status: "expired",
+      provider: "whop",
+      provider_subscription_id: "mem_OLD",
+    });
+    const result = decide(
+      membership({
+        status: "completed",
+        expires_at: "2027-11-24T00:00:00Z",
+        billing_period_days: null,
+      }),
+      current,
+      products,
+      now,
+    );
+    expect(result).toMatchObject({
+      action: "apply",
+      patch: { status: "canceled", current_period_end: "2027-11-24T00:00:00Z" },
+    });
+  });
+
+  it("ignores an ended membership when the row has no access either", () => {
+    const current = row({
+      plan: "free",
+      status: "expired",
+      provider: "whop",
+      provider_subscription_id: "mem_OLD",
+    });
+    expect(
+      decide(membership({ status: "expired" }), current, products, now),
+    ).toEqual({ action: "skip", reason: "no_membership_grants_access" });
+  });
   it("ignores unknown products and the managers plan", () => {
     expect(
       decide(membership({ product_id: "prod_other" }), row(), products),
@@ -235,6 +309,7 @@ describe("decide", () => {
       membership({
         id: "mem_PLUS",
         product_id: "prod_plus",
+        variant_id: "plan_plus_y",
         billing_period_days: 365,
       }),
       current,
@@ -244,5 +319,80 @@ describe("decide", () => {
       action: "apply",
       patch: { plan: "plus", provider_subscription_id: "mem_PLUS" },
     });
+  });
+});
+
+describe("grantsAccess", () => {
+  const now = new Date("2026-11-24T12:00:00Z");
+  it("mirrors effective_plan for paid rows", () => {
+    expect(grantsAccess("active", null, now)).toBe(true);
+    expect(grantsAccess("active", "2026-11-20T00:00:00Z", now)).toBe(true);
+    expect(grantsAccess("active", "2026-11-10T00:00:00Z", now)).toBe(false);
+    expect(grantsAccess("past_due", null, now)).toBe(false);
+    expect(grantsAccess("past_due", "2026-11-20T00:00:00Z", now)).toBe(true);
+    expect(grantsAccess("canceled", "2026-11-25T00:00:00Z", now)).toBe(true);
+    expect(grantsAccess("canceled", "2026-11-24T00:00:00Z", now)).toBe(false);
+    expect(grantsAccess("expired", null, now)).toBe(false);
+  });
+});
+
+describe("price allowlist", () => {
+  it("skips a membership bought through a price we do not sell", () => {
+    expect(
+      decide(membership({ variant_id: "plan_free" }), row(), products),
+    ).toEqual({
+      action: "skip",
+      reason: "unknown_variant",
+    });
+    expect(decide(membership({ variant_id: null }), row(), products)).toEqual({
+      action: "skip",
+      reason: "unknown_variant",
+    });
+  });
+});
+
+describe("bestGrantingPatch", () => {
+  const now = new Date("2026-11-24T12:00:00Z");
+
+  it("picks the highest plan that still grants access", () => {
+    const ended = membership({
+      id: "mem_PLUS",
+      product_id: "prod_plus",
+      variant_id: "plan_plus_y",
+      status: "expired",
+    });
+    const essential = membership({ id: "mem_ESS" });
+    expect(bestGrantingPatch([ended, essential], products, now)).toMatchObject({
+      plan: "essential",
+      provider_subscription_id: "mem_ESS",
+    });
+  });
+
+  it("prefers the later end for the same plan", () => {
+    const sooner = membership({
+      id: "mem_1",
+      current_period_end: "2026-12-01T00:00:00Z",
+    });
+    const later = membership({
+      id: "mem_2",
+      current_period_end: "2027-01-01T00:00:00Z",
+    });
+    expect(
+      bestGrantingPatch([sooner, later], products, now)
+        ?.provider_subscription_id,
+    ).toBe("mem_2");
+  });
+
+  it("returns null when nothing grants access", () => {
+    expect(
+      bestGrantingPatch(
+        [
+          membership({ status: "expired" }),
+          membership({ variant_id: "plan_free" }),
+        ],
+        products,
+        now,
+      ),
+    ).toBeNull();
   });
 });

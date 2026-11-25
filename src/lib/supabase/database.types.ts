@@ -37,6 +37,20 @@ export type Database = {
                   Relationships: [
                     
                   ]
+                },"billing_locks": {
+                  Row: {
+                    "locked_until": string,"token": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "locked_until": string,"token": string,"user_id": string
+                  }
+                  Update: {
+                    "locked_until"?: string,"token"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"business_members": {
                   Row: {
                     "business_id": string,"created_at": string,"role": Database["public"]['Enums']["member_role"],"user_id": string
@@ -313,11 +327,17 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "business_is_active":
+            "acquire_billing_lock":
+{ Args: { "p_seconds"?: number,"p_token": string,"p_user_id": string }; Returns: boolean
+                           },
+"business_is_active":
 { Args: { "p_business_id": string }; Returns: boolean
                            },
 "business_is_paused_by_plan":
 { Args: { "p_business_id": string }; Returns: boolean
+                           },
+"business_media_limit":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "business_owner":
 { Args: { "p_business_id": string }; Returns: string
@@ -346,9 +366,6 @@ isOneToOne: false
 "my_entitlements":
 { Args: Record<PropertyKey, never>; Returns: Json
                            },
-"run_subscription_expiry":
-{ Args: Record<PropertyKey, never>; Returns: { "period_end": string,"previous_plan": Database["public"]['Enums']["plan_tier"],"previous_status": Database["public"]['Enums']["subscription_status"],"user_id": string }[]
-                           },
 "normalize_email":
 { Args: { "p_email": string }; Returns: string
                            },
@@ -358,11 +375,13 @@ isOneToOne: false
 "publish_page":
 { Args: { "p_business_id": string,"p_expected_updated_at": string }; Returns: Json
                            },
-"business_media_limit":
-{ Args: Record<PropertyKey, never>; Returns: number
+"release_billing_lock":
+{ Args: { "p_token": string,"p_user_id": string }; Returns: boolean
                            },
-"submit_guide_report":
-{ Args: { "p_contact_email": string,"p_details": string,"p_ip_hash": string,"p_reason": string,"p_slug": string }; Returns: { "business_id": string,"business_name": string,"duplicate": boolean,"report_id": string }[]
+"run_subscription_expiry":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "period_end": string,"previous_plan": Database["public"]['Enums']["plan_tier"],"previous_status": Database["public"]['Enums']["subscription_status"],"user_id": string
+            }[]
                            },
 "storage_can_insert":
 { Args: { "p_name": string }; Returns: boolean
@@ -372,6 +391,11 @@ isOneToOne: false
                            },
 "storage_can_write":
 { Args: { "p_name": string }; Returns: boolean
+                           },
+"submit_guide_report":
+{ Args: { "p_contact_email": string,"p_details": string,"p_ip_hash": string,"p_reason": string,"p_slug": string }; Returns: {
+              "business_id": string,"business_name": string,"duplicate": boolean,"report_id": string
+            }[]
                            },
 "submit_quote_request":
 { Args: { "p_business_type"?: string,"p_email"?: string,"p_ip_hash": string,"p_message"?: string,"p_name": string,"p_phone"?: string,"p_product_id"?: string }; Returns: string

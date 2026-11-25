@@ -8,6 +8,14 @@ export const WHOP_API_VERSION_DATE = "2026-11-04-1";
 
 export const MEMBERSHIP_ID_RE = /^mem_[A-Za-z0-9]+$/;
 
+/** A Whop API answer that is not 2xx; `status` lets callers tell 404 from outages. */
+export class WhopApiError extends Error {
+  constructor(readonly status: number) {
+    super(`membership fetch failed with HTTP ${status}`);
+    this.name = "WhopApiError";
+  }
+}
+
 /**
  * Reads the current membership from Whop.
  *
@@ -20,8 +28,8 @@ export async function fetchMembership(
   config: WhopConfig,
   membershipId: string,
 ): Promise<WhopMembership> {
-  if (!config.apiKey) {
-    throw new Error("WHOP_API_KEY is not configured");
+  if (!config.apiKey || !config.apiBase) {
+    throw new Error("WHOP_API_KEY or WHOP_ENVIRONMENT is not configured");
   }
   if (!MEMBERSHIP_ID_RE.test(membershipId)) {
     throw new Error("invalid membership id");
@@ -38,7 +46,7 @@ export async function fetchMembership(
     },
   );
   if (!response.ok) {
-    throw new Error(`membership fetch failed with HTTP ${response.status}`);
+    throw new WhopApiError(response.status);
   }
   const membership = (await response.json()) as WhopMembership;
   if (membership?.id !== membershipId) {
