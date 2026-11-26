@@ -109,6 +109,8 @@ export function PlanChangeList({
             : option.price
               ? `/contacto?plan=${option.id}&periodo=${billing === "monthly" ? "mensual" : "anual"}`
               : `/contacto?plan=${option.id}`;
+          // A quote (Managers) opens the contact form in a new tab so the panel stays open.
+          const newTab = !toCurrent && option.price === null;
           return (
             <li key={option.id}>
               <RowShell
@@ -116,6 +118,7 @@ export function PlanChangeList({
                 billing={billing}
                 href={href}
                 current={current}
+                newTab={newTab}
               >
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-2 font-semibold">
@@ -152,7 +155,7 @@ export function PlanChangeList({
                   ) : null}
                 </span>
                 <span aria-hidden="true" className="text-ink-soft">
-                  ›
+                  {newTab ? "↗" : "›"}
                 </span>
               </RowShell>
             </li>
@@ -169,12 +172,14 @@ function RowShell({
   billing,
   href,
   current,
+  newTab,
   children,
 }: {
   checkoutPlan: PlanId | null;
   billing: BillingPeriod;
   href: string;
   current: boolean;
+  newTab: boolean;
   children: ReactNode;
 }) {
   if (checkoutPlan) {
@@ -190,6 +195,7 @@ function RowShell({
     <Link
       href={href}
       aria-current={current ? "true" : undefined}
+      {...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
       className={ROW_CLASS}
     >
       {children}
