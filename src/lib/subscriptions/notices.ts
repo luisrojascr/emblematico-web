@@ -12,13 +12,17 @@ export type NoticeKind =
   | "trial_ended"
   | "paid_7d"
   | "paid_ended"
-  | "paid_dropped";
+  | "paid_dropped"
+  /** Sent by the Whop webhook when the buyer schedules a cancellation. */
+  | "paid_canceled";
 
 export type NoticeSubscription = {
   plan: PlanId;
   status: "trialing" | "active" | "past_due" | "canceled" | "expired";
   trial_ends_at: string | null;
   current_period_end: string | null;
+  /** "whop" for plans paid online; anything else was paid by hand. */
+  provider?: string | null;
 };
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -46,6 +50,10 @@ export function dueNotice(
     if (left <= 7) return { kind: "trial_7d", periodEnd: end, daysLeft: left };
     return null;
   }
+
+  // Whop renews active plans on its own (a failed charge turns them past_due), so
+  // a "your plan expires" reminder would be wrong. Canceled ones do get it.
+  if (sub.provider === "whop" && sub.status === "active") return null;
 
   if (
     (sub.status === "active" || sub.status === "canceled") &&
@@ -120,6 +128,8 @@ export function noticeEmail(
     periodEnd: Date;
     daysLeft: number;
     siteUrl: string;
+    /** Paid online (Whop): renewing is done from the panel, not by writing to us. */
+    selfServe?: boolean;
   },
 ): NoticeEmail {
   const hello = input.name?.trim()
@@ -174,7 +184,9 @@ export function noticeEmail(
         heading: `Tu plan vence en ${days}`,
         paragraphs: [
           hello,
-          `Tu plan ${plan} vence el ${date}. Para renovarlo, escríbenos y coordinamos el pago (tarjeta o SINPE Móvil).`,
+          input.selfServe
+            ? `Tu plan ${plan} vence el ${date} y no se renovará porque lo cancelaste. Si quieres mantenerlo, reactívalo desde tu panel antes de esa fecha.`
+            : `Tu plan ${plan} vence el ${date}. Para renovarlo, escríbenos y coordinamos el pago (tarjeta o SINPE Móvil).`,
           `Si no lo renuevas, ${keepsWorking.charAt(0).toLowerCase()}${keepsWorking.slice(1)}`,
         ],
         cta: { label: "Renovar mi plan", url: planUrl },
@@ -203,6 +215,19 @@ export function noticeEmail(
           `Cuando quieras volver a ${plan}, puedes hacerlo desde tu panel.`,
         ],
         cta: { label: "Ver planes", url: plansUrl },
+      };
+      break;
+    case "paid_canceled":
+      content = {
+        subject: `Cancelaste tu plan ${plan} de emblemático`,
+        heading: "Tu plan no se renovará",
+        paragraphs: [
+          hello,
+          `Recibimos la cancelación de tu plan ${plan}. Lo sigues teniendo completo hasta el ${date} y no se te volverá a cobrar.`,
+          `Después de esa fecha, ${keepsWorking.charAt(0).toLowerCase()}${keepsWorking.slice(1)}`,
+          "Si cambias de opinión, puedes reactivarlo desde tu panel antes de esa fecha.",
+        ],
+        cta: { label: "Ver mi plan", url: planUrl },
       };
       break;
   }

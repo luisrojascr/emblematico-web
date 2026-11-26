@@ -36,9 +36,9 @@ export const PANEL_TEXT: Readonly<Record<string, { en: string; fr: string }>> =
     Inicio: { en: "Home", fr: "Accueil" },
     Cuenta: { en: "Account", fr: "Compte" },
     Original: { en: "Original", fr: "Original" },
-    "Disponible en Essential y Plus.": {
-      en: "Available on Essential and Plus.",
-      fr: "Disponible avec Essential et Plus.",
+    "Disponible en los planes de pago.": {
+      en: "Available on the paid plans.",
+      fr: "Disponible avec les forfaits payants.",
     },
     "Ejemplo: 2222 3333": { en: "Example: 2222 3333", fr: "Exemple : 2222 3333" },
     "Producto": { en: "Product", fr: "Produit" },

@@ -84,4 +84,74 @@ export const PANEL_PLAN_TEXT: Readonly<
     en: "You created several properties in a row. Wait a while and try again.",
     fr: "Vous avez créé plusieurs hébergements d’affilée. Patientez un moment puis réessayez.",
   },
+  // Online payment through Whop (step 2 of the Whop integration).
+  "¡Gracias! Tu pago se recibió y tu plan {plan} está activo.": {
+    en: "Thank you! Your payment went through and your {plan} plan is active.",
+    fr: "Merci ! Votre paiement a été reçu et votre forfait {plan} est actif.",
+  },
+  "¡Gracias! Recibimos tu pago. Tu plan se activa en unos segundos: si aún no lo ves, recarga la página.":
+    {
+      en: "Thank you! We received your payment. Your plan turns on in a few seconds: if you don’t see it yet, reload the page.",
+      fr: "Merci ! Nous avons reçu votre paiement. Votre forfait s’active dans quelques secondes : s’il n’apparaît pas encore, rechargez la page.",
+    },
+  "No pudimos abrir el pago. Intenta de nuevo en un momento o escríbenos.": {
+    en: "We couldn’t open the payment page. Try again in a moment or contact us.",
+    fr: "Nous n’avons pas pu ouvrir la page de paiement. Réessayez dans un instant ou écrivez-nous.",
+  },
+  "No pudimos abrir la página de tu suscripción. Intenta de nuevo en un momento o escríbenos.":
+    {
+      en: "We couldn’t open your subscription page. Try again in a moment or contact us.",
+      fr: "Nous n’avons pas pu ouvrir la page de votre abonnement. Réessayez dans un instant ou écrivez-nous.",
+    },
+  "o {price} al mes": { en: "or {price} per month", fr: "ou {price} par mois" },
+  "Pagas con tarjeta en Whop, nuestro procesador de pagos, y puedes cancelar cuando quieras. ¿Prefieres SINPE Móvil?":
+    {
+      en: "You pay by card on Whop, our payment processor, and you can cancel anytime. Prefer SINPE Móvil?",
+      fr: "Vous payez par carte sur Whop, notre prestataire de paiement, et vous pouvez annuler à tout moment. Vous préférez SINPE Móvil ?",
+    },
+  Escríbenos: { en: "Contact us", fr: "Écrivez-nous" },
+  "No pudimos cobrar tu plan. Actualiza tu tarjeta en “Administrar suscripción” para mantenerlo activo.":
+    {
+      en: "We couldn’t charge your plan. Update your card in “Manage subscription” to keep it active.",
+      fr: "Nous n’avons pas pu débiter votre forfait. Mettez à jour votre carte dans « Gérer l’abonnement » pour le garder actif.",
+    },
+  "Cancelaste tu plan: no se renovará y lo mantienes hasta el {date}. Si cambias de opinión, reactívalo antes de esa fecha.":
+    {
+      en: "You canceled your plan: it won’t renew and you keep it until {date}. If you change your mind, resume it before then.",
+      fr: "Vous avez annulé votre forfait : il ne sera pas renouvelé et vous le gardez jusqu’au {date}. Si vous changez d’avis, réactivez-le avant cette date.",
+    },
+  "Termina el": { en: "Ends on", fr: "Se termine le" },
+  "Se renueva el": { en: "Renews on", fr: "Se renouvelle le" },
+  "Administrar suscripción": {
+    en: "Manage subscription",
+    fr: "Gérer l’abonnement",
+  },
+  "Cambia tu tarjeta, cancela o reactiva tu plan en Whop, nuestro procesador de pagos.":
+    {
+      en: "Change your card, cancel or resume your plan on Whop, our payment processor.",
+      fr: "Changez de carte, annulez ou réactivez votre forfait sur Whop, notre prestataire de paiement.",
+    },
+  "Pagas con tarjeta en Whop, nuestro procesador de pagos. ¿Prefieres SINPE Móvil? Escríbenos desde la página de contacto. Cambiar a un plan menor conserva todo lo que escribiste.":
+    {
+      en: "You pay by card on Whop, our payment processor. Prefer SINPE Móvil? Write to us from the contact page. Moving to a smaller plan keeps everything you wrote.",
+      fr: "Vous payez par carte sur Whop, notre prestataire de paiement. Vous préférez SINPE Móvil ? Écrivez-nous depuis la page de contact. Passer à un forfait inférieur conserve tout ce que vous avez écrit.",
+    },
+  // Welcome piece offer on the QR page.
+  "Pieza de bienvenida 3D con el código QR de la guía": {
+    en: "3D welcome piece with the guide’s QR code",
+    fr: "Pièce d’accueil 3D avec le code QR du guide",
+  },
+  "Lleva tu QR a la mesa de bienvenida": {
+    en: "Bring your QR to the welcome table",
+    fr: "Placez votre QR sur la table d’accueil",
+  },
+  "Una pieza personalizada impresa en 3D con el código QR de tu guía, para la recepción o la habitación. Pago único, desde {price} c/u.":
+    {
+      en: "A custom 3D-printed piece with your guide’s QR code, for the front desk or the room. One-time payment, from {price} each.",
+      fr: "Une pièce personnalisée imprimée en 3D avec le code QR de votre guide, pour la réception ou la chambre. Paiement unique, à partir de {price} l’unité.",
+    },
+  "Pedir pieza de bienvenida": {
+    en: "Order a welcome piece",
+    fr: "Commander une pièce d’accueil",
+  },
 };

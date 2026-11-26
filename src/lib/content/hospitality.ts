@@ -80,7 +80,7 @@ export const FAQ = [
   },
   {
     q: "¿Sirve para más de una propiedad?",
-    a: "Sí. Essential incluye 3 alojamientos y puedes sumar hasta 4 adicionales (7 en total). Plus incluye 7 y puedes sumar los que necesites. Cada adicional cuesta $15 al año o $1.50 al mes. Si administras una cartera grande, el plan para administradores se cotiza a la medida.",
+    a: "Sí. Essential incluye 3 alojamientos y puedes sumar hasta 4 adicionales (7 en total). Cada adicional cuesta $15 al año o $1.50 al mes. Si administras una cartera más grande, el plan para administradores se cotiza a la medida e incluye onboarding y soporte prioritario por WhatsApp.",
   },
   {
     q: "¿Cuánto cuesta y qué incluye la renovación?",
@@ -88,7 +88,7 @@ export const FAQ = [
   },
   {
     q: "¿Qué pasa al terminar la prueba de 30 días?",
-    a: "Durante 30 días usas Essential completo, sin costo. (Plus no tiene prueba porque incluye onboarding personalizado y soporte por WhatsApp desde el primer día.) Si decides continuar, eliges pago mensual o anual. Si no, tu cuenta pasa a ser una cuenta gratuita, pero limitada, y tu guía no se apaga: sigue activa en versión básica (1 alojamiento, 5 servicios, con la nota «Creado con emblemático»), así que tu QR y tu pieza de bienvenida siguen funcionando.",
+    a: "Durante 30 días usas Essential completo, sin costo. Si decides continuar, eliges pago mensual o anual. Si no, tu cuenta pasa a ser una cuenta gratuita, pero limitada, y tu guía no se apaga: sigue activa en versión básica (1 alojamiento, 5 servicios, con la nota «Creado con emblemático»), así que tu QR y tu pieza de bienvenida siguen funcionando.",
   },
 ] as const;
 

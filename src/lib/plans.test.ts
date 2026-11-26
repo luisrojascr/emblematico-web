@@ -14,6 +14,7 @@ import {
   parseBilling,
   formatUsd,
   getPlan,
+  OFFERED_PLAN_IDS,
   pieceUnitPrice,
   piecesTotal,
 } from "./plans";
@@ -51,7 +52,19 @@ describe("PLANS", () => {
     expect(getPlan("essential")?.maxProperties).toBe(7);
     expect(MAX_SELF_SERVE_PROPERTIES).toBe(7);
     expect(ESSENTIAL_MAX_PROPERTIES).toBe(7);
-    expect(getPlan("managers")?.includes[0]).toBe("Más de 10 alojamientos");
+    expect(getPlan("managers")?.includes[0]).toBe("Más de 7 alojamientos");
+  });
+
+  it("offers Essential as the only self-serve paid plan (Plus retired)", () => {
+    expect(SITE_PLAN_IDS).toEqual(["essential", "managers"]);
+    expect(OFFERED_PLAN_IDS).not.toContain("plus");
+    expect(getPlan("managers")?.includes).toEqual(
+      expect.arrayContaining([
+        "Todo lo de Essential",
+        "Onboarding personalizado: te ayudamos a montar las guías y el sistema",
+        "Soporte con respuesta más rápida por WhatsApp",
+      ]),
+    );
   });
 
   it("does not include the 3D piece in the self-serve plans", () => {
@@ -92,7 +105,7 @@ describe("PLANS", () => {
   });
 
   it("shows only the paid plans on the public site", () => {
-    expect(SITE_PLAN_IDS).toEqual(["essential", "plus", "managers"]);
+    expect(SITE_PLAN_IDS).toEqual(["essential", "managers"]);
   });
 
   it("offers the free trial only on Essential", () => {

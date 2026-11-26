@@ -10,12 +10,14 @@ test("home renders hospitality headline in Spanish", async ({ page }) => {
   ).toBeVisible();
 });
 
-test("home lists the Essential and Plus plans, with Free only as the guarantee", async ({
+test("home lists Essential and the managers plan, with Free only as the guarantee", async ({
   page,
 }) => {
   await page.goto("/");
   await expect(page.getByText("Hospitality Essential").first()).toBeVisible();
-  await expect(page.getByText("Hospitality Plus").first()).toBeVisible();
+  await expect(page.getByText("Plan para administradores").first()).toBeVisible();
+  // Plus was retired on Nov 26 2026: Essential is the only self-serve paid plan.
+  await expect(page.getByText("Hospitality Plus")).toHaveCount(0);
   // Since the reverse trial (Nov 2026) Free has no card; it shows as a guarantee.
   await expect(page.getByText("Hospitality Free")).toHaveCount(0);
   await expect(

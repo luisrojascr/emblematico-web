@@ -58,6 +58,13 @@ describe("dueNotice", () => {
     expect(dueNotice(paid(at(5), "past_due"), now)).toBeNull();
   });
 
+  it("skips renewal reminders for Whop plans, which renew on their own", () => {
+    expect(dueNotice({ ...paid(at(3)), provider: "whop" }, now)).toBeNull();
+    expect(
+      dueNotice({ ...paid(at(3), "canceled"), provider: "whop" }, now)?.kind,
+    ).toBe("paid_7d");
+  });
+
   it("ignores Free", () => {
     expect(dueNotice({ ...trial(at(3)), plan: "free" }, now)).toBeNull();
   });
@@ -105,10 +112,20 @@ describe("noticeEmail", () => {
       "paid_7d",
       "paid_ended",
       "paid_dropped",
+      "paid_canceled",
     ] as const) {
       const email = noticeEmail(kind, { ...base, daysLeft: 1 });
       expect(email.subject).not.toBe("");
       expect(email.html).toContain("#d4a862");
     }
+  });
+
+  it("tells online buyers to reactivate from the panel, not to write to us", () => {
+    const selfServe = noticeEmail("paid_7d", { ...base, selfServe: true });
+    expect(selfServe.text).toContain("reactívalo desde tu panel");
+    expect(selfServe.text).not.toContain("SINPE");
+    const cancel = noticeEmail("paid_canceled", { ...base, selfServe: true });
+    expect(cancel.subject).toContain("Cancelaste tu plan");
+    expect(cancel.text).toContain("no se te volverá a cobrar");
   });
 });

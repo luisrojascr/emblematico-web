@@ -5,7 +5,8 @@ import { emailLink, signIn } from "./auth";
 /**
  * Self-serve signup end to end (phase 6). Needs the local Supabase stack with Mailpit
  * and the seeded admin (scripts/seed-dev-users.mjs). Turnstile stays off locally
- * (no NEXT_PUBLIC_TURNSTILE_SITE_KEY), so no captcha is shown.
+ * (no NEXT_PUBLIC_TURNSTILE_SITE_KEY), so no captcha is shown. Signup must be open:
+ * NEXT_PUBLIC_SIGNUP_ENABLED=true in .env.local.
  */
 
 test("a visitor signs up, confirms the email and starts the trial; a suspended account cannot sign in", async ({
