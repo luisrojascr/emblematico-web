@@ -103,9 +103,7 @@ export function PlanChangeList({
           const savings = annualSavings(option);
           const toCurrent = current && !trialing;
           const sellsOnline =
-            checkout &&
-            !toCurrent &&
-            (option.id === "essential" || option.id === "plus");
+            checkout && !toCurrent && option.id === "essential";
           const href = toCurrent
             ? "#suscripcion"
             : option.price

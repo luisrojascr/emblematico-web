@@ -36,7 +36,7 @@ async function ownRow(userId: string): Promise<BillingRow> {
 }
 
 function parsePlan(value: FormDataEntryValue | null): CheckoutPlan | null {
-  return value === "essential" || value === "plus" ? value : null;
+  return value === "essential" ? value : null;
 }
 
 function parseBilling(
@@ -46,7 +46,7 @@ function parseBilling(
 }
 
 /**
- * "Continue with Essential" / "Buy Plus": creates a Whop checkout for the chosen
+ * "Continue with Essential": creates a Whop checkout for the chosen
  * price with this account in its metadata and sends the browser there. The plan is
  * unlocked later by the webhook, never here.
  */

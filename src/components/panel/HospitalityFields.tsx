@@ -472,7 +472,7 @@ function SectionCard({
 
 /**
  * Services every plan includes. The rest (recommendations and the optional
- * services) need Essential or Plus.
+ * services) need a paid plan.
  */
 const BASIC_SECTIONS: ReadonlySet<SectionKey> = new Set([
   "welcome",
@@ -487,7 +487,7 @@ export function HospitalityFields({
   fullServices = false,
 }: {
   form: Form;
-  /** The owner's plan includes every service (Essential and Plus). */
+  /** The owner's plan includes every service (any paid plan). */
   fullServices?: boolean;
 }) {
   const { t } = usePanelI18n();
@@ -879,7 +879,7 @@ export function HospitalityFields({
                             {t(SECTIONS[key].title)}
                           </span>
                           <span className="text-ink-soft block text-sm">
-                            {t("Disponible en Essential y Plus.")}
+                            {t("Disponible en los planes de pago.")}
                           </span>
                         </span>
                         <span className="bg-sand/30 text-ink rounded-full px-2 py-0.5 text-xs font-bold">

@@ -55,7 +55,7 @@ export async function translateGuide(
   if (!entitlements || entitlements.plan === "free") {
     return {
       ok: false,
-      message: "Las traducciones están disponibles en Essential y Plus.",
+      message: "Las traducciones están disponibles en los planes de pago.",
     };
   }
 

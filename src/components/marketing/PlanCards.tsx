@@ -324,7 +324,7 @@ export function PlanCards() {
   return (
     <div className="space-y-6">
       {SHOW_PRICES && <BillingToggle value={billing} onChange={setBilling} />}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
         {shown.map((plan) =>
           plan.price === null ? (
             <ManagersCard key={plan.id} plan={plan} />

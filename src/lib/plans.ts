@@ -50,7 +50,7 @@ export type Plan = {
   extraPropertyMonthly?: number;
   /** Máximo de alojamientos en total sumando adicionales. Sin valor = sin límite. */
   maxProperties?: number;
-  /** Se puede empezar con TRIAL_DAYS días gratis (Plus no: incluye onboarding y soporte por WhatsApp). */
+  /** Se puede empezar con TRIAL_DAYS días gratis (hoy solo Essential). */
   trial?: boolean;
   /** La guía se publica sin "Página creada con emblemático". */
   removesBranding?: boolean;
@@ -59,16 +59,19 @@ export type Plan = {
   highlighted?: boolean;
 };
 
-/** Alojamientos incluidos en Plus (y tope de Essential con adicionales). */
+/** Tope de alojamientos de Essential sumando adicionales (y los que incluía Plus). */
 export const MAX_SELF_SERVE_PROPERTIES = 7;
 
 /** Essential puede sumar alojamientos adicionales hasta esta cantidad. */
 export const ESSENTIAL_MAX_PROPERTIES = MAX_SELF_SERVE_PROPERTIES;
 
-/** El plan para administradores se anuncia para más de esta cantidad de alojamientos. */
-export const MANAGERS_MIN_PROPERTIES = 10;
+/**
+ * The managers plan is announced for more than this many properties: right where
+ * Essential stops (3 included plus up to 4 extra), so no size falls in between.
+ */
+export const MANAGERS_MIN_PROPERTIES = MAX_SELF_SERVE_PROPERTIES;
 
-/** Precio de cada alojamiento adicional (Essential hasta 7 en total; Plus sin límite). */
+/** Precio de cada alojamiento adicional (Essential hasta 7 en total). */
 export const EXTRA_PROPERTY_YEARLY = 15;
 export const EXTRA_PROPERTY_MONTHLY = 1.5;
 
@@ -81,7 +84,7 @@ export const BASIC_SERVICES = [
   "Reglas de la casa",
 ] as const;
 
-/** Los 15 servicios estándar de Essential y Plus (incluye los 5 básicos). */
+/** Los 15 servicios estándar de los planes de pago (incluye los 5 básicos). */
 export const STANDARD_SERVICES = [
   ...BASIC_SERVICES,
   "Recomendaciones",
@@ -144,6 +147,9 @@ export const PLANS: readonly Plan[] = [
       "Soporte por email",
     ],
   },
+  // Retired on Nov 26 2026: Essential is the only self-serve paid plan, and onboarding
+  // and priority WhatsApp support moved to the managers plan. Kept so accounts that
+  // still have Plus (the plan_tier enum keeps it) show their plan; never offered.
   {
     id: "plus",
     removesBranding: true,
@@ -170,7 +176,9 @@ export const PLANS: readonly Plan[] = [
     summary: "Para administradores de propiedades con una cartera grande.",
     includes: [
       `Más de ${MANAGERS_MIN_PROPERTIES} alojamientos`,
-      "Todo lo de Plus",
+      "Todo lo de Essential",
+      "Onboarding personalizado: te ayudamos a montar las guías y el sistema",
+      "Soporte con respuesta más rápida por WhatsApp",
       "Precio por volumen en guías y piezas 3D",
       "Configuración a la medida de tu cartera",
     ],
@@ -188,9 +196,12 @@ export const TRIAL_GUARANTEE =
  * Planes que se muestran en el sitio público. Free no se ofrece como tarjeta:
  * existe en el panel y es a lo que baja una cuenta que no paga.
  */
-export const SITE_PLAN_IDS: readonly PlanId[] = [
+export const SITE_PLAN_IDS: readonly PlanId[] = ["essential", "managers"];
+
+/** Planes que se pueden elegir hoy (formularios de contacto y de admin). Plus está retirado. */
+export const OFFERED_PLAN_IDS: readonly PlanId[] = [
+  "free",
   "essential",
-  "plus",
   "managers",
 ];
 

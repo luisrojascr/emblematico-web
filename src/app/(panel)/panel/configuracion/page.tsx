@@ -191,7 +191,7 @@ async function Settings({
                 )}
               </p>
               {mode === "checkout" &&
-              (plan.id === "essential" || plan.id === "plus") &&
+              plan.id === "essential" &&
               plan.price &&
               plan.monthlyPrice ? (
                 <>

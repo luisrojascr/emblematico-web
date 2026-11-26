@@ -45,7 +45,7 @@ export function PageEditor({
   content: PageContent;
   invalidDraft: boolean;
   notice?: string;
-  /** The owner's plan includes translations (Essential and Plus). */
+  /** The owner's plan includes translations (any paid plan). */
   canTranslate?: boolean;
 }) {
   switch (content.templateKey) {

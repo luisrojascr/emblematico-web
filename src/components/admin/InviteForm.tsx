@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { inviteClient } from "@/app/(site)/admin/usuarios/actions";
 import { planName } from "@/lib/admin/accounts";
 import { idleState } from "@/lib/admin/schemas";
-import { PLAN_IDS } from "@/lib/plans";
+import { OFFERED_PLAN_IDS } from "@/lib/plans";
 
 import { SubmitButton } from "./SubmitButton";
 import { FieldError, inputClass } from "./ui";
@@ -58,7 +58,7 @@ export function InviteForm() {
             defaultValue="free"
             className={inputClass}
           >
-            {PLAN_IDS.map((id) => (
+            {OFFERED_PLAN_IDS.map((id) => (
               <option key={id} value={id}>
                 {planName(id)}
               </option>

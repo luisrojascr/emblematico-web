@@ -2,7 +2,12 @@
 
 import { useActionState } from "react";
 
-import { BILLING_LABELS, BILLING_PERIODS, PLANS } from "@/lib/plans";
+import {
+  BILLING_LABELS,
+  BILLING_PERIODS,
+  OFFERED_PLAN_IDS,
+  PLANS,
+} from "@/lib/plans";
 import { ACCOMMODATION_TYPES, CR_AREAS } from "@/lib/quotes/schema";
 
 import { type QuoteFormState, submitQuote } from "./actions";
@@ -221,7 +226,7 @@ export function QuoteForm({
             className={inputClass}
           >
             <option value="">Aún no lo sé</option>
-            {PLANS.map((p) => (
+            {PLANS.filter((p) => OFFERED_PLAN_IDS.includes(p.id)).map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>

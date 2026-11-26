@@ -9,7 +9,7 @@ import {
   planName,
 } from "@/lib/admin/accounts";
 import { idleState } from "@/lib/admin/schemas";
-import { PLAN_IDS, type PlanId } from "@/lib/plans";
+import { OFFERED_PLAN_IDS, type PlanId } from "@/lib/plans";
 
 import { SubmitButton } from "./SubmitButton";
 import { FieldError, inputClass } from "./ui";
@@ -66,7 +66,11 @@ export function AccountPlanForm({
           onChange={(event) => setPlan(event.target.value as PlanId)}
           className={inputClass}
         >
-          {PLAN_IDS.map((id) => (
+          {/* A retired plan (Plus) stays listed only for an account that still has it. */}
+          {(OFFERED_PLAN_IDS.includes(initial.plan)
+            ? OFFERED_PLAN_IDS
+            : [...OFFERED_PLAN_IDS, initial.plan]
+          ).map((id) => (
             <option key={id} value={id}>
               {planName(id)}
             </option>

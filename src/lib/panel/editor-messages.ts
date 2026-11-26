@@ -7,9 +7,9 @@ export const PANEL_EDITOR_TEXT: Readonly<
       en: "Your guests will see your text in the language they choose. Translate in one click and fix anything you like before saving.",
       fr: "Vos invités verront votre texte dans la langue choisie. Traduisez en un clic et corrigez ce que vous voulez avant d’enregistrer.",
     },
-  "Las traducciones están disponibles en Essential y Plus.": {
-    en: "Translations are available on Essential and Plus.",
-    fr: "Les traductions sont disponibles avec Essential et Plus.",
+  "Las traducciones están disponibles en los planes de pago.": {
+    en: "Translations are available on the paid plans.",
+    fr: "Les traductions sont disponibles avec les forfaits payants.",
   },
   "Traducir": { en: "Translate", fr: "Traduire" },
   "Traduciendo...": { en: "Translating...", fr: "Traduction..." },
@@ -937,9 +937,9 @@ export const PANEL_EDITOR_TEXT: Readonly<
     en: "Faster support via WhatsApp",
     fr: "Assistance plus rapide par WhatsApp",
   },
-  "Más de 10 alojamientos": {
-    en: "More than 10 properties",
-    fr: "Plus de 10 hébergements",
+  "Más de 7 alojamientos": {
+    en: "More than 7 properties",
+    fr: "Plus de 7 hébergements",
   },
   "Listo, trajimos: {fields}. Revisa y corrige lo que quieras en el siguiente paso.":
     {

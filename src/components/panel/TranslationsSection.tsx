@@ -118,7 +118,7 @@ export function TranslationsSection({
           role="status"
           className="border-ink/20 bg-cream/70 rounded-2xl border border-dashed p-4 text-sm"
         >
-          {t("Las traducciones están disponibles en Essential y Plus.")}
+          {t("Las traducciones están disponibles en los planes de pago.")}
         </div>
       ) : (
         <>

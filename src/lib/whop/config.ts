@@ -2,8 +2,8 @@ import "server-only";
 
 import type { ProductMap } from "./membership";
 
-/** Paid plans and billing periods sold through Whop checkout. */
-export type CheckoutPlan = "essential" | "plus";
+/** The paid plan sold through Whop checkout (Plus was retired on Nov 26 2026). */
+export type CheckoutPlan = "essential";
 export type CheckoutBilling = "monthly" | "annual";
 
 /**
@@ -52,10 +52,6 @@ export function whopConfig(): WhopConfig {
       monthly: variantId(process.env.WHOP_PLAN_ESSENTIAL_MONTHLY),
       annual: variantId(process.env.WHOP_PLAN_ESSENTIAL_ANNUAL),
     },
-    plus: {
-      monthly: variantId(process.env.WHOP_PLAN_PLUS_MONTHLY),
-      annual: variantId(process.env.WHOP_PLAN_PLUS_ANNUAL),
-    },
   };
   // Every price the panel sells unlocks its plan; WHOP_PLAN_IDS can add others
   // (for example an older price that existing members still renew on).
@@ -68,6 +64,7 @@ export function whopConfig(): WhopConfig {
     webhookSecret: process.env.WHOP_WEBHOOK_SECRET || null,
     products: {
       essential: process.env.WHOP_PRODUCT_ESSENTIAL || null,
+      // Optional: only for memberships bought before Plus was retired.
       plus: process.env.WHOP_PRODUCT_PLUS || null,
       variants: new Set([...variantIds(process.env.WHOP_PLAN_IDS), ...sold]),
     },
@@ -77,20 +74,17 @@ export function whopConfig(): WhopConfig {
 
 /**
  * Online payment is all or nothing: the API, the webhook (without it a payment would
- * never unlock the plan) and the four prices must be set. Otherwise the panel keeps
- * the "we contact you" buttons.
+ * never unlock the plan), the Essential product and both its prices must be set.
+ * Otherwise the panel keeps the "we contact you" buttons.
  */
 export function onlinePaymentsEnabled(config: WhopConfig): boolean {
-  const { essential, plus } = config.checkoutVariants;
+  const { essential } = config.checkoutVariants;
   return Boolean(
     config.apiBase &&
     config.apiKey &&
     config.webhookSecret &&
     config.products.essential &&
-    config.products.plus &&
     essential.monthly &&
-    essential.annual &&
-    plus.monthly &&
-    plus.annual,
+    essential.annual,
   );
 }
