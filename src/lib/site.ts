@@ -19,6 +19,13 @@ export const SITE = {
   demoGuideUrl: `${PRODUCTION_ORIGIN}${DEMO_GUIDE_PATH}`,
 } as const;
 
+/**
+ * Self-service signup is open only when NEXT_PUBLIC_SIGNUP_ENABLED is "true". A
+ * deploy without it keeps signup closed and shows "Muy pronto" instead. The value is
+ * read at build time, so changing it in Vercel needs a redeploy.
+ */
+export const SIGNUP_OPEN = process.env.NEXT_PUBLIC_SIGNUP_ENABLED === "true";
+
 export function whatsappLink(message?: string): string {
   const base = `https://wa.me/${SITE.whatsappNumber}`;
   return message ? `${base}?text=${encodeURIComponent(message)}` : base;

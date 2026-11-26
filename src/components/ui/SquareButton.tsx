@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 type Variant = "primary" | "outline" | "bronze";
 
@@ -23,6 +23,24 @@ export function SquareLink({
 }: Props) {
   return (
     <Link {...props} className={`${BASE} ${STYLES[variant]} ${className}`} />
+  );
+}
+
+/** Same shape as the buttons, but inert: for actions that are not available yet. */
+export function SquareDisabled({
+  className = "",
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      aria-disabled="true"
+      className={`${BASE} bg-cream-dark text-ink-soft cursor-default ${className}`}
+    >
+      {children}
+    </span>
   );
 }
 

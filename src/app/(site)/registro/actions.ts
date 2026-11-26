@@ -17,7 +17,7 @@ import {
   signupIssueMessage,
   signupSchema,
 } from "@/lib/auth/signup";
-import { SITE } from "@/lib/site";
+import { SIGNUP_OPEN, SITE } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 export type SignupState = {
@@ -31,6 +31,10 @@ export async function signUp(
   _prev: SignupState,
   formData: FormData,
 ): Promise<SignupState> {
+  // The page hides the form while signup is closed; this also stops direct posts.
+  if (!SIGNUP_OPEN) {
+    return { status: "error", message: "El registro abre muy pronto." };
+  }
   // Honeypot: real users never see or fill this field. Answer like a success.
   if (String(formData.get("website") ?? "") !== "") {
     redirect("/registro/verifica");

@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 
 import { PlanFeatureItem } from "@/components/marketing/PlanFeatureItem";
-import { SquareLink } from "@/components/ui/SquareButton";
+import { SquareDisabled, SquareLink } from "@/components/ui/SquareButton";
 import {
   BILLING_LABELS,
   BILLING_PERIODS,
@@ -26,6 +27,7 @@ import {
   formatUsd,
   pieceUnitPrice,
 } from "@/lib/plans";
+import { SIGNUP_OPEN } from "@/lib/site";
 
 const stepButton =
   "border-cream-dark hover:border-ink flex h-9 w-9 items-center justify-center rounded-[4px] border bg-white text-lg leading-none disabled:opacity-40";
@@ -236,6 +238,9 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
   const href = plan.trial
     ? `/registro?periodo=${billing === "monthly" ? "mensual" : "anual"}`
     : `/contacto?${params.toString()}`;
+  // While signup is closed the trial button says "Muy pronto" and the line below
+  // offers the contact form instead.
+  const soon = Boolean(plan.trial) && !SIGNUP_OPEN;
 
   return (
     <article
@@ -267,20 +272,38 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
         ))}
       </ul>
 
-      <SquareLink
-        href={href}
-        variant={isFree ? "outline" : "primary"}
-        className="mt-4"
-      >
-        {isFree
-          ? "Comenzar gratis"
-          : plan.trial
-            ? `Empieza ${TRIAL_DAYS} días gratis`
-            : `Comprar ${plan.name.replace("Hospitality ", "")}`}
-      </SquareLink>
+      {soon ? (
+        <SquareDisabled className="mt-4">Muy pronto</SquareDisabled>
+      ) : (
+        <SquareLink
+          href={href}
+          variant={isFree ? "outline" : "primary"}
+          className="mt-4"
+        >
+          {isFree
+            ? "Comenzar gratis"
+            : plan.trial
+              ? `Empieza ${TRIAL_DAYS} días gratis`
+              : `Comprar ${plan.name.replace("Hospitality ", "")}`}
+        </SquareLink>
+      )}
       {/* Misma altura en todas las tarjetas, tenga o no prueba. */}
       <p className="text-ink-soft mt-2 min-h-5 text-center text-xs">
-        {plan.trial ? `Prueba gratis de ${TRIAL_DAYS} días · sin tarjeta` : ""}
+        {soon ? (
+          <>
+            ¿Quieres empezar ya?{" "}
+            <Link
+              href={`/contacto?${params.toString()}`}
+              className="text-teal-deep font-semibold underline"
+            >
+              Escríbenos
+            </Link>
+          </>
+        ) : plan.trial ? (
+          `Prueba gratis de ${TRIAL_DAYS} días · sin tarjeta`
+        ) : (
+          ""
+        )}
       </p>
     </article>
   );
