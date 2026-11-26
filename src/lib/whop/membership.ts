@@ -26,6 +26,8 @@ export type WhopMembership = {
   canceled_at?: string | null;
   expires_at?: string | null;
   metadata?: Record<string, unknown> | null;
+  /** Whop page where the buyer updates the card, cancels or resumes. */
+  manage_url?: string | null;
 };
 
 /**

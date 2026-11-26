@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 
+import { after } from "next/server";
+
 import { revalidateBusiness } from "@/lib/admin/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -7,6 +9,7 @@ import {
   MEMBERSHIP_ID_RE,
   WhopApiError,
 } from "@/lib/whop/api";
+import { scheduledCancellation } from "@/lib/whop/billing";
 import { whopConfig } from "@/lib/whop/config";
 import {
   bestGrantingPatch,
@@ -16,6 +19,7 @@ import {
   type SubscriptionPatch,
   type WhopMembership,
 } from "@/lib/whop/membership";
+import { sendCancellationNotice } from "@/lib/whop/notify";
 import { verifyWhopSignature } from "@/lib/whop/signature";
 
 /**
@@ -231,6 +235,19 @@ async function handleMembership(
     if (error) throw new Error(`upsert subscription: ${error.message}`);
 
     await revalidateOwnedGuides(supabase, userId);
+
+    // Our own Spanish email for a cancellation the buyer scheduled. Sent after the
+    // response so Whop gets its answer within the 5 seconds it allows.
+    const canceled =
+      patch.provider_subscription_id === membership.id
+        ? scheduledCancellation(membership, patch)
+        : null;
+    if (canceled) {
+      const notifiedUser = userId;
+      after(() =>
+        sendCancellationNotice(supabase, { userId: notifiedUser, ...canceled }),
+      );
+    }
     return `applied:${patch.plan}:${patch.status}:${patch.provider_subscription_id}`;
   } finally {
     const { error } = await supabase.rpc("release_billing_lock", {

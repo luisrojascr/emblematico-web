@@ -132,6 +132,7 @@ async function notify(
     plan: Parameters<typeof noticeEmail>[1]["plan"];
     periodEnd: Date;
     daysLeft: number;
+    selfServe?: boolean;
   },
 ): Promise<SendResult> {
   if (!input.email) return "skipped";
@@ -155,6 +156,7 @@ async function notify(
     periodEnd: input.periodEnd,
     daysLeft: input.daysLeft,
     siteUrl: SITE.url,
+    selfServe: input.selfServe,
   });
   await ctx.pace();
   const sent = await sendEmail({ to: input.email, ...email });
@@ -277,7 +279,9 @@ async function sendReminders(ctx: Context) {
   while (ctx.hasTime()) {
     let query = supabase
       .from("subscriptions")
-      .select("user_id, plan, status, trial_ends_at, current_period_end")
+      .select(
+        "user_id, plan, status, trial_ends_at, current_period_end, provider",
+      )
       .neq("plan", "free")
       .or(
         `and(status.eq.trialing,trial_ends_at.lte."${soon}"),and(status.in.(active,canceled),current_period_end.gte."${graceStart}",current_period_end.lte."${soon}")`,
@@ -332,6 +336,7 @@ async function sendReminders(ctx: Context) {
             plan: sub.plan,
             periodEnd: notice.periodEnd,
             daysLeft: notice.daysLeft,
+            selfServe: sub.provider === "whop",
           })
         ] += 1;
       }
