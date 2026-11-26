@@ -136,4 +136,22 @@ export const PANEL_PLAN_TEXT: Readonly<
       en: "You pay by card on Whop, our payment processor. Prefer SINPE Móvil? Write to us from the contact page. Moving to a smaller plan keeps everything you wrote.",
       fr: "Vous payez par carte sur Whop, notre prestataire de paiement. Vous préférez SINPE Móvil ? Écrivez-nous depuis la page de contact. Passer à un forfait inférieur conserve tout ce que vous avez écrit.",
     },
+  // Welcome piece offer on the QR page.
+  "Pieza de bienvenida 3D con el código QR de la guía": {
+    en: "3D welcome piece with the guide’s QR code",
+    fr: "Pièce d’accueil 3D avec le code QR du guide",
+  },
+  "Lleva tu QR a la mesa de bienvenida": {
+    en: "Bring your QR to the welcome table",
+    fr: "Placez votre QR sur la table d’accueil",
+  },
+  "Una pieza personalizada impresa en 3D con el código QR de tu guía, para la recepción o la habitación. Pago único, desde {price} c/u.":
+    {
+      en: "A custom 3D-printed piece with your guide’s QR code, for the front desk or the room. One-time payment, from {price} each.",
+      fr: "Une pièce personnalisée imprimée en 3D avec le code QR de votre guide, pour la réception ou la chambre. Paiement unique, à partir de {price} l’unité.",
+    },
+  "Pedir pieza de bienvenida": {
+    en: "Order a welcome piece",
+    fr: "Commander une pièce d’accueil",
+  },
 };

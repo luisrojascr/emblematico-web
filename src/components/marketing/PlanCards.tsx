@@ -13,7 +13,6 @@ import {
   type BillingPeriod,
   annualSavings,
   featureLabel,
-  firstChargeTotal,
   maxAnnualSavingsPercent,
   MAX_PIECES_ONLINE,
   PIECE_TIERS,
@@ -36,85 +35,103 @@ function piecesLabel(quantity: number): string {
   return quantity === 1 ? "1 pieza" : `${quantity} piezas`;
 }
 
-function PieceSelector({
-  planId,
+function PieceStepper({
   quantity,
   onChange,
 }: {
-  planId: string;
   quantity: number;
   onChange: (n: number) => void;
 }) {
-  const labelId = `piezas-${planId}`;
   const unit = pieceUnitPrice(quantity);
   return (
     <div
-      className={`rounded-xl border p-4 transition-colors ${
-        quantity > 0 ? "border-sand bg-cream" : "border-cream-dark bg-white"
-      }`}
+      role="group"
+      aria-label="Cantidad de piezas"
+      className="flex items-center gap-3"
     >
-      <div className="flex items-start gap-4">
+      <button
+        type="button"
+        className={stepButton}
+        onClick={() => onChange(Math.max(1, quantity - 1))}
+        disabled={quantity <= 1}
+        aria-label="Quitar una pieza"
+      >
+        −
+      </button>
+      <output
+        aria-live="polite"
+        className="w-24 text-center text-sm whitespace-nowrap"
+      >
+        {piecesLabel(quantity)}
+      </output>
+      <button
+        type="button"
+        className={stepButton}
+        onClick={() => onChange(Math.min(MAX_PIECES_ONLINE + 1, quantity + 1))}
+        disabled={quantity > MAX_PIECES_ONLINE}
+        aria-label="Agregar una pieza"
+      >
+        +
+      </button>
+      {SHOW_PRICES && (
+        <span className="text-ink-soft text-xs whitespace-nowrap">
+          {unit !== null ? `${formatUsd(unit)} c/u` : "Cotización"}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The welcome piece on its own, below the plans. It used to sit inside the plan card,
+ * but the plan now starts as a free trial without a card, so the pieces never reached
+ * the signup. Here it is a separate, one-time order through the contact form.
+ */
+function WelcomePieceOffer() {
+  const [pieces, setPieces] = useState(1);
+  return (
+    <section
+      aria-labelledby="pieza-bienvenida"
+      className="border-cream-dark mx-auto max-w-4xl rounded-2xl border bg-white p-6 sm:p-8"
+    >
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
         <Image
           src="/images/welcome-piece.webp"
           alt="Ejemplo de pieza de bienvenida 3D con logo y código QR"
-          width={112}
-          height={112}
-          className="border-cream-dark h-24 w-24 shrink-0 rounded-lg border object-cover sm:h-28 sm:w-28"
+          width={176}
+          height={176}
+          className="border-cream-dark h-40 w-40 shrink-0 rounded-xl border object-cover sm:h-44 sm:w-44"
         />
-        <div className="min-w-0 space-y-1">
+        <div className="min-w-0 flex-1 space-y-3">
           <p className="text-sand-dark text-[11px] font-semibold tracking-[0.08em] uppercase">
-            Extra recomendado
+            Opcional · pago único
           </p>
-          <p id={labelId} className="text-sm leading-snug font-semibold">
-            Agregar {WELCOME_PIECE.inlineName}
+          <h3 id="pieza-bienvenida" className="text-2xl">
+            {WELCOME_PIECE.name}
+          </h3>
+          <p className="text-ink-soft text-sm">
+            Pieza personalizada impresa en 3D con el código QR de tu guía, para
+            la recepción o la habitación. Funciona con cualquier plan, también
+            durante la prueba gratis.
           </p>
-          <p className="text-ink-soft text-xs leading-snug">
-            {WELCOME_PIECE.description}
-          </p>
+          {SHOW_PRICES && (
+            <p className="text-ink-soft text-xs">
+              {PIECE_TIERS.map(
+                (t) => `${formatUsd(t.unit)} c/u (${t.min}–${t.max})`,
+              ).join(", ")}
+              ; más de {MAX_PIECES_ONLINE}, por cotización. El envío se cobra
+              aparte.
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-4 pt-1">
+            <PieceStepper quantity={pieces} onChange={setPieces} />
+            <SquareLink href={`/contacto?piezas=${pieces}`} variant="outline">
+              Pedir piezas
+            </SquareLink>
+          </div>
         </div>
       </div>
-      <div
-        role="group"
-        aria-labelledby={labelId}
-        className="mt-4 flex items-center gap-3"
-      >
-        <button
-          type="button"
-          className={stepButton}
-          onClick={() => onChange(Math.max(0, quantity - 1))}
-          disabled={quantity === 0}
-          aria-label="Quitar una pieza"
-        >
-          −
-        </button>
-        <output
-          aria-live="polite"
-          className="w-24 text-center text-sm whitespace-nowrap"
-        >
-          {piecesLabel(quantity)}
-        </output>
-        <button
-          type="button"
-          className={stepButton}
-          onClick={() =>
-            onChange(Math.min(MAX_PIECES_ONLINE + 1, quantity + 1))
-          }
-          disabled={quantity > MAX_PIECES_ONLINE}
-          aria-label="Agregar una pieza"
-        >
-          +
-        </button>
-        {SHOW_PRICES && (
-          <span className="text-ink-soft ml-auto text-xs whitespace-nowrap">
-            {quantity > 0 && unit !== null
-              ? `${formatUsd(unit)} c/u`
-              : quantity === 0
-                ? `Desde ${formatUsd(PIECE_TIERS[PIECE_TIERS.length - 1].unit)} c/u`
-                : "Cotización"}
-          </span>
-        )}
-      </div>
-    </div>
+    </section>
   );
 }
 
@@ -197,16 +214,6 @@ function PlanPrice({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
   );
 }
 
-function totalText(plan: Plan, pieces: number, billing: BillingPeriod): string {
-  if (pieces === 0 || !SHOW_PRICES) return "";
-  const total = firstChargeTotal(plan, pieces, billing);
-  if (total === null) return "Te enviamos una cotización por las piezas.";
-  if (plan.price === 0) return `Total: ${formatUsd(total)}, pago único`;
-  return billing === "monthly"
-    ? `Primer cobro: ${formatUsd(total)} (primer mes + piezas)`
-    : `Total el primer año: ${formatUsd(total)}`;
-}
-
 /** Línea bajo el precio: equivalente mensual (anual) o lo que se ahorra pagando anual (mensual). */
 function billingNote(plan: Plan, billing: BillingPeriod): string {
   const savings = annualSavings(plan);
@@ -221,12 +228,10 @@ function extraLimitText(plan: Plan): string {
 }
 
 function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
-  const [pieces, setPieces] = useState(0);
   const isFree = plan.id === "free";
   const params = new URLSearchParams({ plan: plan.id });
   if (plan.price)
     params.set("periodo", billing === "monthly" ? "mensual" : "anual");
-  if (pieces > 0) params.set("piezas", String(pieces));
   // Plans with a free trial start with self-service signup; the rest still go through the quote form.
   const href = plan.trial
     ? `/registro?periodo=${billing === "monthly" ? "mensual" : "anual"}`
@@ -261,14 +266,6 @@ function PlanCard({ plan, billing }: { plan: Plan; billing: BillingPeriod }) {
           <PlanFeatureItem key={featureLabel(feature)} feature={feature} />
         ))}
       </ul>
-
-      <PieceSelector planId={plan.id} quantity={pieces} onChange={setPieces} />
-      <p
-        className="text-ink-soft mt-3 min-h-5 text-sm font-medium"
-        aria-live="polite"
-      >
-        {totalText(plan, pieces, billing)}
-      </p>
 
       <SquareLink
         href={href}
@@ -333,21 +330,14 @@ export function PlanCards() {
           ),
         )}
       </div>
-      <p className="border-cream-dark text-teal-deep rounded-xl border bg-white px-5 py-4 text-center text-sm font-medium">
+      <p className="border-cream-dark text-teal-deep mx-auto max-w-4xl rounded-xl border bg-white px-5 py-4 text-center text-sm font-medium">
         {TRIAL_GUARANTEE}
       </p>
+      <WelcomePieceOffer />
       {SHOW_PRICES && (
-        <div className="text-ink-soft space-y-1 pt-2 text-sm">
-          <p>
-            {WELCOME_PIECE.name}:{" "}
-            {PIECE_TIERS.map(
-              (t) => `${formatUsd(t.unit)} c/u (${t.min}–${t.max})`,
-            ).join(", ")}
-            ; más de {MAX_PIECES_ONLINE}, por cotización. El envío se cobra
-            aparte.
-          </p>
-          <p>{CURRENCY_NOTE}</p>
-        </div>
+        <p className="text-ink-soft mx-auto max-w-4xl pt-2 text-sm">
+          {CURRENCY_NOTE}
+        </p>
       )}
     </div>
   );
